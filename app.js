@@ -494,45 +494,85 @@
     b.replaceWith(f);
   }));
 
-  /* ---------- Annuaire des installateurs ---------- */
+  /* ---------- Annuaire des installateurs (façon Qualit'EnR) ---------- */
+  const COORDS = { "Les Abymes": [16.271, -61.504], "Anse-Bertrand": [16.472, -61.507], "Baie-Mahault": [16.267, -61.585], "Baillif": [16.020, -61.746], "Basse-Terre": [15.997, -61.726], "Bouillante": [16.131, -61.767], "Capesterre-Belle-Eau": [16.044, -61.564], "Capesterre-de-Marie-Galante": [15.896, -61.214], "Deshaies": [16.306, -61.794], "La Désirade": [16.305, -61.075], "Gourbeyre": [15.993, -61.692], "Le Gosier": [16.206, -61.493], "Goyave": [16.135, -61.574], "Grand-Bourg": [15.883, -61.315], "Lamentin": [16.268, -61.632], "Morne-à-l'Eau": [16.333, -61.457], "Le Moule": [16.333, -61.344], "Petit-Bourg": [16.192, -61.592], "Petit-Canal": [16.380, -61.486], "Pointe-à-Pitre": [16.241, -61.533], "Pointe-Noire": [16.233, -61.788], "Port-Louis": [16.418, -61.531], "Saint-Claude": [16.023, -61.701], "Saint-François": [16.252, -61.274], "Saint-Louis": [15.958, -61.316], "Sainte-Anne": [16.226, -61.380], "Sainte-Rose": [16.333, -61.697], "Terre-de-Bas": [15.854, -61.640], "Terre-de-Haut": [15.866, -61.583], "Trois-Rivières": [15.976, -61.645], "Vieux-Fort": [15.950, -61.705], "Vieux-Habitants": [16.059, -61.765], "Martinique": [14.64, -61.02], "Saint-Martin": [18.07, -63.05], "Saint-Barthélemy": [17.90, -62.83] };
+  const CEDYAN_GPS = [16.256, -61.578];
+  const distKm = (a, b) => { const R = 6371, r = Math.PI / 180, dLa = (b[0] - a[0]) * r, dLo = (b[1] - a[1]) * r; const h = Math.sin(dLa / 2) ** 2 + Math.cos(a[0] * r) * Math.cos(b[0] * r) * Math.sin(dLo / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(h)); };
   const annuaire = $("#annuaire-liste");
   if (annuaire) {
     const ZONES = { "Grande-Terre": ["Les Abymes", "Anse-Bertrand", "Le Gosier", "Le Moule", "Morne-à-l'Eau", "Petit-Canal", "Pointe-à-Pitre", "Port-Louis", "Saint-François", "Sainte-Anne"], "Basse-Terre": ["Baie-Mahault", "Baillif", "Basse-Terre", "Bouillante", "Capesterre-Belle-Eau", "Deshaies", "Gourbeyre", "Goyave", "Lamentin", "Petit-Bourg", "Pointe-Noire", "Saint-Claude", "Sainte-Rose", "Trois-Rivières", "Vieux-Fort", "Vieux-Habitants"], "Marie-Galante": ["Grand-Bourg", "Capesterre-de-Marie-Galante", "Saint-Louis"], "Les Saintes": ["Terre-de-Haut", "Terre-de-Bas"], "La Désirade": ["La Désirade"], "Martinique": ["Martinique"], "Saint-Martin": ["Saint-Martin"], "Saint-Barthélemy": ["Saint-Barthélemy"] };
     const zoneDe = (c) => Object.keys(ZONES).find((z) => ZONES[z].includes(c));
-    const selC = $("#a-commune"), rge = $("#a-rge"); const spes = $$(".filtres-spe input");
-    const carte = $(".carte-gp"); let zoneChoisie = "";
-    const memo = store.get("cedyan_commune", ""); if (memo) selC.value = memo;
-    const rendre = () => {
-      const c = selC.value, z = c ? zoneDe(c) : zoneChoisie; store.set("cedyan_commune", c);
-      const voulu = spes.filter((x) => x.checked).map((x) => x.value);
-      const base = (window.PARTENAIRES || []).filter((p) => (!rge.checked || p.rge) && voulu.every((v) => (p.specialites || []).includes(v)));
-      let l = base.filter((p) => !z || (p.zones || []).includes(z) || p.commune === c);
-      l.sort((a, b) => (b.commune === c) - (a.commune === c) || b.rge - a.rge);
-      if (carte) {
-        $$(".zones path", carte).forEach((p) => { p.classList.toggle("is-on", p.dataset.zone === z); p.classList.toggle("a-partenaires", base.some((x) => (x.zones || []).includes(p.dataset.zone))); });
-        $(".pastilles", carte).innerHTML = $$(".zones path", carte).map((p) => {
-          const n = base.filter((x) => (x.zones || []).includes(p.dataset.zone)).length; if (!n) return "";
-          const bb = p.getBBox(); return `<g class="pastille" transform="translate(${bb.x + bb.width - 8},${bb.y + 10})"><circle r="15"/><text y="5">${n}</text></g>`;
-        }).join("");
-      }
-      const lieu = c || z;
-      $("#annuaire-compte").textContent = lieu ? `${l.length} installateur${l.length > 1 ? "s" : ""} pour ${lieu}` : `${l.length} installateur${l.length > 1 ? "s" : ""} partenaire${l.length > 1 ? "s" : ""}`;
-      annuaire.innerHTML = l.length ? l.map((p) => `<article class="partenaire">${p.exemple ? '<span class="avi__ex">Exemple</span>' : ""}
-        <div class="partenaire__logo" aria-hidden="true">${esc(p.nom.split(" ").filter((m) => m.length > 2).slice(0, 2).map((m) => m[0]).join("").toUpperCase())}</div>
-        <div class="partenaire__corps"><div class="partenaire__tete"><h3>${esc(p.nom)}</h3>${p.rge ? '<span class="badge-rge">RGE QualiPV</span>' : ""}</div>
-        <p class="partenaire__lieu">${esc(p.commune)}, intervient en ${esc((p.zones || []).join(", "))}</p>
-        <div class="partenaire__tags">${(p.specialites || []).map((t) => `<span>${esc(t)}</span>`).join("")}</div></div>
-        <div class="partenaire__actions">${p.telephone ? `<a class="btn btn--ligne btn--petit" href="tel:${esc(p.telephone.replace(/\s/g, ""))}">Appeler</a>` : ""}<a class="btn btn--petit" href="contact.html?partenaire=${encodeURIComponent(p.nom)}">Demander un devis</a></div></article>`).join("")
-        : `<div class="vide" style="text-align:left"><p><b>Aucun partenaire référencé ici pour le moment.</b></p><p>Laissez-nous votre projet : nous le transmettons à un installateur qui peut intervenir chez vous.</p><a class="btn btn--petit" href="#" data-quiz-direct>Être mis en relation</a></div>`;
+    const inC = $("#a-commune"), selT = $("#a-type"), rge = $("#a-rge"), tri = $("#a-tri");
+    $("#liste-communes").innerHTML = COMMUNES.filter((c) => COORDS[c]).map((c) => `<option value="${esc(c)}">`).join("");
+    const memo = store.get("cedyan_commune", ""); if (memo && COORDS[memo]) inC.value = memo;
+    const parts = (window.PARTENAIRES || []).map((p, k) => { const g = COORDS[p.commune] || CEDYAN_GPS; return { ...p, gps: p.gps || [g[0] + ((k * 37) % 7 - 3) * 0.004, g[1] + ((k * 53) % 7 - 3) * 0.004] }; });
+    // Carte Leaflet
+    let carte = null, calque = null, pinCommune = null;
+    if (window.L && $("#carte-annuaire")) {
+      carte = L.map("carte-annuaire", { scrollWheelZoom: false, zoomControl: true }).setView([16.17, -61.45], 10);
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", { attribution: "© OpenStreetMap, © CARTO", subdomains: "abcd", maxZoom: 18 }).addTo(carte);
+      calque = L.layerGroup().addTo(carte);
+      L.marker(CEDYAN_GPS, { icon: L.divIcon({ className: "pin pin--cedyan", html: "<span>Cedyan</span>", iconSize: [64, 28], iconAnchor: [32, 28] }) }).addTo(carte).bindPopup("<b>Cedyan Energy</b><br>Magasin et comptoir, Baie-Mahault");
+    } else $(".ann-carte") && $(".ann-carte").classList.add("sans-carte");
+    const rendre = (centrer) => {
+      const c = COORDS[inC.value] ? inC.value : ""; if (c) store.set("cedyan_commune", c);
+      const z = c ? zoneDe(c) : ""; const type = selT.value;
+      let l = parts.filter((p) => (!rge.checked || p.rge) && (!type || (p.specialites || []).includes(type)) && (!z || (p.zones || []).includes(z) || p.commune === c));
+      l.forEach((p) => (p.km = c ? distKm(COORDS[c], p.gps) : null));
+      l.sort(tri.value === "nom" ? (a, b) => a.nom.localeCompare(b.nom) : (a, b) => (a.km ?? 0) - (b.km ?? 0) || b.rge - a.rge);
+      $("#annuaire-compte").textContent = c ? `${l.length} installateur${l.length > 1 ? "s" : ""} près de ${c}` : `${l.length} installateur${l.length > 1 ? "s" : ""} partenaire${l.length > 1 ? "s" : ""} en Guadeloupe`;
+      annuaire.innerHTML = l.length ? l.map((p, k) => `<article class="ann-fiche" data-k="${k}">
+        ${p.exemple ? '<span class="avi__ex">Exemple</span>' : ""}
+        <div class="ann-fiche__tete"><span class="ann-fiche__mono">${esc(p.nom.split(" ").filter((m) => m.length > 2).slice(0, 2).map((m) => m[0]).join("").toUpperCase())}</span>
+        <div><h3>${esc(p.nom)}</h3><p>${esc(p.commune)}${p.km != null ? ` <b class="ann-km">à ${p.km < 1 ? "moins d'1" : Math.round(p.km)} km</b>` : ""}</p></div></div>
+        <div class="ann-fiche__quali">${p.rge ? '<span class="badge-rge">RGE QualiPV</span>' : '<span class="badge-non">Non RGE</span>'}${(p.specialites || []).map((t) => `<span>${esc(t)}</span>`).join("")}</div>
+        <p class="ann-fiche__zone">Intervient en ${esc((p.zones || []).join(", "))}</p>
+        <div class="ann-fiche__actions">${p.telephone ? `<a class="btn btn--ligne btn--petit" href="tel:${esc(p.telephone.replace(/\s/g, ""))}">Appeler</a>` : ""}<a class="btn btn--petit" href="contact.html?partenaire=${encodeURIComponent(p.nom)}">Demander un devis</a></div></article>`).join("")
+        : `<div class="vide" style="text-align:left"><p><b>Aucun partenaire ne correspond à cette recherche.</b></p><p>Laissez-nous votre projet : nous le transmettons à un installateur qui peut intervenir chez vous.</p><a class="btn btn--petit" href="#" data-quiz-direct>Être mis en relation</a></div>`;
       $$("[data-quiz-direct]", annuaire).forEach((b) => b.addEventListener("click", (e) => { e.preventDefault(); ouvrirQuiz({}); }));
+      $$(".ann-fiche__mono", annuaire).forEach((m, k) => (m.dataset.n = k + 1));
+      if (carte) {
+        calque.clearLayers(); const pts = [];
+        l.forEach((p, k) => {
+          const m = L.marker(p.gps, { icon: L.divIcon({ className: "pin" + (p.rge ? " pin--rge" : ""), html: `<span>${k + 1}</span>`, iconSize: [30, 30], iconAnchor: [15, 30] }) }).addTo(calque).bindPopup(`<b>${esc(p.nom)}</b><br>${esc(p.commune)}`);
+          pts.push(p.gps);
+          const fiche = annuaire.querySelector(`[data-k="${k}"]`);
+          if (fiche) { fiche.addEventListener("mouseenter", () => m.getElement() && m.getElement().classList.add("is-on")); fiche.addEventListener("mouseleave", () => m.getElement() && m.getElement().classList.remove("is-on")); fiche.addEventListener("click", (e) => { if (!e.target.closest("a")) { carte.flyTo(p.gps, 12, { duration: .8 }); m.openPopup(); } }); }
+        });
+        if (pinCommune) { carte.removeLayer(pinCommune); pinCommune = null; }
+        if (c) { pinCommune = L.circleMarker(COORDS[c], { radius: 9, color: "#fff", weight: 3, fillColor: "#2b4b9b", fillOpacity: 1 }).addTo(carte).bindTooltip(c, { permanent: true, direction: "top", className: "pin-tip" }); pts.push(COORDS[c]); }
+        if (centrer !== false) { if (pts.length > 1) carte.flyToBounds(pts, { padding: [40, 40], maxZoom: 12, duration: .8 }); else if (pts.length) carte.flyTo(pts[0], 12, { duration: .8 }); else carte.flyTo([16.17, -61.45], 10, { duration: .8 }); }
+      }
     };
-    if (carte) {
-      $$(".zones path", carte).forEach((p) => { p.setAttribute("tabindex", "0"); p.setAttribute("role", "button"); p.setAttribute("aria-label", p.dataset.zone);
-        const choisir = () => { zoneChoisie = p.dataset.zone; selC.value = ""; rendre(); };
-        p.addEventListener("click", choisir); p.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); choisir(); } }); });
-      const reset = $("[data-zone-reset]"); reset && reset.addEventListener("click", () => { zoneChoisie = ""; selC.value = ""; rendre(); });
-    }
-    [selC, rge, ...spes].forEach((x) => x.addEventListener("change", rendre)); rendre();
+    $("#form-annu").addEventListener("submit", (e) => { e.preventDefault(); rendre(); document.querySelector(".ann-res").scrollIntoView({ behavior: reduit ? "auto" : "smooth" }); });
+    [selT, rge, tri].forEach((x) => x.addEventListener("change", () => rendre()));
+    inC.addEventListener("change", () => rendre());
+    const reset = $("[data-zone-reset]"); reset && reset.addEventListener("click", () => { inC.value = ""; selT.value = ""; rendre(); });
+    rendre(false);
+    // Onglets
+    $$("[data-onglet]").forEach((o) => o.addEventListener("click", () => {
+      $$("[data-onglet]").forEach((x) => x.setAttribute("aria-selected", String(x === o)));
+      $$("[data-panneau]").forEach((p) => p.classList.toggle("is-on", p.dataset.panneau === o.dataset.onglet));
+    }));
+    // Vérifier une entreprise : registre national + annuaire RGE de l'ADEME
+    const fv = $("#form-verif-rge");
+    fv && fv.addEventListener("submit", async (e) => {
+      e.preventDefault(); const out = $("#verif-rge"); const n = $("#v-siret").value.replace(/\D/g, "");
+      if (!(n.length === 9 || n.length === 14)) { out.className = "verif is-ko"; out.textContent = "Saisissez un SIRET (14 chiffres) ou un SIREN (9 chiffres)."; return; }
+      out.className = "verif is-wait"; out.textContent = "Vérification en cours…";
+      const v = await verifierSiren(n);
+      let rgeTxt = "";
+      try {
+        const r = await fetch("https://data.ademe.fr/data-fair/api/v1/datasets/liste-des-entreprises-rge-2/lines?size=20&qs=siret:" + (n.length === 14 ? n : n + "*"));
+        const j = await r.json(); const lignes = (j.results || []);
+        const pv = lignes.filter((x) => /qualipv|photovolta/i.test(JSON.stringify(x)));
+        rgeTxt = lignes.length ? (pv.length ? "<b>Qualification RGE photovoltaïque trouvée</b> (QualiPV)." : "Entreprise RGE, mais pas pour le photovoltaïque.") : "Aucune qualification RGE trouvée pour ce numéro.";
+      } catch (er) { rgeTxt = 'Vérifiez la qualification RGE sur <a class="lien" href="https://france-renov.gouv.fr/annuaire-rge" target="_blank" rel="noopener">l\'annuaire officiel France Rénov\'</a>.'; }
+      const partenaire = parts.find((p) => p.siren && n.startsWith(p.siren));
+      if (v.etat === "ko") { out.className = "verif is-ko"; out.textContent = v.msg; return; }
+      out.className = "verif is-ok";
+      out.innerHTML = (v.nom ? `<b>${esc(v.nom)}</b> : entreprise active au registre national. ` : "") + rgeTxt + (partenaire ? " <b>Partenaire Cedyan Energy.</b>" : "");
+    });
   }
   // Pré-remplir le message contact quand on vient de l'annuaire
   const partenaireQ = new URLSearchParams(location.search).get("partenaire");

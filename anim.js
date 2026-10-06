@@ -245,53 +245,39 @@
     const tr = t.querySelectorAll("tr")[idx]; if (tr) tr.classList.add("aujourdhui");
   });
 
-  /* ---------- Simulateur de coupure ---------- */
+  /* ---------- Simulateur de coupure (scène maison) ---------- */
   const simu = $("[data-simu]");
   if (simu) {
     const zone = simu.closest("[data-simu-zone]");
-    const btn = $("[data-simu-btn]", simu), etat = $(".simu__reseau", simu), etatTxt = $("[data-etat-txt]", simu);
-    const pct = $("[data-pct]", simu), kwhTxt = $("[data-kwh-txt]", simu), auto = $("[data-auto]", simu), horloge = $("[data-horloge]", simu);
-    const jauge = $(".simu__jauge i", simu);
-    let niv = 1, kwh = 4.8, enCoupure = false, timer = 0, heures = 0, deja = false;
-    const apps = $$(".simu__apps li", simu);
-    const puissance = () => apps.filter((li) => +li.dataset.niv <= niv).reduce((a, li) => a + parseFloat(li.querySelector("b").textContent), 0);
-    const autonomie = () => (kwh * 0.9 * 1000) / puissance();
-    const maj = (restant) => {
-      apps.forEach((li) => li.classList.toggle("is-on", +li.dataset.niv <= niv));
-      const p = restant == null ? 100 : Math.max(0, restant);
-      pct.textContent = Math.round(p) + " %";
-      jauge.style.setProperty("--niv", p / 100);
-      kwhTxt.textContent = (kwh * p / 100).toLocaleString("fr-FR", { maximumFractionDigits: 1 }) + " kWh en réserve";
-      auto.textContent = "≈ " + Math.round(autonomie() * p / 100) + " h";
-    };
-    const arreter = () => {
-      clearInterval(timer); enCoupure = false; heures = 0;
-      zone.classList.remove("coupure", "secours"); etat.dataset.etat = "ok"; etatTxt.textContent = "Réseau EDF en ligne";
-      horloge.textContent = "Tout fonctionne sur le réseau"; btn.lastChild.textContent = "Simuler une coupure"; maj(null);
-    };
+    const btn = $("[data-simu-btn]", simu), badge = $(".cyc__badge", simu), etatTxt = $("[data-etat-txt]", simu);
+    const pct = $("[data-pct]", simu), auto = $("[data-auto]", simu), hEl = $("[data-heures]", simu), jauge = $(".cyc__jauge i", simu);
+    let w = 142, kwh = 4.8, enCoupure = false, timer = 0, heures = 0, deja = false;
+    const autonomie = () => (kwh * 0.9 * 1000) / w;
+    const maj = (p) => { pct.textContent = Math.round(p) + " %"; jauge.style.setProperty("--niv", p / 100); auto.textContent = "≈ " + Math.round(autonomie() * p / 100) + " h"; hEl.textContent = heures + " h"; };
+    const arreter = () => { clearInterval(timer); enCoupure = false; heures = 0; zone.classList.remove("coupure", "secours"); badge.dataset.etat = "ok"; etatTxt.textContent = "Réseau EDF en ligne"; btn.lastChild.textContent = "Simuler une coupure"; maj(100); };
     const couper = () => {
-      enCoupure = true; zone.classList.add("coupure"); etat.dataset.etat = "ko"; etatTxt.textContent = "Réseau coupé";
-      btn.lastChild.textContent = "Rétablir le réseau";
+      enCoupure = true; zone.classList.add("coupure"); badge.dataset.etat = "ko"; etatTxt.textContent = "Coupure de courant"; btn.lastChild.textContent = "Rétablir le réseau";
       setTimeout(() => {
         if (!enCoupure) return;
-        zone.classList.add("secours"); etatTxt.textContent = "Pack actif : bascule en 0,02 s";
+        zone.classList.add("secours"); badge.dataset.etat = "secours"; etatTxt.textContent = "Pack actif, bascule en 0,02 s";
         const total = autonomie();
-        timer = setInterval(() => {
-          heures += 1; const reste = 100 - (heures / total) * 100;
-          horloge.textContent = "Coupure depuis " + heures + " h, tout reste allumé";
-          maj(reste);
-          if (heures >= Math.min(12, Math.floor(total) - 1)) { clearInterval(timer); horloge.textContent = "Après " + heures + " h de coupure, il reste ≈ " + Math.round(total - heures) + " h d'autonomie"; }
-        }, reduit ? 50 : 650);
-      }, reduit ? 0 : 900);
+        timer = setInterval(() => { heures++; maj(100 - (heures / total) * 100); if (heures >= Math.min(12, Math.floor(total) - 1)) clearInterval(timer); }, reduit ? 60 : 700);
+      }, reduit ? 0 : 1300);
     };
     btn.addEventListener("click", () => (enCoupure ? arreter() : couper()));
     $$("[data-pack]", simu).forEach((b) => b.addEventListener("click", () => {
       $$("[data-pack]", simu).forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
-      niv = +b.dataset.pack; kwh = +b.dataset.kwh; const etaitCoupe = enCoupure; arreter(); if (etaitCoupe) couper();
+      w = +b.dataset.w; kwh = +b.dataset.kwh; const etait = enCoupure; arreter(); if (etait) couper();
     }));
-    maj(null);
-    if ("IntersectionObserver" in window) new IntersectionObserver((en, o) => { if (en[0].isIntersecting && !deja) { deja = true; o.disconnect(); setTimeout(couper, 1200); } }, { threshold: 0.6 }).observe(simu);
+    maj(100);
+    if ("IntersectionObserver" in window) new IntersectionObserver((en, o) => { if (en[0].isIntersecting && !deja) { deja = true; o.disconnect(); setTimeout(couper, 1400); } }, { threshold: 0.55 }).observe(simu);
   }
+
+  /* ---------- Pile de produits : parallaxe ---------- */
+  const pile = $$("[data-parallax]");
+  if (pile.length && !reduit) addEventListener("scroll", () => {
+    pile.forEach((el) => { const r = el.getBoundingClientRect(); if (r.bottom < -200 || r.top > innerHeight + 200) return; el.style.translate = `0 ${(r.top - innerHeight / 2) * +el.dataset.parallax}px`; });
+  }, { passive: true });
 
   /* ---------- Survols : boutons magnétiques et cartes inclinées ---------- */
   if (!tactile && !reduit) {

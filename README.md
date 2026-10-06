@@ -66,3 +66,10 @@ Vidéos utilisées : accueil 46623, 32441 et 46624 ; services 47097 ; cyclone 40
 anim.js : écran de chargement (une fois par visite), bande-démo vidéo, titres mot par mot, compteurs,
 gamme en défilement horizontal, pluie et éclairs, survols. Tout se coupe automatiquement si le visiteur
 a activé « réduire les animations » ou le mode économie de données.
+
+## Trouver un installateur
+- Carte réelle : Leaflet (cdnjs) avec le fond de carte CARTO Voyager (gratuit, attribution affichée).
+- Distances calculées depuis la commune saisie. Coordonnées des communes dans app.js (COORDS).
+- Onglet « Vérifier une entreprise » : registre national (recherche-entreprises.api.gouv.fr)
+  + annuaire RGE public de l'ADEME (data.ademe.fr). Si l'ADEME ne répond pas, lien vers France Rénov'.
+- partenaires.js : on peut ajouter "siren" à un partenaire pour qu'il soit reconnu comme partenaire Cedyan à la vérification.
