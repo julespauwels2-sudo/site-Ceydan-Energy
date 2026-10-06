@@ -377,14 +377,37 @@
   $$("[data-prime-periode]").forEach((e) => (e.textContent = (C.prime && C.prime.periode) || ""));
   $$("[data-prime-3]").forEach((e) => (e.textContent = euro(Math.round(primePour(3)))));
 
-  /* ---------- Avis Google ---------- */
+  /* ---------- Avis Google (automatiques via Supabase, sinon config.js) ---------- */
   const avisBox = $("#avis-liste");
-  if (avisBox && C.google) {
-    const g = C.google;
-    avisBox.innerHTML = (g.avis || []).map((a) => `<article class="avi">${a.exemple ? '<span class="avi__ex">Exemple</span>' : ""}<span class="etoiles" aria-label="${a.note} sur 5">${"★".repeat(a.note)}</span><p>${esc(a.texte)}</p><footer><b>${esc(a.nom)}</b>, ${esc(a.commune)}</footer></article>`).join("");
-    $$("[data-google-note]").forEach((e) => (e.textContent = String(g.note).replace(".", ",")));
+  function afficherAvis(g, depuisGoogle) {
+    if (!avisBox || !g) return;
+    const liste = (g.avis || []).slice(0, 8);
+    avisBox.innerHTML = liste.map((a) => {
+      const n = Math.max(1, Math.min(5, Math.round(a.note || 5)));
+      const qui = depuisGoogle
+        ? `<footer class="avi__pied">${a.photo ? `<img src="${esc(a.photo)}" alt="" width="32" height="32" loading="lazy" referrerpolicy="no-referrer">` : ""}<span><b>${a.lienAuteur ? `<a href="${esc(a.lienAuteur)}" target="_blank" rel="noopener">${esc(a.nom)}</a>` : esc(a.nom)}</b><small>${esc(a.quand || "")}, sur Google</small></span></footer>`
+        : `<footer><b>${esc(a.nom)}</b>${a.commune ? ", " + esc(a.commune) : ""}</footer>`;
+      const texte = String(a.texte || ""); const court = texte.length > 260 ? texte.slice(0, 250).replace(/\s+\S*$/, "") + "…" : texte;
+      return `<article class="avi">${a.exemple ? '<span class="avi__ex">Exemple</span>' : ""}<span class="etoiles" aria-label="${n} sur 5">${"★".repeat(n)}${"☆".repeat(5 - n)}</span><p>${esc(court)}</p>${qui}</article>`;
+    }).join("");
+    delete avisBox.dataset.clone;
+    if (g.note) $$("[data-google-note]").forEach((e) => (e.textContent = (+g.note).toFixed(1).replace(".", ",")));
     $$("[data-google-nb]").forEach((e) => (e.textContent = g.nombreAvis ? g.nombreAvis + " avis Google" : "Avis Google"));
-    $$("[data-google-lien]").forEach((a) => (a.href = g.lienAvis));
+    $$("[data-google-lien]").forEach((x) => (x.href = g.lien || g.lienAvis || "#"));
+    document.dispatchEvent(new CustomEvent("cedyan:avis"));
+  }
+  if (avisBox || $("[data-google-note]")) {
+    const manuels = C.google && (C.google.avis || []).some((a) => !a.exemple);
+    let fait = false;
+    const repli = () => { if (!fait && C.google) { fait = true; afficherAvis(C.google, false); } };
+    if (manuels || !SB) repli();
+    if (SB) {
+      const ctl = new AbortController(); const minuteur = setTimeout(() => { ctl.abort(); repli(); }, 3500);
+      fetch(SB.url + "/functions/v1/avis-google", { headers: enTetesSB(), signal: ctl.signal })
+        .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+        .then((g) => { clearTimeout(minuteur); if (g && g.note && (g.avis || []).length) { fait = true; afficherAvis(g, true); } else repli(); })
+        .catch(() => { clearTimeout(minuteur); repli(); });
+    }
   }
 
   /* ---------- Catalogue ---------- */

@@ -1510,3 +1510,9 @@ body.avec-saison{--decal:40px}
 .barre-saison--rouge{background:#b42318}
 .barre-saison--alerte .barre-saison__txt b{color:#fff}
 .barre-saison--alerte .barre-saison__txt i{background:#fff}
+.avi__pied{display:flex;align-items:center;gap:10px}
+.avi__pied img{width:32px;height:32px;border-radius:50%;object-fit:cover;flex:none}
+.avi__pied span{display:grid;line-height:1.3}
+.avi__pied a{color:inherit;text-decoration:none}
+.avi__pied a:hover{text-decoration:underline}
+.avi__pied small{color:var(--gris);font-size:.8rem;font-weight:400}

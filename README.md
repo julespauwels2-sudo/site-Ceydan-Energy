@@ -86,3 +86,8 @@ a activé « réduire les animations » ou le mode économie de données.
 - Onglet « Vérifier une entreprise » : registre national (recherche-entreprises.api.gouv.fr)
   + annuaire RGE public de l'ADEME (data.ademe.fr). Si l'ADEME ne répond pas, lien vers France Rénov'.
 - partenaires.js : on peut ajouter "siren" à un partenaire pour qu'il soit reconnu comme partenaire Cedyan à la vérification.
+
+## Avis Google automatiques
+- Fonction Supabase « avis-google » : note, nombre d'avis et avis récents de la fiche Google (API Places New), cache de 6 h.
+- Secret à créer : GOOGLE_PLACES_KEY (clé avec « Places API (New) » activée). GOOGLE_PLACE_ID est facultatif.
+- Si la fonction ne répond pas, le site affiche les avis saisis à la main dans config.js → google.
