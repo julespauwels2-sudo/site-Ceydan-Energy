@@ -165,3 +165,21 @@ td small{color:var(--gris)}
   .main{padding:20px 14px 60px}
 }
 .panneau select,.panneau textarea,.panneau input:not([type=checkbox]){min-height:42px;border:1.5px solid var(--trait);border-radius:12px;padding:8px 12px;background:#fff;width:100%}.panneau .formulaire{gap:14px}
+
+/* Photos produits */
+.vignette{position:relative;flex:none;width:52px;height:52px;border-radius:10px;border:1.5px dashed #b9c8bc;background:#fff;display:grid;place-items:center;cursor:pointer;overflow:hidden}
+.vignette img{width:100%;height:100%;object-fit:contain}
+.vignette__plus{position:absolute;inset:0;display:grid;place-items:center;font-size:1.3rem;font-weight:800;color:var(--vert);background:rgba(255,255,255,.85);opacity:0;transition:opacity .2s}
+.vignette:not(:has(img)) .vignette__plus,.vignette:hover .vignette__plus,.vignette:focus-within .vignette__plus{opacity:1}
+.vignette.is-envoi::after{content:"";position:absolute;inset:0;background:rgba(255,255,255,.7) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='9' fill='none' stroke='%23218034' stroke-width='3' stroke-dasharray='40 20'/%3E%3C/svg%3E") center/24px no-repeat}
+.produit-cel img{border:0}
+.photo-zone{display:flex;align-items:center;gap:14px;padding:12px;border:2px dashed #b9c8bc;border-radius:14px;cursor:pointer;font-weight:400;transition:border-color .2s,background .2s}
+.photo-zone:hover,.photo-zone.is-survol{border-color:var(--vert);background:#f3faf4}
+.photo-zone__apercu{flex:none;width:84px;height:84px;border-radius:10px;background:var(--fond);display:grid;place-items:center;overflow:hidden}
+.photo-zone__apercu:empty::before{content:"📷";font-size:1.8rem}
+.photo-zone__apercu img{width:100%;height:100%;object-fit:contain;background:#fff}
+.photo-zone__txt{display:grid;gap:4px}
+.photo-zone__txt small{color:var(--gris)}
+.photo-url{font-weight:400;font-size:.85rem;color:var(--gris)}
+.photo-url summary{cursor:pointer;margin-top:4px}
+.photo-url input{margin-top:8px}

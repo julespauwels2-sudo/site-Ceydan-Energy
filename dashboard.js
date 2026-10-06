@@ -188,7 +188,7 @@
     const q = $("#p-recherche").value.toLowerCase(), c = $("#p-cat").value;
     const l = D.produits.filter((p) => (!c || p.cat === c) && (!q || `${p.nom} ${p.ref} ${p.marque}`.toLowerCase().includes(q)));
     $("#liste-produits").innerHTML = l.map((p) => `<tr data-id="${esc(p.id)}" class="${p.actif ? "" : "is-masque"}">
-      <td class="produit-cel">${p.img ? `<img src="${esc(p.img)}" alt="" loading="lazy" onerror="this.remove()">` : ""}<span><b>${esc(p.nom)}</b><br><small>${esc(p.marque || "")} ${esc(p.ref || "")}</small></span></td>
+      <td class="produit-cel"><label class="vignette" title="Changer la photo">${p.img ? `<img src="${esc(p.img)}" alt="" loading="lazy" onerror="this.remove()">` : ""}<span class="vignette__plus" aria-hidden="true">+</span><input type="file" accept="image/*" class="sr" data-photo-rapide aria-label="Changer la photo de ${esc(p.nom)}"></label><span><b>${esc(p.nom)}</b><br><small>${esc(p.marque || "")} ${esc(p.ref || "")}</small></span></td>
       <td>${CATS[p.cat] || esc(p.cat)}</td>
       <td><input class="prix-in" type="number" min="0" step="0.01" value="${p.prix ?? ""}" placeholder="Sur devis" aria-label="Prix pro HT"></td>
       <td><label class="inter inter--petit"><input type="checkbox" data-champ="stock" ${p.stock ? "checked" : ""}><span></span></label></td>
@@ -198,6 +198,16 @@
   ["#p-recherche", "#p-cat"].forEach((s) => $(s).addEventListener("input", rendreProduits));
   $("#liste-produits").addEventListener("change", async (e) => {
     const tr = e.target.closest("tr[data-id]"); if (!tr) return; const p = D.produits.find((x) => x.id === tr.dataset.id);
+    if (e.target.matches("[data-photo-rapide]")) {
+      const f = e.target.files[0]; if (!f) return; const v = $(".vignette", tr); v.classList.add("is-envoi");
+      try {
+        const url = await envoyerPhoto(f, p.id);
+        const { error } = await sb.from("produits").update({ img: url, updated_at: new Date().toISOString() }).eq("id", p.id);
+        if (error) throw new Error(error.message);
+        p.img = url; v.querySelector("img") ? (v.querySelector("img").src = url) : v.insertAdjacentHTML("afterbegin", `<img src="${url}" alt="">`); toast("Photo mise à jour");
+      } catch (er) { toast(er.message); }
+      v.classList.remove("is-envoi"); return;
+    }
     if (e.target.classList.contains("prix-in")) {
       const v = e.target.value === "" ? null : +e.target.value;
       const { error } = v == null ? await sb.from("tarifs").delete().eq("produit_id", p.id) : await sb.from("tarifs").upsert({ produit_id: p.id, prix: v, updated_at: new Date().toISOString() });
@@ -213,20 +223,54 @@
       <label class="champ">Nom affiché<input name="nom" required value="${esc(p.nom || "")}" placeholder="Batterie lithium 4,8 kWh"></label>
       <div class="ligne"><label class="champ">Marque<input name="marque" value="${esc(p.marque || "")}"></label><label class="champ">Référence<input name="ref" value="${esc(p.ref || "")}"></label></div>
       <div class="ligne"><label class="champ">Catégorie<select name="cat">${Object.entries(CATS).map(([k, v]) => `<option value="${k}" ${k === p.cat ? "selected" : ""}>${v}</option>`).join("")}</select></label><label class="champ">Prix pro HT (€)<input name="prix" type="number" step="0.01" min="0" value="${p.prix ?? ""}" placeholder="Vide = sur devis"></label></div>
-      <label class="champ">Adresse de la photo<input name="img" value="${esc(p.img || "")}" placeholder="https://…"></label>
+      <div class="champ">Photo
+        <label class="photo-zone" id="photo-zone">
+          <span class="photo-zone__apercu" id="photo-apercu">${p.img ? `<img src="${esc(p.img)}" alt="">` : ""}</span>
+          <span class="photo-zone__txt"><b>${p.img ? "Changer la photo" : "Ajouter une photo"}</b><small>Glissez une image ici ou cliquez. Elle est allégée automatiquement.</small></span>
+          <input type="file" id="photo-fichier" accept="image/*" class="sr">
+        </label>
+        <details class="photo-url"><summary>Ou coller l'adresse d'une image</summary><input name="img" value="${esc(p.img || "")}" placeholder="https://…"></details>
+      </div>
       ${p.cat === "kits" ? '<p class="aide">Les textes détaillés des kits se modifient aussi ici plus tard ; pour l\'instant, demandez à PFlow.</p>' : ""}
       <div class="ligne"><label class="inter"><input type="checkbox" name="stock" ${p.stock !== false ? "checked" : ""}><span></span>En stock</label><label class="inter"><input type="checkbox" name="actif" ${p.actif !== false ? "checked" : ""}><span></span>Visible sur le site</label></div>
       <div class="actions"><button class="b b--jaune" type="submit">Enregistrer</button>${p.id && moi.role === "patron" ? '<button class="b b--danger" type="button" id="p-supprimer">Supprimer</button>' : ""}</div>
     </form>`;
+  /* Photos : compressées dans le navigateur (WebP, 1200 px max) puis envoyées dans le stockage « produits ». */
+  async function compresser(fichier) {
+    const img = await createImageBitmap(fichier);
+    const max = 1200, r = Math.min(1, max / Math.max(img.width, img.height));
+    const cv = document.createElement("canvas"); cv.width = Math.round(img.width * r); cv.height = Math.round(img.height * r);
+    const ctx = cv.getContext("2d"); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, cv.width, cv.height); ctx.drawImage(img, 0, 0, cv.width, cv.height);
+    const blob = await new Promise((ok) => cv.toBlob(ok, "image/webp", 0.86));
+    return blob && blob.type === "image/webp" ? { blob, ext: "webp" } : { blob: await new Promise((ok) => cv.toBlob(ok, "image/jpeg", 0.88)), ext: "jpg" };
+  }
+  async function envoyerPhoto(fichier, idProduit) {
+    if (!/^image\/(jpeg|png|webp|heic|heif|gif|avif)$/i.test(fichier.type) && !/\.(jpe?g|png|webp|heic|avif)$/i.test(fichier.name)) throw new Error("Choisissez une image (JPG, PNG, WebP).");
+    const { blob, ext } = await compresser(fichier);
+    const chemin = `${idProduit}/${Date.now()}.${ext}`;
+    const { error } = await sb.storage.from("produits").upload(chemin, blob, { contentType: blob.type, cacheControl: "31536000" });
+    if (error) throw new Error("Envoi impossible : " + error.message);
+    return sb.storage.from("produits").getPublicUrl(chemin).data.publicUrl;
+  }
   const slug = (t) => t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 50);
   function editerProduit(p) {
     ouvrirPanneau(formProduit(p));
+    let photo = null;
+    const zone = $("#photo-zone"), inF = $("#photo-fichier"), apercu = $("#photo-apercu");
+    const choisir = (f) => { if (!f) return; photo = f; apercu.innerHTML = `<img src="${URL.createObjectURL(f)}" alt="">`; $(".photo-zone__txt b", zone).textContent = "Photo prête : " + f.name; };
+    inF.addEventListener("change", () => choisir(inF.files[0]));
+    ["dragenter", "dragover"].forEach((ev) => zone.addEventListener(ev, (e) => { e.preventDefault(); zone.classList.add("is-survol"); }));
+    ["dragleave", "drop"].forEach((ev) => zone.addEventListener(ev, (e) => { e.preventDefault(); zone.classList.remove("is-survol"); }));
+    zone.addEventListener("drop", (e) => choisir(e.dataTransfer.files[0]));
     $("#form-produit").addEventListener("submit", async (e) => {
       e.preventDefault(); const f = new FormData(e.target);
       const id = p && p.id ? p.id : slug(f.get("marque") + " " + f.get("nom")) + "-" + Date.now().toString(36).slice(-3);
-      const ligne = { id, nom: f.get("nom"), marque: f.get("marque"), ref: f.get("ref"), cat: f.get("cat"), img: f.get("img"), stock: !!f.get("stock"), actif: !!f.get("actif"), updated_at: new Date().toISOString() };
+      const btn = $("button[type=submit]", e.target); btn.disabled = true; btn.textContent = photo ? "Envoi de la photo…" : "Enregistrement…";
+      let img = f.get("img");
+      if (photo) { try { img = await envoyerPhoto(photo, id); } catch (er) { btn.disabled = false; btn.textContent = "Enregistrer"; return toast(er.message); } }
+      const ligne = { id, nom: f.get("nom"), marque: f.get("marque"), ref: f.get("ref"), cat: f.get("cat"), img, stock: !!f.get("stock"), actif: !!f.get("actif"), updated_at: new Date().toISOString() };
       if (!p || !p.id) ligne.ordre = (Math.max(0, ...D.produits.map((x) => x.ordre || 0)) + 1);
-      const { error } = await sb.from("produits").upsert(ligne); if (error) return toast("Erreur : " + error.message);
+      const { error } = await sb.from("produits").upsert(ligne); if (error) { btn.disabled = false; btn.textContent = "Enregistrer"; return toast("Erreur : " + error.message); }
       const prix = f.get("prix");
       const r2 = prix === "" ? await sb.from("tarifs").delete().eq("produit_id", id) : await sb.from("tarifs").upsert({ produit_id: id, prix: +prix });
       if (r2.error) return toast("Erreur prix : " + r2.error.message);
