@@ -18,15 +18,15 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400&display=swap">
 <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="page-">
 <a class="skip" href="#contenu">Aller au contenu</a>
-<div class="top-bar"><div class="wrap">
-  <div class="top-bar__pts"><span><i></i>Stock à Baie-Mahault</span><span>Du lundi au jeudi 8h30-16h, le vendredi 8h30-13h</span></div>
-  <div class="top-bar__droite"><a data-tel href="#">0590 32 15 20</a><a href="pro.html" class="top-bar__pro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Connexion pro</a></div>
-</div></div>
 <header class="header">
-  <div class="wrap">
-    <a class="logo" href="index.html" aria-label="Cedyan Energy, accueil"><img src="logo-cedyan.png" srcset="logo-cedyan.png 448w, logo-cedyan.webp 896w" sizes="178px" width="178" height="53" alt="Cedyan Energy, spécialiste caraïbe depuis 2012"></a>
+  <div class="top-bar"><div class="wrap">
+    <div class="top-bar__pts"><span><i></i>Stock à Baie-Mahault</span><span>Du lundi au jeudi 8h30-16h, le vendredi 8h30-13h</span></div>
+    <div class="top-bar__droite"><a data-tel href="#">0590 32 15 20</a><a href="pro.html" class="top-bar__pro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Connexion pro</a></div>
+  </div></div>
+  <div class="wrap header__main">
+    <a class="logo" href="index.html" aria-label="Cedyan Energy, accueil"><img class="logo__clair" src="logo-blanc.png" srcset="logo-blanc.png 448w, logo-blanc.webp 896w" sizes="178px" width="178" height="53" alt="Cedyan Energy"><img class="logo__sombre" src="logo-cedyan.png" srcset="logo-cedyan.png 448w, logo-cedyan.webp 896w" sizes="178px" width="178" height="53" alt=""></a>
     <nav class="nav" id="nav" aria-label="Navigation principale">
       <a href="qui-sommes-nous.html">Qui sommes-nous</a>
       <a href="catalogue.html">Catalogue</a>
@@ -43,7 +43,7 @@
 </header>
 <main id="contenu">
 
-<section class="sec"><div class="wrap" style="display:grid;gap:22px;max-width:640px">
+<section class="banniere banniere--simple"><div class="banniere__voile"></div><div class="wrap banniere__in" style="max-width:760px">
   <h1 class="t-xl">Cette page a sauté comme un fusible.</h1>
   <p class="lead">Le lien est peut-être ancien. Le matériel, lui, est toujours en stock.</p>
   <div class="hero__ctas"><a class="btn" href="index.html">Retour à l'accueil</a><a class="btn btn--ligne" href="catalogue.html">Voir le catalogue</a></div>
@@ -81,6 +81,7 @@
         <li><a href="https://www.youtube.com/channel/UCXPs2lO-xhEK2AEzHWEL8Zg" target="_blank" rel="noopener">YouTube</a></li>
       </ul></div>
     </div>
+    <div class="footer__geant" aria-hidden="true">Cedyan Energy</div>
     <div class="footer__bas"><span>© <span data-annee>2026</span> Cedyan Energy. Tous droits réservés.</span><span>Site réalisé par PFlow</span></div>
   </div>
 </footer>
@@ -139,5 +140,6 @@
 <script src="data.js"></script>
 <script src="partenaires.js"></script>
 <script src="app.js"></script>
+<script src="anim.js"></script>
 </body>
 </html>

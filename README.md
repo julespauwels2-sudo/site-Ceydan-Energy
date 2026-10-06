@@ -1,4 +1,4 @@
-# Site Cedyan Energy (version 2)
+# Site Cedyan Energy (version 3, cinématique)
 
 Site statique (HTML/CSS/JS), sans build. Déploiement : GitHub puis Vercel, preset **Other**.
 Tous les fichiers sont à la racine : glisse-les d'un coup dans GitHub (Add file → Upload files).
@@ -47,3 +47,17 @@ Si l'ancien site est coupé, rapatrier les photos et changer les URL dans data.j
 ## Ajouter un produit
 Copier une ligne dans `PRODUITS` (data.js), changer id, cat, marque, nom, spec, prix, img, stock.
 Catégories : panneaux, onduleurs, convertisseurs, regulateurs, monitoring, batteries, structures, cables, protections.
+
+
+## Vidéos
+Les vidéos de fond viennent de Mixkit (licence gratuite, usage commercial autorisé, sans mention obligatoire).
+Elles sont chargées depuis assets.mixkit.co, seulement quand elles sont visibles à l'écran.
+Pour les héberger soi-même (plus fiable) : télécharger le fichier depuis mixkit.co, le mettre à la racine
+et remplacer l'adresse https://assets.mixkit.co/videos/... par le nom du fichier dans le HTML.
+Le jour où Cedyan a ses propres images (drone sur un chantier, magasin, équipe), on les remplace : c'est le meilleur upgrade possible.
+Vidéos utilisées : accueil 46623, 32441 et 46624 ; services 47097 ; cyclone 4059 ; installateurs 23491 ; kits 46502 ; qui sommes-nous 32448 ; catalogue 32520 ; pro 34596 ; contact 46501.
+
+## Animations
+anim.js : écran de chargement (une fois par visite), bande-démo vidéo, titres mot par mot, compteurs,
+gamme en défilement horizontal, pluie et éclairs, survols. Tout se coupe automatiquement si le visiteur
+a activé « réduire les animations » ou le mode économie de données.

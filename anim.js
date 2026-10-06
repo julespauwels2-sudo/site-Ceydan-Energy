@@ -1,0 +1,241 @@
+/* =========================================================
+   CEDYAN ENERGY — anim.js
+   Chargeur, vidéos, titres animés, compteurs, défilements,
+   pluie et éclairs, effets au survol. Respecte « réduire les animations ».
+   ========================================================= */
+(function () {
+  "use strict";
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+  const reduit = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const tactile = matchMedia("(hover: none)").matches;
+  const eco = navigator.connection && (navigator.connection.saveData || /2g/.test(navigator.connection.effectiveType || ""));
+  const root = document.documentElement;
+  const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+
+  /* ---------- Header : transparent sur la vidéo, plein au défilement ---------- */
+  const header = $(".header");
+  const majHeader = () => header && header.classList.toggle("is-solide", scrollY > 60 || document.body.classList.contains("menu-open"));
+  addEventListener("scroll", majHeader, { passive: true }); majHeader();
+  document.addEventListener("click", (e) => { if (e.target.closest(".burger")) setTimeout(majHeader, 0); });
+
+  /* ---------- Titres : apparition mot par mot ---------- */
+  function decouper(el) {
+    if (el.dataset.decoupe) return;
+    el.dataset.decoupe = "1";
+    const mots = [];
+    const parcourir = (n) => {
+      Array.from(n.childNodes).forEach((c) => {
+        if (c.nodeType === 3) {
+          const frag = document.createDocumentFragment();
+          c.textContent.split(/(\s+)/).forEach((m) => {
+            if (!m) return;
+            if (/^\s+$/.test(m)) { frag.appendChild(document.createTextNode(m)); return; }
+            const w = document.createElement("span"); w.className = "mot";
+            const i = document.createElement("span"); i.textContent = m; w.appendChild(i);
+            frag.appendChild(w); mots.push(i);
+          });
+          n.replaceChild(frag, c);
+        } else if (c.nodeType === 1) parcourir(c);
+      });
+    };
+    parcourir(el);
+    mots.forEach((m, k) => (m.style.transitionDelay = k * 55 + "ms"));
+  }
+  $$("main .sec h2.t-xl, main .sec h2.t-l").forEach((h) => h.classList.add("titre-anim"));
+  const titres = $$(".titre-anim");
+  if (!reduit) titres.forEach(decouper);
+
+  /* ---------- Apparition au défilement (titres, blocs, compteurs) ---------- */
+  function compter(el) {
+    const fin = +el.dataset.compte; const debut = el.hasAttribute("data-sans-espace") ? Math.max(0, fin - 40) : 0;
+    const t0 = performance.now(), d = 1600;
+    const pas = (t) => {
+      const p = clamp((t - t0) / d); const e = 1 - Math.pow(1 - p, 4);
+      const v = Math.round(debut + (fin - debut) * e);
+      el.textContent = el.hasAttribute("data-sans-espace") ? String(v) : v.toLocaleString("fr-FR");
+      if (p < 1) requestAnimationFrame(pas);
+    };
+    requestAnimationFrame(pas);
+  }
+  if ("IntersectionObserver" in window && !reduit) {
+    const io = new IntersectionObserver((en) => en.forEach((x) => {
+      if (!x.isIntersecting) return;
+      x.target.classList.add("is-vu");
+      if (x.target.dataset.compte) compter(x.target);
+      io.unobserve(x.target);
+    }), { rootMargin: "0px 0px -12% 0px" });
+    $$(".titre-anim, [data-compte], .gcarte, .solution, .services-v li, .etapes-pro li, .pack, .partenaire, .regle, .contact-carte").forEach((el) => io.observe(el));
+  } else $$(".titre-anim, .gcarte, .solution").forEach((e) => e.classList.add("is-vu"));
+
+  /* ---------- Vidéos de fond : lecture seulement quand visibles ---------- */
+  const videos = $$("video[data-autoplay]");
+  if (!reduit && !eco && "IntersectionObserver" in window) {
+    const vio = new IntersectionObserver((en) => en.forEach((x) => {
+      const v = x.target;
+      if (x.isIntersecting) {
+        if (v.preload === "none") { v.preload = "auto"; v.load(); }
+        const p = v.play(); p && p.catch(() => {});
+        v.addEventListener("playing", () => v.classList.add("is-on"), { once: true });
+      } else v.pause();
+    }), { rootMargin: "200px 0px" });
+    videos.forEach((v) => vio.observe(v));
+  }
+
+  /* ---------- Hero : bande-démo de 3 vidéos en fondu enchaîné ---------- */
+  const heroV = $(".hero-v");
+  if (heroV) {
+    const clips = $$(".hero-v__clip", heroV);
+    const barres = $$(".hero-v__progress i", heroV);
+    let k = 0, raf = 0;
+    const DUREE = 7000;
+    let t0 = performance.now();
+    const lancer = (i) => {
+      const v = clips[i]; if (!v) return;
+      if (v.preload === "none") { v.preload = "auto"; v.load(); }
+      try { v.currentTime = 0; } catch (e) {}
+      const p = v.play(); p && p.catch(() => {});
+      v.addEventListener("playing", () => heroV.classList.add("video-ok"), { once: true });
+    };
+    const suivant = () => {
+      const prec = clips[k]; k = (k + 1) % clips.length; lancer(k);
+      clips[k].classList.add("is-on"); setTimeout(() => { prec.classList.remove("is-on"); prec.pause(); }, 1200);
+      t0 = performance.now();
+      if (clips[(k + 1) % clips.length].preload === "none") { const n = clips[(k + 1) % clips.length]; setTimeout(() => { n.preload = "auto"; n.load(); }, 1500); }
+    };
+    const boucle = (t) => {
+      const p = clamp((t - t0) / DUREE);
+      barres.forEach((b, i) => b.style.setProperty("--p", i < k ? 1 : i === k ? p : 0));
+      if (p >= 1) { if (k === clips.length - 1) barres.forEach((b) => b.style.setProperty("--p", 0)); suivant(); }
+      raf = requestAnimationFrame(boucle);
+    };
+    if (!reduit && !eco) {
+      lancer(0);
+      setTimeout(() => { const n = clips[1]; if (n) { n.preload = "auto"; n.load(); } }, 2500);
+      raf = requestAnimationFrame(boucle);
+      document.addEventListener("visibilitychange", () => { if (document.hidden) { cancelAnimationFrame(raf); clips[k].pause(); } else { t0 = performance.now(); clips[k].play().catch(() => {}); raf = requestAnimationFrame(boucle); } });
+    }
+    // léger parallaxe du contenu au défilement
+    const contenu = $(".hero-v__in", heroV), media = $(".hero-v__media", heroV);
+    if (!reduit) addEventListener("scroll", () => {
+      const y = scrollY; if (y > innerHeight * 1.2) return;
+      contenu.style.transform = `translateY(${y * 0.25}px)`; contenu.style.opacity = String(1 - y / (innerHeight * 0.8));
+      media.style.transform = `scale(${1 + y / innerHeight * 0.08})`;
+    }, { passive: true });
+  }
+
+  /* ---------- Chargeur d'entrée (une fois par session) ---------- */
+  const chargeur = $(".chargeur");
+  if (chargeur) {
+    if (!root.classList.contains("intro")) chargeur.remove();
+    else {
+      const cases = $$(".chargeur__batterie i", chargeur), pct = $(".chargeur__pct", chargeur);
+      const t0 = performance.now(), d = 1500;
+      const pas = (t) => {
+        const p = clamp((t - t0) / d), e = 1 - Math.pow(1 - p, 3);
+        pct.textContent = Math.round(e * 100) + " %";
+        cases.forEach((c, i) => c.classList.toggle("on", e * cases.length > i + 0.2));
+        if (p < 1) requestAnimationFrame(pas);
+        else { chargeur.classList.add("fini"); root.classList.remove("intro"); try { sessionStorage.setItem("cedyan_intro", "1"); } catch (er) {} setTimeout(() => chargeur.remove(), 1100); }
+      };
+      requestAnimationFrame(pas);
+    }
+  }
+
+  /* ---------- Manifeste : les mots s'allument au défilement ---------- */
+  const mani = $("[data-mots]");
+  if (mani) {
+    const mots = mani.textContent.trim().split(/\s+/);
+    mani.innerHTML = mots.map((m) => `<span class="mm">${m}</span>`).join(" ");
+    const spans = $$(".mm", mani);
+    const maj = () => {
+      const r = mani.getBoundingClientRect();
+      const p = clamp((innerHeight * 0.85 - r.top) / (r.height + innerHeight * 0.45));
+      const n = reduit ? spans.length : Math.round(p * spans.length);
+      spans.forEach((s, i) => s.classList.toggle("on", i < n));
+    };
+    addEventListener("scroll", maj, { passive: true }); maj();
+  }
+
+  /* ---------- Gamme : défilement horizontal piloté par le scroll ---------- */
+  const gamme = $(".gamme"), piste = $(".gamme__piste");
+  if (gamme && piste) {
+    let actif = false;
+    const mesurer = () => {
+      actif = innerWidth > 920 && !reduit;
+      if (!actif) { gamme.style.height = ""; piste.style.transform = ""; return; }
+      const deb = piste.scrollWidth - innerWidth + 80;
+      gamme.style.height = innerHeight + Math.max(0, deb) + "px";
+      gamme.dataset.deb = Math.max(0, deb);
+      maj();
+    };
+    const maj = () => {
+      if (!actif) return;
+      const r = gamme.getBoundingClientRect(); const deb = +gamme.dataset.deb;
+      const p = clamp(-r.top / (gamme.offsetHeight - innerHeight || 1));
+      piste.style.transform = `translate3d(${-p * deb}px,0,0)`;
+    };
+    addEventListener("scroll", () => requestAnimationFrame(maj), { passive: true });
+    addEventListener("resize", mesurer); addEventListener("load", mesurer); mesurer();
+  }
+
+  /* ---------- Bande vidéo : parallaxe ---------- */
+  $$(".bande-video, .banniere").forEach((b) => {
+    const v = $("video", b); if (!v || reduit) return;
+    addEventListener("scroll", () => {
+      const r = b.getBoundingClientRect(); if (r.bottom < 0 || r.top > innerHeight) return;
+      v.style.transform = `translate3d(0,${(r.top) * -0.18}px,0) scale(1.15)`;
+    }, { passive: true });
+  });
+
+  /* ---------- Pluie et éclairs ---------- */
+  $$("canvas.pluie").forEach((cv) => {
+    if (reduit) return;
+    const ctx = cv.getContext("2d"); let gouttes = [], W = 0, H = 0, vis = false;
+    const taille = () => {
+      W = cv.width = cv.offsetWidth; H = cv.height = cv.offsetHeight;
+      gouttes = Array.from({ length: Math.round(W * H / 9000) }, () => ({ x: Math.random() * W, y: Math.random() * H, l: 10 + Math.random() * 22, v: 9 + Math.random() * 10, o: 0.12 + Math.random() * 0.3 }));
+    };
+    const dessiner = () => {
+      if (!vis) return;
+      ctx.clearRect(0, 0, W, H); ctx.lineWidth = 1;
+      gouttes.forEach((g) => {
+        ctx.strokeStyle = `rgba(190,205,240,${g.o})`;
+        ctx.beginPath(); ctx.moveTo(g.x, g.y); ctx.lineTo(g.x - g.l * 0.28, g.y + g.l); ctx.stroke();
+        g.y += g.v; g.x -= g.v * 0.28;
+        if (g.y > H) { g.y = -20; g.x = Math.random() * (W + 200); }
+      });
+      requestAnimationFrame(dessiner);
+    };
+    new IntersectionObserver((en) => { vis = en[0].isIntersecting; if (vis) { if (!W) taille(); dessiner(); } }).observe(cv);
+    addEventListener("resize", taille);
+    const flash = cv.parentNode.querySelector(".cyclone-v__eclair");
+    if (flash) (function eclair() {
+      setTimeout(() => { if (vis) { flash.classList.remove("on"); void flash.offsetWidth; flash.classList.add("on"); } eclair(); }, 4500 + Math.random() * 6000);
+    })();
+  });
+
+  /* ---------- Avis : défilement continu ---------- */
+  const avis = $("#avis-liste");
+  if (avis && avis.closest(".avis-defile")) {
+    const cloner = () => { if (avis.children.length && !avis.dataset.clone) { avis.dataset.clone = "1"; avis.insertAdjacentHTML("beforeend", avis.innerHTML); } };
+    cloner(); setTimeout(cloner, 300);
+  }
+  $$("[data-tel-texte]").forEach((e) => { const c = window.CEDYAN_CONFIG; if (c) e.textContent = c.telephone; });
+
+  /* ---------- Survols : boutons magnétiques et cartes inclinées ---------- */
+  if (!tactile && !reduit) {
+    $$(".magnetique").forEach((b) => {
+      b.addEventListener("mousemove", (e) => { const r = b.getBoundingClientRect(); b.style.transform = `translate(${(e.clientX - r.left - r.width / 2) * 0.18}px,${(e.clientY - r.top - r.height / 2) * 0.28}px)`; });
+      b.addEventListener("mouseleave", () => (b.style.transform = ""));
+    });
+    $$(".tilt, .gcarte").forEach((c) => {
+      c.addEventListener("mousemove", (e) => {
+        const r = c.getBoundingClientRect(); const x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5;
+        c.style.setProperty("--rx", (-y * 6).toFixed(2) + "deg"); c.style.setProperty("--ry", (x * 8).toFixed(2) + "deg");
+        c.style.setProperty("--mx", ((x + 0.5) * 100).toFixed(1) + "%"); c.style.setProperty("--my", ((y + 0.5) * 100).toFixed(1) + "%");
+      });
+      c.addEventListener("mouseleave", () => { c.style.setProperty("--rx", "0deg"); c.style.setProperty("--ry", "0deg"); });
+    });
+  }
+})();

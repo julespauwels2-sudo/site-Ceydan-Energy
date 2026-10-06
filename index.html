@@ -19,16 +19,18 @@
 <link rel="stylesheet" href="style.css">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Store","name":"Cedyan Energy","description":"Grossiste en matériel photovoltaïque aux Antilles depuis 2012 : panneaux, onduleurs, batteries, fixations et protections en stock à Baie-Mahault.","telephone":"+590590321520","email":"cedyanenergycaraibes@gmail.com","foundingDate":"2012","openingHours":["Mo-Th 08:30-16:00","Fr 08:30-13:00"],"address":{"@type":"PostalAddress","streetAddress":"AC Moudong, Immeuble Point Plomberie","postalCode":"97122","addressLocality":"Baie-Mahault","addressRegion":"Guadeloupe","addressCountry":"FR"},"areaServed":["Guadeloupe","Martinique","Saint-Martin","Saint-Barthélemy"],"image":"og-image.jpg"}</script>
 <link rel="preload" as="image" href="photo-toiture.webp">
+<link rel="preconnect" href="https://assets.mixkit.co">
+<script>try{if(!sessionStorage.getItem("cedyan_intro")&&!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("intro")}catch(e){}</script>
 </head>
-<body>
+<body class="page-accueil">
 <a class="skip" href="#contenu">Aller au contenu</a>
-<div class="top-bar"><div class="wrap">
-  <div class="top-bar__pts"><span><i></i>Stock à Baie-Mahault</span><span>Du lundi au jeudi 8h30-16h, le vendredi 8h30-13h</span></div>
-  <div class="top-bar__droite"><a data-tel href="#">0590 32 15 20</a><a href="pro.html" class="top-bar__pro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Connexion pro</a></div>
-</div></div>
 <header class="header">
-  <div class="wrap">
-    <a class="logo" href="index.html" aria-label="Cedyan Energy, accueil"><img src="logo-cedyan.png" srcset="logo-cedyan.png 448w, logo-cedyan.webp 896w" sizes="178px" width="178" height="53" alt="Cedyan Energy, spécialiste caraïbe depuis 2012"></a>
+  <div class="top-bar"><div class="wrap">
+    <div class="top-bar__pts"><span><i></i>Stock à Baie-Mahault</span><span>Du lundi au jeudi 8h30-16h, le vendredi 8h30-13h</span></div>
+    <div class="top-bar__droite"><a data-tel href="#">0590 32 15 20</a><a href="pro.html" class="top-bar__pro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Connexion pro</a></div>
+  </div></div>
+  <div class="wrap header__main">
+    <a class="logo" href="index.html" aria-label="Cedyan Energy, accueil"><img class="logo__clair" src="logo-blanc.png" srcset="logo-blanc.png 448w, logo-blanc.webp 896w" sizes="178px" width="178" height="53" alt="Cedyan Energy"><img class="logo__sombre" src="logo-cedyan.png" srcset="logo-cedyan.png 448w, logo-cedyan.webp 896w" sizes="178px" width="178" height="53" alt=""></a>
     <nav class="nav" id="nav" aria-label="Navigation principale">
       <a href="qui-sommes-nous.html">Qui sommes-nous</a>
       <a href="catalogue.html">Catalogue</a>
@@ -45,59 +47,53 @@
 </header>
 <main id="contenu">
 
-<section class="hero hero--b2b">
-  <div class="wrap hero__grid">
-    <div class="hero__txt">
-      <h1 class="t-xxl"><span class="ligne">Grossiste</span><span class="ligne">photovoltaïque</span><span class="ligne ligne--vert">aux Antilles.</span></h1>
-      <p class="lead">Depuis 2012, Cedyan Energy fournit installateurs, électriciens, revendeurs et porteurs de projets en panneaux, onduleurs, batteries, fixations et protections. Le stock est à Baie-Mahault.</p>
-      <form class="recherche-hero" action="catalogue.html" role="search">
+<div class="chargeur" aria-hidden="true">
+  <div class="chargeur__in">
+    <img src="logo-blanc.webp" width="320" height="96" alt="">
+    <div class="chargeur__batterie"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <span class="chargeur__pct">0 %</span>
+  </div>
+</div>
+
+<section class="hero-v" aria-label="Cedyan Energy">
+  <div class="hero-v__media"><video class="hero-v__clip is-on" muted playsinline preload="auto" poster="photo-toiture.webp" aria-hidden="true"><source src="https://assets.mixkit.co/videos/46623/46623-720.mp4" type="video/mp4"><source src="https://assets.mixkit.co/videos/46623/46623-360.mp4" type="video/mp4"></video><video class="hero-v__clip" muted playsinline preload="none" aria-hidden="true"><source src="https://assets.mixkit.co/videos/32441/32441-720.mp4" type="video/mp4"><source src="https://assets.mixkit.co/videos/32441/32441-360.mp4" type="video/mp4"></video><video class="hero-v__clip" muted playsinline preload="none" aria-hidden="true"><source src="https://assets.mixkit.co/videos/46624/46624-720.mp4" type="video/mp4"><source src="https://assets.mixkit.co/videos/46624/46624-360.mp4" type="video/mp4"></video><img class="hero-v__poster" src="photo-toiture.webp" alt="" fetchpriority="high"></div>
+  <div class="hero-v__voile"></div>
+  <div class="wrap hero-v__in">
+    <p class="hero-v__sur"><span class="pulse" aria-hidden="true"></span>Baie-Mahault, Guadeloupe. Depuis 2012.</p>
+    <h1 class="hero-v__titre"><span class="l"><span>Grossiste</span></span><span class="l"><span>solaire de</span></span><span class="l l--soleil"><span>la Caraïbe.</span></span></h1>
+    <div class="hero-v__bas">
+      <form class="recherche-hero recherche-hero--verre" action="catalogue.html" role="search">
         <label class="sr" for="q-hero">Rechercher dans le catalogue</label>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="q-hero" name="q" type="search" placeholder="Référence, marque, produit…" autocomplete="off">
-        <button class="btn" type="submit">Rechercher</button>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="q-hero" name="q" type="search" placeholder="Rechercher une référence, une marque…" autocomplete="off">
+        <button class="btn btn--soleil" type="submit">Rechercher</button>
       </form>
-      <p class="recherche-hero__suggestions">Recherches fréquentes : <a href="catalogue.html?q=US5000">Pylontech US5000</a> <a href="catalogue.html?q=SUN2000">Huawei SUN2000</a> <a href="catalogue.html?q=MPPT">MPPT Victron</a> <a href="catalogue.html?q=500 W">Panneau 500 W</a></p>
-    </div>
-    <div class="hero__img">
-      <img src="photo-toiture.webp" width="1800" height="1200" alt="Champ de panneaux photovoltaïques en cours d'installation" fetchpriority="high">
+      <div class="hero-v__ctas"><a class="btn btn--blanc magnetique" href="catalogue.html">Catalogue <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a><a class="btn btn--verre magnetique" href="pro.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Tarifs pro</a></div>
     </div>
   </div>
+  <div class="hero-v__progress" aria-hidden="true"><i></i><i></i><i></i></div>
+  <a class="hero-v__scroll" href="#manifeste" aria-label="Défiler vers le contenu"><span></span></a>
+</section>
+
+<section class="bande-marques"><div class="marquee" aria-label="Marques distribuées"><div class="marquee__piste"><span>Victron Energy</span><i aria-hidden="true">✦</i><span>Huawei</span><i aria-hidden="true">✦</i><span>JA Solar</span><i aria-hidden="true">✦</i><span>Jinko Solar</span><i aria-hidden="true">✦</i><span>Pylontech</span><i aria-hidden="true">✦</i><span>BYD</span><i aria-hidden="true">✦</i><span>GoodWe</span><i aria-hidden="true">✦</i><span>K2 Systems</span><i aria-hidden="true">✦</i><span>Novotegra</span><i aria-hidden="true">✦</i><span>Ecodelta</span><i aria-hidden="true">✦</i><span>AXIworld</span><i aria-hidden="true">✦</i><span>BSL Batt</span><i aria-hidden="true">✦</i><span>Victron Energy</span><i aria-hidden="true">✦</i><span>Huawei</span><i aria-hidden="true">✦</i><span>JA Solar</span><i aria-hidden="true">✦</i><span>Jinko Solar</span><i aria-hidden="true">✦</i><span>Pylontech</span><i aria-hidden="true">✦</i><span>BYD</span><i aria-hidden="true">✦</i><span>GoodWe</span><i aria-hidden="true">✦</i><span>K2 Systems</span><i aria-hidden="true">✦</i><span>Novotegra</span><i aria-hidden="true">✦</i><span>Ecodelta</span><i aria-hidden="true">✦</i><span>AXIworld</span><i aria-hidden="true">✦</i><span>BSL Batt</span><i aria-hidden="true">✦</i></div></div><div class="marquee marquee--inverse" aria-hidden="true"><div class="marquee__piste"><span>BSL Batt</span><i aria-hidden="true">✦</i><span>AXIworld</span><i aria-hidden="true">✦</i><span>Ecodelta</span><i aria-hidden="true">✦</i><span>Novotegra</span><i aria-hidden="true">✦</i><span>K2 Systems</span><i aria-hidden="true">✦</i><span>GoodWe</span><i aria-hidden="true">✦</i><span>BYD</span><i aria-hidden="true">✦</i><span>Pylontech</span><i aria-hidden="true">✦</i><span>Jinko Solar</span><i aria-hidden="true">✦</i><span>JA Solar</span><i aria-hidden="true">✦</i><span>Huawei</span><i aria-hidden="true">✦</i><span>Victron Energy</span><i aria-hidden="true">✦</i><span>BSL Batt</span><i aria-hidden="true">✦</i><span>AXIworld</span><i aria-hidden="true">✦</i><span>Ecodelta</span><i aria-hidden="true">✦</i><span>Novotegra</span><i aria-hidden="true">✦</i><span>K2 Systems</span><i aria-hidden="true">✦</i><span>GoodWe</span><i aria-hidden="true">✦</i><span>BYD</span><i aria-hidden="true">✦</i><span>Pylontech</span><i aria-hidden="true">✦</i><span>Jinko Solar</span><i aria-hidden="true">✦</i><span>JA Solar</span><i aria-hidden="true">✦</i><span>Huawei</span><i aria-hidden="true">✦</i><span>Victron Energy</span><i aria-hidden="true">✦</i></div></div></section>
+
+<section class="sec manifeste" id="manifeste">
   <div class="wrap">
-    <ul class="services">
-      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8l9-5 9 5v8l-9 5-9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg><span><b>Stock en Guadeloupe</b>Disponible tout de suite à Baie-Mahault</span></li>
-      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h12v10H2zM14 10h4l3 3v3h-7z"/><circle cx="6" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg><span><b>Livraison en 48 h</b>Sur chantier ou à domicile</span></li>
-      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg><span><b>Retrait gratuit au comptoir</b>AC Moudong, Baie-Mahault</span></li>
-      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 6.5a4 4 0 0 0 5 5l-9 9a2.1 2.1 0 0 1-3-3l9-9a4 4 0 0 1-2-2z"/></svg><span><b>Support technique</b>Dimensionnement et paramétrage</span></li>
-    </ul>
+    <p class="manifeste__texte" data-mots>Panneaux, onduleurs, batteries, fixations, protections. Tout ce qu'il faut pour produire et stocker l'énergie du soleil, en stock à Baie-Mahault.</p>
+    <dl class="compteurs">
+      <div><dt><span data-compte="2012" data-sans-espace>2012</span></dt><dd>Sur le marché caribéen</dd></div>
+      <div><dt><span data-compte="48">48</span> h</dt><dd>Livraison en Guadeloupe</dd></div>
+      <div><dt><span data-compte="12">12</span></dt><dd>Marques distribuées</dd></div>
+      <div><dt><span data-compte="10">10</span> ans</dt><dd>De garantie fabricant sur de nombreux produits</dd></div>
+    </dl>
   </div>
 </section>
 
-<section class="sec sec--serre">
-  <div class="wrap">
-    <div class="acces-pro apparait">
-      <div class="acces-pro__txt">
-        <h2 class="t-xl">Professionnels : vos tarifs en trois étapes.</h2>
-        <p class="lead">Installateur, électricien, revendeur ou bureau d'étude : ouvrez votre compte et consultez vos prix sur tout le catalogue.</p>
-        <ol class="etapes-pro">
-          <li><b>Votre SIRET</b><span>Vérifié automatiquement au registre national.</span></li>
-          <li><b>Votre Kbis</b><span>Déposé en ligne, en PDF ou en photo.</span></li>
-          <li><b>Validation Cedyan</b><span>Sous 24 h ouvrées, vos tarifs s'affichent.</span></li>
-        </ol>
-      </div>
-      <form class="acces-pro__form" id="mini-pro">
-        <label for="mini-siren">Votre numéro SIRET</label>
-        <input class="input" id="mini-siren" inputmode="numeric" autocomplete="off" placeholder="123 456 789 00012" required>
-        <button class="btn btn--soleil" type="submit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Débloquer mes tarifs</button>
-        <span class="info">Ouverture de compte gratuite. Les particuliers reçoivent leur prix sur devis.</span>
-      </form>
-    </div>
-  </div>
-</section>
-
-<section class="kit" aria-labelledby="kit-titre">
+<section class="kit kit--nuit" aria-labelledby="kit-titre">
   <div class="kit__scene">
+    <div class="kit__halo" aria-hidden="true"></div>
     <div class="kit__titre">
       <h2 class="t-xl" id="kit-titre">Une installation, pièce par pièce.</h2>
-      <p class="lead">Faites défiler pour voir ce qui compose un système solaire, et les marques que nous avons en stock pour chaque pièce.</p>
+      <p class="lead">Faites défiler. Chaque pièce, chaque marque, en stock.</p>
     </div>
     <div class="kit__stage">
       <div class="kit__couche" data-ratio="0.475"><svg viewBox="0 0 400 190" aria-hidden="true"><defs><linearGradient id="cel" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#263f86"/><stop offset="1" stop-color="#111d45"/></linearGradient><linearGradient id="ref" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".28"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><clipPath id="pc"><polygon points="78.0,14.0 322.0,14.0 388.0,170.0 12.0,170.0"/></clipPath></defs>
@@ -106,14 +102,14 @@
 <polygon points="83.1,22.7 316.9,22.7 371.4,161.3 28.6,161.3" fill="#0c1636"/>
 <polygon points="84.6,26.1 118.4,26.1 110.8,54.0 73.9,54.0" fill="url(#cel)"/><line x1="79.3" y1="40.1" x2="114.6" y2="40.1" stroke="#3d5fae" stroke-width=".8" opacity=".7"/><polygon points="124.0,26.1 157.8,26.1 153.8,54.0 117.0,54.0" fill="url(#cel)"/><line x1="120.5" y1="40.1" x2="155.8" y2="40.1" stroke="#3d5fae" stroke-width=".8" opacity=".7"/><polygon points="163.4,26.1 197.2,26.1 196.9,54.0 160.0,54.0" fill="url(#cel)"/><line x1="161.7" y1="40.1" x2="197.0" y2="40.1" stroke="#3d5fae" stroke-width=".8" opacity=".7"/><polygon points="202.8,26.1 236.6,26.1 240.0,54.0 203.1,54.0" fill="url(#cel)"/><line x1="203.0" y1="40.1" x2="238.3" y2="40.1" stroke="#3d5fae" stroke-width=".8" opacity=".7"/><polygon points="242.2,26.1 276.0,26.1 283.0,54.0 246.2,54.0" fill="url(#cel)"/><line x1="244.2" y1="40.1" x2="279.5" y2="40.1" stroke="#3d5fae" stroke-width=".8" opacity=".7"/><polygon points="281.6,26.1 315.4,26.1 326.1,54.0 289.2,54.0" fill="url(#cel)"/><line x1="285.4" y1="40.1" x2="320.7" y2="40.1" stroke="#3d5fae" stroke-width=".8" opacity=".7"/><polygon points="71.3,60.7 108.9,60.7 101.3,88.7 60.6,88.7" fill="url(#cel)"/><line x1="66.0" y1="74.7" x2="105.1" y2="74.7" stroke="#3d5fae" stroke-width=".8" opacity=".7"/><polygon points="115.3,60.7 152.9,60.7 149.0,88.7 108.2,88.7" fill="url(#cel)"/><line x1="111.7" y1="74.7" x2="150.9" y2="74.7" stroke="#3d5fae" stroke-width=".8" opacity=".7"/><polygon points="159.2,60.7 196.8,60.7 196.6,88.7 155.8,88.7" fill="url(#cel)"/><line x1="157.5" y1="74.7" x2="196.7" y2="74.7" stroke="#3d5fae" stroke-width=".8" opacity=".7"/><polygon points="203.2,60.7 240.8,60.7 244.2,88.7 203.4,88.7" fill="url(#cel)"/><line x1="203.3" y1="74.7" x2="242.5" y2="74.7" stroke="#3d5fae" stroke-width=".8" opacity=".7"/><polygon points="247.1,60.7 284.7,60.7 291.8,88.7 251.0,88.7" fill="url(#cel)"/><line x1="249.1" y1="74.7" x2="288.3" y2="74.7" stroke="#3d5fae" stroke-width=".8" opacity=".7"/><polygon points="291.1,60.7 328.7,60.7 339.4,88.7 298.7,88.7" fill="url(#cel)"/><line x1="294.9" y1="74.7" x2="334.0" y2="74.7" stroke="#3d5fae" stroke-width=".8" opacity=".7"/><polygon points="58.0,95.3 99.5,95.3 91.9,123.3 47.3,123.3" fill="url(#cel)"/><line x1="52.7" y1="109.3" x2="95.7" y2="109.3" stroke="#3d5fae" stroke-width=".8" opacity=".7"/><polygon points="106.5,95.3 148.0,95.3 144.1,123.3 99.4,123.3" fill="url(#cel)"/><line x1="103.0" y1="109.3" x2="146.1" y2="109.3" stroke="#3d5fae" stroke-width=".8" opacity=".7"/><polygon points="155.0,95.3 196.5,95.3 196.2,123.3 151.6,123.3" fill="url(#cel)"/><line x1="153.3" y1="109.3" x2="196.4" y2="109.3" stroke="#3d5fae" stroke-width=".8" opacity=".7"/><polygon points="203.5,95.3 245.0,95.3 248.4,123.3 203.8,123.3" fill="url(#cel)"/><line x1="203.6" y1="109.3" x2="246.7" y2="109.3" stroke="#3d5fae" stroke-width=".8" opacity=".7"/><polygon points="252.0,95.3 293.5,95.3 300.6,123.3 255.9,123.3" fill="url(#cel)"/><line x1="253.9" y1="109.3" x2="297.0" y2="109.3" stroke="#3d5fae" stroke-width=".8" opacity=".7"/><polygon points="300.5,95.3 342.0,95.3 352.7,123.3 308.1,123.3" fill="url(#cel)"/><line x1="304.3" y1="109.3" x2="347.3" y2="109.3" stroke="#3d5fae" stroke-width=".8" opacity=".7"/><polygon points="44.7,130.0 90.1,130.0 82.5,157.9 34.0,157.9" fill="url(#cel)"/><line x1="39.4" y1="143.9" x2="86.3" y2="143.9" stroke="#3d5fae" stroke-width=".8" opacity=".7"/><polygon points="97.8,130.0 143.2,130.0 139.2,157.9 90.7,157.9" fill="url(#cel)"/><line x1="94.2" y1="143.9" x2="141.2" y2="143.9" stroke="#3d5fae" stroke-width=".8" opacity=".7"/><polygon points="150.8,130.0 196.2,130.0 195.9,157.9 147.4,157.9" fill="url(#cel)"/><line x1="149.1" y1="143.9" x2="196.0" y2="143.9" stroke="#3d5fae" stroke-width=".8" opacity=".7"/><polygon points="203.8,130.0 249.2,130.0 252.6,157.9 204.1,157.9" fill="url(#cel)"/><line x1="204.0" y1="143.9" x2="250.9" y2="143.9" stroke="#3d5fae" stroke-width=".8" opacity=".7"/><polygon points="256.8,130.0 302.2,130.0 309.3,157.9 260.8,157.9" fill="url(#cel)"/><line x1="258.8" y1="143.9" x2="305.8" y2="143.9" stroke="#3d5fae" stroke-width=".8" opacity=".7"/><polygon points="309.9,130.0 355.3,130.0 366.0,157.9 317.5,157.9" fill="url(#cel)"/><line x1="313.7" y1="143.9" x2="360.6" y2="143.9" stroke="#3d5fae" stroke-width=".8" opacity=".7"/>
 <g clip-path="url(#pc)"><polygon points="130,0 190,0 120,190 60,190" fill="url(#ref)"/></g>
-</svg><div class="kit__etiquette" data-cote-e="d"><b>Panneaux photovoltaïques</b><span>JA Solar, Jinko Solar, Ecodelta et AXIworld.</span><a href="catalogue.html#panneaux">Voir les panneaux</a></div></div>
+</svg><div class="kit__etiquette" data-cote-e="d"><b>Panneaux photovoltaïques</b><span>JA Solar, Jinko Solar, Ecodelta, AXIworld.</span><a href="catalogue.html#panneaux">Voir les panneaux</a></div></div>
       <div class="kit__couche" data-ratio="0.15"><svg viewBox="0 0 400 60" aria-hidden="true"><defs><linearGradient id="alu" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eef2f3"/><stop offset="1" stop-color="#98a4a9"/></linearGradient></defs>
 <polygon points="40,8 360,8 372,20 28,20" fill="url(#alu)"/><polygon points="28,20 372,20 372,25 28,25" fill="#7d898e"/>
 <polygon points="22,36 378,36 392,48 8,48" fill="url(#alu)"/><polygon points="8,48 392,48 392,53 8,53" fill="#7d898e"/>
 <g fill="#4c585d"><rect x="80" y="4" width="10" height="20" rx="2"/><rect x="200" y="4" width="10" height="20" rx="2"/><rect x="310" y="4" width="10" height="20" rx="2"/>
 <rect x="66" y="32" width="10" height="20" rx="2"/><rect x="196" y="32" width="10" height="20" rx="2"/><rect x="324" y="32" width="10" height="20" rx="2"/></g>
 <g fill="#218034"><rect x="120" y="16" width="16" height="22" rx="3" transform="skewX(-12)"/><rect x="292" y="16" width="16" height="22" rx="3" transform="skewX(12)"/></g>
-</svg><div class="kit__etiquette" data-cote-e="g"><b>Structure et fixation</b><span>Rails et étriers K2 Systems et Novotegra.</span><a href="catalogue.html#structures">Voir les fixations</a></div></div>
+</svg><div class="kit__etiquette" data-cote-e="g"><b>Structure et fixation</b><span>K2 Systems et Novotegra.</span><a href="catalogue.html#structures">Voir les fixations</a></div></div>
       <div class="kit__couche" data-ratio="0.375"><svg viewBox="0 0 400 150" aria-hidden="true"><defs><linearGradient id="bl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3a63c4"/><stop offset="1" stop-color="#22418f"/></linearGradient><linearGradient id="wh" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#dfe6e8"/></linearGradient></defs>
 <rect x="36" y="14" width="118" height="112" rx="12" fill="url(#bl)"/><rect x="46" y="20" width="4" height="22" rx="2" fill="#1c3577"/><rect x="55" y="20" width="4" height="22" rx="2" fill="#1c3577"/><rect x="64" y="20" width="4" height="22" rx="2" fill="#1c3577"/><rect x="73" y="20" width="4" height="22" rx="2" fill="#1c3577"/><rect x="82" y="20" width="4" height="22" rx="2" fill="#1c3577"/><rect x="91" y="20" width="4" height="22" rx="2" fill="#1c3577"/><rect x="100" y="20" width="4" height="22" rx="2" fill="#1c3577"/><rect x="109" y="20" width="4" height="22" rx="2" fill="#1c3577"/><rect x="118" y="20" width="4" height="22" rx="2" fill="#1c3577"/><rect x="127" y="20" width="4" height="22" rx="2" fill="#1c3577"/><rect x="136" y="20" width="4" height="22" rx="2" fill="#1c3577"/>
 <rect x="54" y="56" width="82" height="40" rx="6" fill="#0e1a3d"/><text x="95" y="82" fill="#7cf0a0" font-family="Inter,Arial" font-weight="700" font-size="15" text-anchor="middle">48.6V</text>
@@ -137,7 +133,7 @@
 <path d="M12 104 L22 88 L32 94 L42 70 L52 78 L64 60" stroke="#fbbb10" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M12 104 L22 88 L32 94 L42 70 L52 78 L64 60 L64 118 L12 118Z" fill="#fbbb10" opacity=".18"/>
 <rect x="28" y="4" width="22" height="4" rx="2" fill="#34463a"/></g>
-</svg><div class="kit__etiquette" data-cote-e="g"><b>Batteries</b><span>Lithium Pylontech, BYD et BSL Batt.</span><a href="catalogue.html#batteries">Voir les batteries</a></div><div class="kit__etiquette" data-cote-e="d"><b>Monitoring et accessoires</b><span>Votre production et vos batteries, en direct sur le téléphone.</span><a href="catalogue.html#monitoring">Voir le monitoring</a></div></div>
+</svg><div class="kit__etiquette" data-cote-e="g"><b>Batteries</b><span>Lithium Pylontech, BYD, BSL Batt.</span><a href="catalogue.html#batteries">Voir les batteries</a></div><div class="kit__etiquette" data-cote-e="d"><b>Monitoring</b><span>Production et batteries en direct sur le téléphone.</span><a href="catalogue.html#monitoring">Voir le monitoring</a></div></div>
       <div class="kit__couche" data-ratio="0.3"><svg viewBox="0 0 400 120" aria-hidden="true">
 <rect x="40" y="6" width="170" height="108" rx="12" fill="#e9eef0" stroke="#b4c0c4"/>
 <rect x="54" y="20" width="142" height="64" rx="8" fill="#cfe6ee" opacity=".7" stroke="#9fb3ba"/>
@@ -146,45 +142,81 @@
 <ellipse cx="300" cy="60" rx="52" ry="34.0" fill="none" stroke="#c0392b" stroke-width="6"/><ellipse cx="300" cy="60" rx="45" ry="29.4" fill="none" stroke="#1a1a1a" stroke-width="6"/><ellipse cx="300" cy="60" rx="38" ry="24.8" fill="none" stroke="#c0392b" stroke-width="6"/><ellipse cx="300" cy="60" rx="31" ry="20.200000000000003" fill="none" stroke="#1a1a1a" stroke-width="6"/><ellipse cx="300" cy="60" rx="24" ry="15.600000000000001" fill="none" stroke="#c0392b" stroke-width="6"/>
 <path d="M352 60 h20" stroke="#c0392b" stroke-width="6" stroke-linecap="round"/><rect x="368" y="50" width="24" height="20" rx="5" fill="#2f3b40"/>
 <path d="M248 60 h-14" stroke="#1a1a1a" stroke-width="6" stroke-linecap="round"/><rect x="214" y="50" width="22" height="20" rx="5" fill="#2f3b40"/>
-</svg><div class="kit__etiquette" data-cote-e="g"><b>Protection électrique</b><span>Coffrets AC/DC, sectionneurs, disjoncteurs et fusibles.</span><a href="catalogue.html#protections">Voir les protections</a></div><div class="kit__etiquette" data-cote-e="d"><b>Câbles</b><span>Câble solaire, connecteurs MC4, câbles batterie.</span><a href="catalogue.html#cables">Voir les câbles</a></div></div>
-      <div class="kit__fin"><a class="btn" href="catalogue.html">Parcourir le catalogue</a><a class="btn btn--soleil" href="pro.html">Débloquer mes tarifs pro</a></div>
+</svg><div class="kit__etiquette" data-cote-e="g"><b>Protection électrique</b><span>Coffrets, sectionneurs, fusibles.</span><a href="catalogue.html#protections">Voir les protections</a></div><div class="kit__etiquette" data-cote-e="d"><b>Câbles</b><span>Câble solaire, MC4, câbles batterie.</span><a href="catalogue.html#cables">Voir les câbles</a></div></div>
+      <div class="kit__fin"><a class="btn btn--soleil" href="catalogue.html">Parcourir le catalogue</a></div>
     </div>
   </div>
 </section>
+<section class="gamme" aria-labelledby="gamme-titre">
+  <div class="gamme__collant">
+    <div class="wrap gamme__tete">
+      <h2 class="t-xl titre-anim" id="gamme-titre">La gamme complète.</h2>
+      <a class="lien" href="catalogue.html">Tout le catalogue</a>
+    </div>
+    <div class="gamme__piste"><a class="gcarte" href="catalogue.html#kits"><span class="gcarte__n">01</span><div class="gcarte__img"><span class="gcarte__ico"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 6h20l4 14H4z" fill="#2b4b9b" stroke="#14551f" stroke-width="2.2" stroke-linejoin="round"/><path d="M15 6l-2 14M22 6l1.5 14M6 13h25" stroke="#9fcda1" stroke-width="1.4"/><rect x="24" y="24" width="18" height="18" rx="3" fill="#fff" stroke="#14551f" stroke-width="2.2"/><path d="M33 27l-4 7h4l-1.5 5 5-7h-4l2-5z" fill="#fbbb10"/><rect x="6" y="28" width="14" height="14" rx="3" fill="#2b4b9b" stroke="#14551f" stroke-width="2.2"/></svg></span><img src="https://cedyan-energy.net/1784-home_default/centrale-solaire-50-kva-batterie-pylontech-96kwh.jpg" alt="" loading="lazy" onload="this.parentNode.classList.add('a-photo')" onerror="this.remove()"></div><div class="gcarte__txt"><b>Kits solaires</b><span>Isolés, raccordés, secours</span></div><span class="gcarte__fleche"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></a><a class="gcarte" href="catalogue.html#panneaux"><span class="gcarte__n">02</span><div class="gcarte__img"><span class="gcarte__ico"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M12 10h24l6 22H6z" fill="#2b4b9b" stroke="#14551f" stroke-width="2.4" stroke-linejoin="round"/><path d="M20 10l-3 22M28 10l3 22M9 21h30" stroke="#9fcda1" stroke-width="1.6"/><path d="M24 32v8M16 40h16" fill="none" stroke="#14551f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><img src="https://cedyan-energy.net/1654-home_default/ja-solar-jam60d41lb-500w-bifacial-double-glass-2mm-half-cut-full-black-jam60d41-500lb.jpg" alt="" loading="lazy" onload="this.parentNode.classList.add('a-photo')" onerror="this.remove()"></div><div class="gcarte__txt"><b>Panneaux</b><span>JA Solar, Jinko, Ecodelta, AXIworld</span></div><span class="gcarte__fleche"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></a><a class="gcarte" href="catalogue.html#regulateurs"><span class="gcarte__n">03</span><div class="gcarte__img"><span class="gcarte__ico"><svg viewBox="0 0 48 48" aria-hidden="true"><rect x="9" y="14" width="30" height="26" rx="5" fill="#2b4b9b" stroke="#14551f" stroke-width="2.4"/><rect x="15" y="22" width="18" height="9" rx="2" fill="#0e1a3d"/><circle cx="24" cy="7" r="3.2" fill="#fbbb10"/><path d="M24 1v1.5M30 7h-1.5M18 7h1.5" stroke="#fbbb10" stroke-width="2" stroke-linecap="round"/></svg></span><img src="https://cedyan-energy.net/1276-home_default/mppt-victron-150-60.jpg" alt="" loading="lazy" onload="this.parentNode.classList.add('a-photo')" onerror="this.remove()"></div><div class="gcarte__txt"><b>Régulateurs</b><span>Victron SmartSolar</span></div><span class="gcarte__fleche"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></a><a class="gcarte" href="catalogue.html#onduleurs"><span class="gcarte__n">04</span><div class="gcarte__img"><span class="gcarte__ico"><svg viewBox="0 0 48 48" aria-hidden="true"><rect x="9" y="6" width="30" height="36" rx="5" fill="#fff" stroke="#14551f" stroke-width="2.4"/><rect x="14" y="13" width="20" height="11" rx="2" fill="#14551f"/><path d="M16 19q2-4 4 0t4 0t4 0t4 0" stroke="#9fcda1" stroke-width="1.6" fill="none"/><path d="M15 31h18M15 36h12" fill="none" stroke="#14551f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><img src="https://cedyan-energy.net/991-home_default/huawei-sun2000-3k-lb0.jpg" alt="" loading="lazy" onload="this.parentNode.classList.add('a-photo')" onerror="this.remove()"></div><div class="gcarte__txt"><b>Onduleurs</b><span>Huawei, GoodWe</span></div><span class="gcarte__fleche"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></a><a class="gcarte" href="catalogue.html#convertisseurs"><span class="gcarte__n">05</span><div class="gcarte__img"><span class="gcarte__ico"><svg viewBox="0 0 48 48" aria-hidden="true"><rect x="7" y="9" width="34" height="30" rx="6" fill="#fff" stroke="#14551f" stroke-width="2.4"/><path d="M13 20h8M13 24h8" fill="none" stroke="#14551f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M27 22q2.5-5 5 0t5 0" stroke="#218034" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M21 32l3 3 3-3" fill="none" stroke="#14551f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><img src="https://cedyan-energy.net/1667-home_default/multiplus-ii-48300035-32-230v.jpg" alt="" loading="lazy" onload="this.parentNode.classList.add('a-photo')" onerror="this.remove()"></div><div class="gcarte__txt"><b>Convertisseurs</b><span>Victron MultiPlus-II, Quattro</span></div><span class="gcarte__fleche"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></a><a class="gcarte" href="catalogue.html#batteries"><span class="gcarte__n">06</span><div class="gcarte__img"><span class="gcarte__ico"><svg viewBox="0 0 48 48" aria-hidden="true"><rect x="8" y="12" width="30" height="26" rx="5" fill="#fff" stroke="#14551f" stroke-width="2.4"/><path d="M38 20h3v10h-3" fill="none" stroke="#14551f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M24 16l-6 10h6l-2 8 8-11h-6l3-7z" fill="#fbbb10" stroke="#14551f" stroke-width="1.6" stroke-linejoin="round"/></svg></span><img src="https://cedyan-energy.net/1456-home_default/batterie-lithium-ion-us5000-48kwh.jpg" alt="" loading="lazy" onload="this.parentNode.classList.add('a-photo')" onerror="this.remove()"></div><div class="gcarte__txt"><b>Batteries</b><span>Pylontech, BYD, Huawei, BSL Batt</span></div><span class="gcarte__fleche"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></a><a class="gcarte" href="catalogue.html#structures"><span class="gcarte__n">07</span><div class="gcarte__img"><span class="gcarte__ico"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M6 14h36M6 24h36" stroke="#14551f" stroke-width="3" stroke-linecap="round"/><path d="M12 14l6 26M36 14l-6 26M10 40h28" fill="none" stroke="#14551f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="18" cy="14" r="2.5" fill="#218034"/><circle cx="30" cy="14" r="2.5" fill="#218034"/></svg></span><img src="https://cedyan-energy.net/1514-home_default/k2-clamp-mc-25-40-mm-.jpg" alt="" loading="lazy" onload="this.parentNode.classList.add('a-photo')" onerror="this.remove()"></div><div class="gcarte__txt"><b>Fixations</b><span>K2 Systems, Novotegra</span></div><span class="gcarte__fleche"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></a><a class="gcarte" href="catalogue.html#cables"><span class="gcarte__n">08</span><div class="gcarte__img"><span class="gcarte__ico"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 36c0-10 8-10 12-16s0-12 8-12 12 6 12 12" stroke="#c0392b" stroke-width="3" fill="none" stroke-linecap="round"/><rect x="34" y="22" width="10" height="12" rx="3" fill="#14551f"/><rect x="4" y="34" width="10" height="10" rx="3" fill="#14551f"/></svg></span><img src="https://cedyan-energy.net/553-home_default/cable-solaire-6mm-h1z2z2-k.jpg" alt="" loading="lazy" onload="this.parentNode.classList.add('a-photo')" onerror="this.remove()"></div><div class="gcarte__txt"><b>Câbles</b><span>Solaire, MC4, liaisons</span></div><span class="gcarte__fleche"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></a><a class="gcarte" href="catalogue.html#monitoring"><span class="gcarte__n">09</span><div class="gcarte__img"><span class="gcarte__ico"><svg viewBox="0 0 48 48" aria-hidden="true"><rect x="14" y="4" width="20" height="40" rx="4" fill="#fff" stroke="#14551f" stroke-width="2.4"/><path d="M18 30l4-6 3 3 5-8" stroke="#fbbb10" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 39h6" fill="none" stroke="#14551f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><img src="https://cedyan-energy.net/893-home_default/cerbo-gx.jpg" alt="" loading="lazy" onload="this.parentNode.classList.add('a-photo')" onerror="this.remove()"></div><div class="gcarte__txt"><b>Monitoring</b><span>Cerbo GX, dongles, compteurs</span></div><span class="gcarte__fleche"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></a><a class="gcarte" href="catalogue.html#protections"><span class="gcarte__n">10</span><div class="gcarte__img"><span class="gcarte__ico"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 4l16 6v12c0 10-7 17-16 22C15 39 8 32 8 22V10z" fill="#e7f3e7" stroke="#14551f" stroke-width="2.4" stroke-linejoin="round"/><rect x="18" y="16" width="12" height="16" rx="2" fill="#fff" stroke="#14551f" stroke-width="2"/><rect x="21" y="19" width="6" height="6" rx="1" fill="#218034"/></svg></span><img src="https://cedyan-energy.net/1480-home_default/coffret-pv-3kw-ac-16a-ip65.jpg" alt="" loading="lazy" onload="this.parentNode.classList.add('a-photo')" onerror="this.remove()"></div><div class="gcarte__txt"><b>Protections</b><span>Coffrets, sectionneurs, fusibles</span></div><span class="gcarte__fleche"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></a></div>
+  </div>
+</section>
+
+<section class="bande-video" aria-label="Nos services">
+  <video class="bande-video__v" muted loop playsinline preload="none" data-autoplay aria-hidden="true"><source src="https://assets.mixkit.co/videos/47097/47097-720.mp4" type="video/mp4"><source src="https://assets.mixkit.co/videos/47097/47097-360.mp4" type="video/mp4"></video>
+  <div class="bande-video__voile"></div>
+  <div class="wrap bande-video__in">
+    <h2 class="t-xxl titre-anim">Le stock est ici.</h2>
+    <ul class="services-v">
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8l9-5 9 5v8l-9 5-9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg><b>En stock</b><span>À Baie-Mahault</span></li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h12v10H2zM14 10h4l3 3v3h-7z"/><circle cx="6" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg><b>48 h</b><span>Livraison en Guadeloupe</span></li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg><b>Comptoir</b><span>Retrait gratuit</span></li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 6.5a4 4 0 0 0 5 5l-9 9a2.1 2.1 0 0 1-3-3l9-9a4 4 0 0 1-2-2z"/></svg><b>Support</b><span>Technique et bureau d'étude</span></li>
+    </ul>
+  </div>
+</section>
+
+<section class="sec sec--serre">
+  <div class="wrap">
+    <div class="acces-pro acces-pro--anime">
+      <div class="acces-pro__txt">
+        <h2 class="t-xl titre-anim">Professionnels, débloquez vos tarifs.</h2>
+        <ol class="etapes-pro">
+          <li><b>SIRET</b><span>Vérifié automatiquement</span></li>
+          <li><b>Kbis</b><span>Déposé en ligne</span></li>
+          <li><b>Validation</b><span>Sous 24 h ouvrées</span></li>
+        </ol>
+      </div>
+      <form class="acces-pro__form" id="mini-pro">
+        <label for="mini-siren">Votre numéro SIRET</label>
+        <input class="input" id="mini-siren" inputmode="numeric" autocomplete="off" placeholder="123 456 789 00012" required>
+        <button class="btn btn--soleil" type="submit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Débloquer mes tarifs</button>
+        <span class="info">Ouverture de compte gratuite.</span>
+      </form>
+    </div>
+  </div>
+</section>
+
 <section class="sec">
   <div class="wrap">
-    <div class="intro-sec apparait">
-      <h2 class="t-xl">Toute la gamme photovoltaïque, en stock.</h2>
-      <p class="lead">Les produits en ligne ne sont qu'une partie du magasin. Ce qui n'est pas en rayon, nous le commandons directement auprès du fabricant.</p>
-    </div>
-    <div class="cats"><a class="cat" href="catalogue.html#kits"><span class="cat__ico"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 6h20l4 14H4z" fill="#2b4b9b" stroke="#14551f" stroke-width="2.2" stroke-linejoin="round"/><path d="M15 6l-2 14M22 6l1.5 14M6 13h25" stroke="#9fcda1" stroke-width="1.4"/><rect x="24" y="24" width="18" height="18" rx="3" fill="#fff" stroke="#14551f" stroke-width="2.2"/><path d="M33 27l-4 7h4l-1.5 5 5-7h-4l2-5z" fill="#fbbb10"/><rect x="6" y="28" width="14" height="14" rx="3" fill="#2b4b9b" stroke="#14551f" stroke-width="2.2"/></svg></span><span><b>Kits solaires</b><span>Isolés, raccordés, packs cyclone</span></span></a><a class="cat" href="catalogue.html#panneaux"><span class="cat__ico"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M12 10h24l6 22H6z" fill="#2b4b9b" stroke="#14551f" stroke-width="2.4" stroke-linejoin="round"/><path d="M20 10l-3 22M28 10l3 22M9 21h30" stroke="#9fcda1" stroke-width="1.6"/><path d="M24 32v8M16 40h16" fill="none" stroke="#14551f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span><b>Panneaux photovoltaïques</b><span>JA Solar, Jinko, Ecodelta, AXIworld</span></span></a><a class="cat" href="catalogue.html#regulateurs"><span class="cat__ico"><svg viewBox="0 0 48 48" aria-hidden="true"><rect x="9" y="14" width="30" height="26" rx="5" fill="#2b4b9b" stroke="#14551f" stroke-width="2.4"/><rect x="15" y="22" width="18" height="9" rx="2" fill="#0e1a3d"/><circle cx="24" cy="7" r="3.2" fill="#fbbb10"/><path d="M24 1v1.5M30 7h-1.5M18 7h1.5" stroke="#fbbb10" stroke-width="2" stroke-linecap="round"/></svg></span><span><b>Régulateurs</b><span>MPPT Victron SmartSolar</span></span></a><a class="cat" href="catalogue.html#onduleurs"><span class="cat__ico"><svg viewBox="0 0 48 48" aria-hidden="true"><rect x="9" y="6" width="30" height="36" rx="5" fill="#fff" stroke="#14551f" stroke-width="2.4"/><rect x="14" y="13" width="20" height="11" rx="2" fill="#14551f"/><path d="M16 19q2-4 4 0t4 0t4 0t4 0" stroke="#9fcda1" stroke-width="1.6" fill="none"/><path d="M15 31h18M15 36h12" fill="none" stroke="#14551f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span><b>Onduleurs</b><span>Huawei, GoodWe</span></span></a><a class="cat" href="catalogue.html#convertisseurs"><span class="cat__ico"><svg viewBox="0 0 48 48" aria-hidden="true"><rect x="7" y="9" width="34" height="30" rx="6" fill="#fff" stroke="#14551f" stroke-width="2.4"/><path d="M13 20h8M13 24h8" fill="none" stroke="#14551f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M27 22q2.5-5 5 0t5 0" stroke="#218034" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M21 32l3 3 3-3" fill="none" stroke="#14551f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span><b>Convertisseurs</b><span>Victron MultiPlus-II, Quattro</span></span></a><a class="cat" href="catalogue.html#batteries"><span class="cat__ico"><svg viewBox="0 0 48 48" aria-hidden="true"><rect x="8" y="12" width="30" height="26" rx="5" fill="#fff" stroke="#14551f" stroke-width="2.4"/><path d="M38 20h3v10h-3" fill="none" stroke="#14551f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M24 16l-6 10h6l-2 8 8-11h-6l3-7z" fill="#fbbb10" stroke="#14551f" stroke-width="1.6" stroke-linejoin="round"/></svg></span><span><b>Batteries</b><span>Pylontech, BYD, Huawei, BSL Batt</span></span></a><a class="cat" href="catalogue.html#structures"><span class="cat__ico"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M6 14h36M6 24h36" stroke="#14551f" stroke-width="3" stroke-linecap="round"/><path d="M12 14l6 26M36 14l-6 26M10 40h28" fill="none" stroke="#14551f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="18" cy="14" r="2.5" fill="#218034"/><circle cx="30" cy="14" r="2.5" fill="#218034"/></svg></span><span><b>Structure et fixation</b><span>K2 Systems, Novotegra</span></span></a><a class="cat" href="catalogue.html#cables"><span class="cat__ico"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 36c0-10 8-10 12-16s0-12 8-12 12 6 12 12" stroke="#c0392b" stroke-width="3" fill="none" stroke-linecap="round"/><rect x="34" y="22" width="10" height="12" rx="3" fill="#14551f"/><rect x="4" y="34" width="10" height="10" rx="3" fill="#14551f"/></svg></span><span><b>Câbles</b><span>Câble solaire, MC4, liaisons</span></span></a><a class="cat" href="catalogue.html#monitoring"><span class="cat__ico"><svg viewBox="0 0 48 48" aria-hidden="true"><rect x="14" y="4" width="20" height="40" rx="4" fill="#fff" stroke="#14551f" stroke-width="2.4"/><path d="M18 30l4-6 3 3 5-8" stroke="#fbbb10" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 39h6" fill="none" stroke="#14551f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span><b>Monitoring et accessoires</b><span>Cerbo GX, dongles, compteurs</span></span></a><a class="cat" href="catalogue.html#protections"><span class="cat__ico"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 4l16 6v12c0 10-7 17-16 22C15 39 8 32 8 22V10z" fill="#e7f3e7" stroke="#14551f" stroke-width="2.4" stroke-linejoin="round"/><rect x="18" y="16" width="12" height="16" rx="2" fill="#fff" stroke="#14551f" stroke-width="2"/><rect x="21" y="19" width="6" height="6" rx="1" fill="#218034"/></svg></span><span><b>Protection électrique</b><span>Coffrets, sectionneurs, fusibles</span></span></a></div>
-  </div>
-</section>
-
-<section class="sec sec--fond">
-  <div class="wrap">
-    <div class="intro-sec apparait">
-      <h2 class="t-xl">Des kits complets, prêts à installer.</h2>
-      <p class="lead">Composés à partir de notre stock et testés ensemble : panneaux, conversion, stockage, fixations et protections.</p>
-    </div>
+    <div class="intro-sec"><h2 class="t-xl titre-anim">Des kits prêts à poser.</h2></div>
     <div class="solutions">
-      <a class="solution apparait" href="catalogue.html#kits"><div class="solution__img" data-img-kit="iso-5-pylon"><svg viewBox="0 0 48 48" aria-hidden="true"><rect x="8" y="12" width="30" height="26" rx="5" fill="#fff" stroke="#14551f" stroke-width="2.4"/><path d="M38 20h3v10h-3" fill="none" stroke="#14551f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M24 16l-6 10h6l-2 8 8-11h-6l3-7z" fill="#fbbb10" stroke="#14551f" stroke-width="1.6" stroke-linejoin="round"/></svg></div><div class="solution__corps"><h3>Kits isolés</h3><p>De 3 à 8 kVA, avec 4,8 à 14,4 kWh de batteries lithium. Pour les sites sans réseau.</p><span class="lien">Voir les kits isolés</span></div></a>
-      <a class="solution apparait" href="catalogue.html#kits"><div class="solution__img" data-img-kit="res-3-sans"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M12 10h24l6 22H6z" fill="#2b4b9b" stroke="#14551f" stroke-width="2.4" stroke-linejoin="round"/><path d="M20 10l-3 22M28 10l3 22M9 21h30" stroke="#9fcda1" stroke-width="1.6"/><path d="M24 32v8M16 40h16" fill="none" stroke="#14551f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="solution__corps"><h3>Kits raccordés réseau</h3><p>Autoconsommation avec revente du surplus, avec ou sans batterie. Éligibles à la prime EDF SEI si posés par un installateur RGE.</p><span class="lien">Voir les kits raccordés</span></div></a>
-      <a class="solution apparait" href="pack-cyclone.html"><div class="solution__img" data-img-kit="sec-foyer"><svg viewBox="0 0 48 48" aria-hidden="true"><rect x="7" y="9" width="34" height="30" rx="6" fill="#fff" stroke="#14551f" stroke-width="2.4"/><path d="M13 20h8M13 24h8" fill="none" stroke="#14551f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M27 22q2.5-5 5 0t5 0" stroke="#218034" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M21 32l3 3 3-3" fill="none" stroke="#14551f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="solution__corps"><h3>Packs de secours</h3><p>Convertisseur Victron et batteries lithium : la maison reste alimentée pendant les coupures.</p><span class="lien">Voir les packs cyclone</span></div></a>
+      <a class="solution tilt" href="catalogue.html#kits"><div class="solution__img" data-img-kit="iso-5-pylon"><svg viewBox="0 0 48 48" aria-hidden="true"><rect x="8" y="12" width="30" height="26" rx="5" fill="#fff" stroke="#14551f" stroke-width="2.4"/><path d="M38 20h3v10h-3" fill="none" stroke="#14551f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M24 16l-6 10h6l-2 8 8-11h-6l3-7z" fill="#fbbb10" stroke="#14551f" stroke-width="1.6" stroke-linejoin="round"/></svg></div><div class="solution__corps"><span class="solution__tag">3 à 8 kVA</span><h3>Kits isolés</h3><p>Panneaux, conversion Victron et batteries lithium pour les sites sans réseau.</p></div></a>
+      <a class="solution tilt" href="catalogue.html#kits"><div class="solution__img" data-img-kit="res-3-sans"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M12 10h24l6 22H6z" fill="#2b4b9b" stroke="#14551f" stroke-width="2.4" stroke-linejoin="round"/><path d="M20 10l-3 22M28 10l3 22M9 21h30" stroke="#9fcda1" stroke-width="1.6"/><path d="M24 32v8M16 40h16" fill="none" stroke="#14551f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="solution__corps"><span class="solution__tag">Prime EDF SEI</span><h3>Kits raccordés</h3><p>Autoconsommation et revente du surplus, avec ou sans batterie.</p></div></a>
+      <a class="solution tilt" href="pack-cyclone.html"><div class="solution__img" data-img-kit="sec-foyer"><svg viewBox="0 0 48 48" aria-hidden="true"><rect x="7" y="9" width="34" height="30" rx="6" fill="#fff" stroke="#14551f" stroke-width="2.4"/><path d="M13 20h8M13 24h8" fill="none" stroke="#14551f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M27 22q2.5-5 5 0t5 0" stroke="#218034" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M21 32l3 3 3-3" fill="none" stroke="#14551f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="solution__corps"><span class="solution__tag">4,8 à 14,4 kWh</span><h3>Packs de secours</h3><p>La maison reste alimentée pendant les coupures.</p></div></a>
     </div>
   </div>
 </section>
 
-<section class="cyclone-bande" aria-labelledby="cyclone-titre">
-  <div class="wrap cyclone-bande__grid">
-    <div class="cyclone-bande__txt apparait">
+<section class="cyclone-v" aria-labelledby="cyclone-titre">
+  <video class="cyclone-v__video" muted loop playsinline preload="none" data-autoplay aria-hidden="true"><source src="https://assets.mixkit.co/videos/4059/4059-720.mp4" type="video/mp4"><source src="https://assets.mixkit.co/videos/4059/4059-360.mp4" type="video/mp4"></video>
+  <canvas class="pluie" aria-hidden="true"></canvas>
+  <div class="cyclone-v__eclair" aria-hidden="true"></div>
+  <div class="cyclone-v__voile"></div>
+  <div class="wrap cyclone-v__grid">
+    <div class="cyclone-v__txt">
       <span class="saison"><i aria-hidden="true"></i><span data-saison>Saison cyclonique</span></span>
-      <h2 class="t-xl" id="cyclone-titre">Pack Détresse Cyclone : le courant tient quand le réseau tombe.</h2>
-      <p class="lead">Après un cyclone, le réseau peut mettre des jours à revenir. Le pack bascule tout seul sur batterie en quelques millisecondes : réfrigérateur, lumière, box internet et ventilateurs continuent.</p>
+      <h2 class="t-xxl titre-anim" id="cyclone-titre">Quand le réseau tombe, la lumière reste.</h2>
+      <p class="lead">Pack Détresse Cyclone : bascule automatique sur batterie, en quelques millisecondes.</p>
       <div class="packs-mini" data-packs-mini></div>
       <div class="hero__ctas"><a class="btn btn--soleil" href="pack-cyclone.html">Choisir mon pack</a><a class="btn btn--ligne-clair" href="#" data-quiz="Ne plus subir les coupures">Être rappelé</a></div>
     </div>
-    <div class="cyclone-bande__illu" aria-hidden="true"><svg viewBox="0 0 600 600" aria-hidden="true"><defs><radialGradient id="halo" cx="50%" cy="58%" r="45%"><stop offset="0" stop-color="#fbbb10" stop-opacity=".35"/><stop offset="1" stop-color="#fbbb10" stop-opacity="0"/></radialGradient></defs>
+    <div class="cyclone-v__illu" aria-hidden="true"><svg viewBox="0 0 600 600" aria-hidden="true"><defs><radialGradient id="halo" cx="50%" cy="58%" r="45%"><stop offset="0" stop-color="#fbbb10" stop-opacity=".35"/><stop offset="1" stop-color="#fbbb10" stop-opacity="0"/></radialGradient></defs>
 <g stroke="#5d6f9c" stroke-width="2" stroke-linecap="round" opacity=".45"><line x1="0" y1="0" x2="-14" y2="40"/><line x1="53" y1="97" x2="39" y2="137"/><line x1="106" y1="194" x2="92" y2="234"/><line x1="159" y1="291" x2="145" y2="331"/><line x1="212" y1="388" x2="198" y2="428"/><line x1="265" y1="485" x2="251" y2="525"/><line x1="318" y1="62" x2="304" y2="102"/><line x1="371" y1="159" x2="357" y2="199"/><line x1="424" y1="256" x2="410" y2="296"/><line x1="477" y1="353" x2="463" y2="393"/><line x1="530" y1="450" x2="516" y2="490"/><line x1="583" y1="27" x2="569" y2="67"/><line x1="36" y1="124" x2="22" y2="164"/><line x1="89" y1="221" x2="75" y2="261"/><line x1="142" y1="318" x2="128" y2="358"/><line x1="195" y1="415" x2="181" y2="455"/><line x1="248" y1="512" x2="234" y2="552"/><line x1="301" y1="89" x2="287" y2="129"/><line x1="354" y1="186" x2="340" y2="226"/><line x1="407" y1="283" x2="393" y2="323"/><line x1="460" y1="380" x2="446" y2="420"/><line x1="513" y1="477" x2="499" y2="517"/><line x1="566" y1="54" x2="552" y2="94"/><line x1="19" y1="151" x2="5" y2="191"/><line x1="72" y1="248" x2="58" y2="288"/><line x1="125" y1="345" x2="111" y2="385"/><line x1="178" y1="442" x2="164" y2="482"/><line x1="231" y1="19" x2="217" y2="59"/><line x1="284" y1="116" x2="270" y2="156"/><line x1="337" y1="213" x2="323" y2="253"/><line x1="390" y1="310" x2="376" y2="350"/><line x1="443" y1="407" x2="429" y2="447"/><line x1="496" y1="504" x2="482" y2="544"/><line x1="549" y1="81" x2="535" y2="121"/><line x1="2" y1="178" x2="-12" y2="218"/><line x1="55" y1="275" x2="41" y2="315"/><line x1="108" y1="372" x2="94" y2="412"/><line x1="161" y1="469" x2="147" y2="509"/><line x1="214" y1="46" x2="200" y2="86"/><line x1="267" y1="143" x2="253" y2="183"/><line x1="320" y1="240" x2="306" y2="280"/><line x1="373" y1="337" x2="359" y2="377"/><line x1="426" y1="434" x2="412" y2="474"/><line x1="479" y1="11" x2="465" y2="51"/><line x1="532" y1="108" x2="518" y2="148"/><line x1="585" y1="205" x2="571" y2="245"/></g>
 <path d="M120 120 q40 -50 90 -20 q30 -40 80 -10 q50 -10 60 40 q-10 20 -40 20 h-170 q-30 -10 -20 -30z" fill="#1c2747"/>
 <path d="M300 150 l-26 52 h24 l-16 46 46 -64 h-26 l18 -34z" fill="#fbbb10" opacity=".85"/>
@@ -217,50 +249,28 @@
   </div>
 </section>
 
-<section class="sec">
-  <div class="wrap pourquoi pourquoi--sans-photo">
-    <div class="apparait">
-      <h2 class="t-xl">Distributeur officiel des grandes marques.</h2>
-      <p class="lead" style="margin-top:18px">Nous achetons auprès des réseaux officiels des fabricants. Vos clients bénéficient de la garantie constructeur, et vous d'un interlocuteur sur place pour le dimensionnement, la compatibilité et le paramétrage.</p>
-      <dl class="chiffres">
-        <div><dt>2012</dt><dd>Sur le marché caribéen</dd></div>
-        <div><dt>48 h</dt><dd>Livraison en Guadeloupe</dd></div>
-        <div><dt>10 ans</dt><dd>De garantie fabricant sur de nombreux onduleurs et batteries</dd></div>
-        <div><dt>1 bureau d'étude</dt><dd>Pour vos dimensionnements</dd></div>
-      </dl>
-    </div>
-    <div class="mur-marques apparait" aria-label="Marques distribuées"><span>Victron Energy</span><span>Huawei</span><span>JA Solar</span><span>Jinko Solar</span><span>Pylontech</span><span>BYD</span><span>GoodWe</span><span>K2 Systems</span><span>Novotegra</span><span>Ecodelta</span><span>AXIworld</span><span>BSL Batt</span></div>
+<section class="sec" id="avis">
+  <div class="wrap avis-tete">
+    <h2 class="t-xl titre-anim">Ils nous font confiance.</h2>
+    <a class="note-google" data-google-lien href="#" target="_blank" rel="noopener"><strong data-google-note>4,8</strong><span><span class="etoiles" aria-hidden="true">★★★★★</span><br><span data-google-nb>Avis Google</span></span></a>
   </div>
-</section>
-
-<section class="sec sec--fond" id="avis">
-  <div class="wrap">
-    <div class="avis-tete apparait">
-      <div class="intro-sec" style="margin:0"><h2 class="t-xl">Ce qu'en disent nos clients.</h2></div>
-      <a class="note-google" data-google-lien href="#" target="_blank" rel="noopener"><strong data-google-note>4,8</strong><span><span class="etoiles" aria-hidden="true">★★★★★</span><br><span data-google-nb>Avis Google</span></span></a>
-    </div>
-    <div class="avis" id="avis-liste"></div>
-  </div>
+  <div class="avis-defile"><div class="avis-defile__piste" id="avis-liste"></div></div>
 </section>
 
 <section class="sec sec--serre">
   <div class="wrap">
-    <div class="bandeau-install apparait">
-      <div><h2 class="t-l">Particulier ? Faites poser votre installation par un pro.</h2><p class="lead" style="margin-top:10px">Trouvez un installateur partenaire près de chez vous, qui travaille avec notre matériel.</p></div>
-      <a class="btn" href="installateurs.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>Trouver un installateur</a>
-    </div>
-  </div>
-</section>
-
-<section class="sec sec--serre">
-  <div class="wrap">
-    <div class="contact-bande">
-      <h2 class="t-xl">Parlons de votre projet.</h2>
-      <div class="contact-bande__grid">
-        <div class="contact-carte"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg><b>Appelez-nous</b><a data-tel href="#">0590 32 15 20</a><span data-horaires></span></div>
-        <div class="contact-carte"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg><b>Passez au comptoir</b><span data-adresse></span><a data-maps href="#" target="_blank" rel="noopener">Itinéraire</a></div>
-        <div class="contact-carte"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6M9 18h3"/></svg><b>Demandez un devis</b><span>Quatre questions, une minute. Réponse sous 24 h ouvrées.</span><a href="#" data-quiz="">Commencer ma demande</a></div>
-      </div>
+    <div class="duo">
+      <a class="duo__carte duo__carte--install" href="installateurs.html">
+        <video class="duo__video" muted loop playsinline preload="none" data-autoplay aria-hidden="true"><source src="https://assets.mixkit.co/videos/23491/23491-720.mp4" type="video/mp4"><source src="https://assets.mixkit.co/videos/23491/23491-360.mp4" type="video/mp4"></video>
+        <span class="duo__voile"></span>
+        <span class="duo__txt"><b>Trouver un installateur</b><span>Des professionnels partenaires près de chez vous.</span></span>
+        <span class="duo__fleche"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+      <a class="duo__carte duo__carte--contact" href="contact.html">
+        <span class="duo__txt"><b>Parlons de votre projet</b><span data-horaires></span></span>
+        <span class="duo__tel" data-tel-texte>0590 32 15 20</span>
+        <span class="duo__fleche"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
     </div>
   </div>
 </section>
@@ -297,6 +307,7 @@
         <li><a href="https://www.youtube.com/channel/UCXPs2lO-xhEK2AEzHWEL8Zg" target="_blank" rel="noopener">YouTube</a></li>
       </ul></div>
     </div>
+    <div class="footer__geant" aria-hidden="true">Cedyan Energy</div>
     <div class="footer__bas"><span>© <span data-annee>2026</span> Cedyan Energy. Tous droits réservés.</span><span>Site réalisé par PFlow</span></div>
   </div>
 </footer>
@@ -355,5 +366,6 @@
 <script src="data.js"></script>
 <script src="partenaires.js"></script>
 <script src="app.js"></script>
+<script src="anim.js"></script>
 </body>
 </html>
