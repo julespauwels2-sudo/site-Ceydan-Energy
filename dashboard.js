@@ -99,7 +99,7 @@
       <td><span class="tag">${TYPES[d.type] || esc(d.type)}</span></td>
       <td>${esc(c.commune || "")}</td>
       <td>${d.score != null ? `<span class="score" style="--s:${d.score}">${d.score}</span>` : ""}</td>
-      <td><span class="statut statut--${d.statut}">${STATUTS[d.statut]}</span></td></tr>`; }).join("")
+      <td><span class="statut statut--${d.statut}">${d.type === "compte-pro" && d.statut === "gagne" ? "Compte validé" : d.type === "compte-pro" && d.statut === "perdu" ? "Compte refusé" : STATUTS[d.statut]}</span></td></tr>`; }).join("")
       : `<tr><td colspan="7" class="vide">Aucune demande pour ces filtres.</td></tr>`;
   }
   ["#f-recherche", "#f-statut", "#f-type", "#f-tri"].forEach((s) => $(s).addEventListener("input", rendreDemandes));
@@ -149,28 +149,37 @@
     if (error) return toast("Erreur : " + error.message);
     D.pros = data || []; rendrePros();
   }
+  let filtrePros = null;
   function rendrePros() {
     const ordre = { en_attente: 0, valide: 1, refuse: 2 };
-    const l = [...D.pros].sort((a, b) => ordre[a.statut] - ordre[b.statut] || new Date(b.created_at) - new Date(a.created_at));
-    const att = l.filter((p) => p.statut === "en_attente").length;
+    const tous = [...D.pros].sort((a, b) => ordre[a.statut] - ordre[b.statut] || new Date(b.created_at) - new Date(a.created_at));
+    const nb = (s) => tous.filter((p) => p.statut === s).length;
+    const att = nb("en_attente");
     $('[data-badge="pros"]').textContent = att || "";
-    $("#liste-pros").innerHTML = l.length ? l.map((p) => { const v = p.verification || {}; return `<article class="carte carte--${p.statut}" data-id="${p.id}">
-      <div class="carte__tete"><div><h3>${esc(p.entreprise || "Entreprise " + p.siren)}</h3><p class="sous">SIREN ${esc(p.siren)} · ${esc(p.metier || "")} · ${depuis(p.created_at)}</p></div><span class="statut statut--${p.statut}">${{ en_attente: "À valider", valide: "Validé", refuse: "Refusé" }[p.statut]}</span></div>
-      <p>${esc(p.nom || "")} · <a href="tel:${esc((p.telephone || "").replace(/\s/g, ""))}">${esc(p.telephone || "")}</a> · <a href="mailto:${esc(p.email)}">${esc(p.email)}</a></p>
-      <p class="verif ${v.registre === "entreprise active" ? "ok" : "attention"}">${v.registre === "entreprise active" ? "✓ Active au registre national" : "⚠ Registre non vérifié, à contrôler"}${v.naf ? " · NAF " + esc(v.naf) : ""}${v.secteur_energie ? " · secteur électricité/énergie" : ""}${v.dom ? " · siège en Outre-mer" : ""}</p>
-      <div class="actions">${p.kbis_path ? `<button class="b" data-kbis="${p.id}">Voir le Kbis</button>` : '<span class="sous">⚠ Pas de Kbis joint</span>'}
-      ${p.statut !== "valide" ? `<button class="b b--vert" data-decision="valide" data-id="${p.id}">Valider</button>` : ""}${p.statut !== "refuse" ? `<button class="b b--danger" data-decision="refuse" data-id="${p.id}">Refuser</button>` : ""}</div>
-      ${p.decision_par ? `<p class="sous">Décision de ${esc(p.decision_par)} le ${date(p.decision_le)}</p>` : ""}</article>`; }).join("")
-      : `<p class="vide">Aucune demande de compte pro pour le moment.</p>`;
+    if (filtrePros === null) filtrePros = att ? "en_attente" : "";
+    const onglets = [["en_attente", "À valider", att], ["valide", "Validés", nb("valide")], ["refuse", "Refusés", nb("refuse")], ["", "Tous", tous.length]];
+    $("#pros-onglets").innerHTML = onglets.map(([k, t, n]) => `<button type="button" data-fp="${k}" class="${k === filtrePros ? "is-on" : ""}">${t} <b>${n}</b></button>`).join("");
+    const q = ($("#pros-recherche").value || "").toLowerCase();
+    const l = tous.filter((p) => (!filtrePros || p.statut === filtrePros) && (!q || `${p.entreprise} ${p.siren} ${p.nom} ${p.email} ${p.telephone} ${p.metier}`.toLowerCase().includes(q)));
+    $("#liste-pros").innerHTML = l.length ? `<div class="tableau"><table class="pros"><thead><tr><th>Entreprise</th><th>Contact</th><th>Registre</th><th>Reçu</th><th>Statut</th><th></th></tr></thead><tbody>${l.map((p) => { const v = p.verification || {}; const ok = v.registre === "entreprise active"; return `<tr class="pro-ligne pro-ligne--${p.statut}" data-id="${p.id}">
+      <td><b>${esc(p.entreprise || "Entreprise " + p.siren)}</b><br><small>SIREN ${esc(p.siren)}${p.metier ? " · " + esc(p.metier) : ""}</small></td>
+      <td>${esc(p.nom || "")}<br><small><a href="tel:${esc((p.telephone || "").replace(/\s/g, ""))}">${esc(p.telephone || "")}</a> · <a href="mailto:${esc(p.email)}">${esc(p.email)}</a></small></td>
+      <td><span class="pastille ${ok ? "pastille--ok" : "pastille--att"}" title="${ok ? "Active au registre national" : "Registre non vérifié"}${v.naf ? " · NAF " + esc(v.naf) : ""}">${ok ? "✓ Active" : "⚠ À contrôler"}</span></td>
+      <td title="${date(p.created_at)}">${depuis(p.created_at)}</td>
+      <td><span class="statut statut--${p.statut}">${{ en_attente: "À valider", valide: "Validé", refuse: "Refusé" }[p.statut]}</span></td>
+      <td class="pro-actions">${p.kbis_path ? `<button class="b b--petit" data-kbis="${p.id}">Kbis</button>` : '<span class="sous" title="Pas de Kbis joint">Sans Kbis</span>'}${p.statut !== "valide" ? `<button class="b b--petit b--vert" data-decision="valide" data-id="${p.id}">Valider</button>` : ""}${p.statut !== "refuse" ? `<button class="b b--petit b--danger" data-decision="refuse" data-id="${p.id}" title="Refuser">${p.statut === "valide" ? "Révoquer" : "Refuser"}</button>` : ""}</td></tr>`; }).join("")}</tbody></table></div>`
+      : `<p class="vide">${q ? "Aucun compte ne correspond." : filtrePros === "en_attente" ? "Aucun compte à valider. Tout est à jour." : "Aucun compte pro pour le moment."}</p>`;
   }
+  $("#pros-onglets").addEventListener("click", (e) => { const b = e.target.closest("[data-fp]"); if (!b) return; filtrePros = b.dataset.fp; rendrePros(); });
+  $("#pros-recherche").addEventListener("input", rendrePros);
   $("#liste-pros").addEventListener("click", async (e) => {
     const k = e.target.closest("[data-kbis]");
     if (k) { try { const j = await appelEquipe({ action: "kbis_url", id: k.dataset.kbis }); window.open(j.url, "_blank", "noopener"); } catch (er) { toast(er.message); } return; }
     const b = e.target.closest("[data-decision]"); if (!b) return;
     const valide = b.dataset.decision === "valide";
-    if (!confirm(valide ? "Valider ce compte ? Le pro recevra un e-mail et verra ses tarifs." : "Refuser ce compte ? Le pro recevra un e-mail.")) return;
+    if (!confirm(valide ? "Valider ce compte ? Le pro recevra un e-mail et verra ses tarifs." : "Refuser ce compte ? Le pro recevra un e-mail et ne verra plus les tarifs.")) return;
     b.disabled = true;
-    try { const j = await appelEquipe({ action: "decision_pro", id: b.dataset.id, decision: b.dataset.decision }); toast(valide ? "Compte validé" + (j.email && j.email.ok ? ", e-mail envoyé" : " (e-mail non envoyé : vérifier Resend)") : "Compte refusé"); await chargerPros(); }
+    try { const j = await appelEquipe({ action: "decision_pro", id: b.dataset.id, decision: b.dataset.decision }); toast(valide ? "Compte validé" + (j.email && j.email.ok ? ", e-mail envoyé" : " (e-mail non envoyé : vérifier Resend)") : "Compte refusé"); await Promise.all([chargerPros(), chargerDemandes()]); }
     catch (er) { toast(er.message); b.disabled = false; }
   });
 
@@ -320,10 +329,11 @@
      INSTALLATEURS PARTENAIRES
      ========================================================= */
   async function chargerPartenaires() {
-    const { data, error } = await sb.from("partenaires").select("*").order("created_at");
+    const { data, error } = await sb.from("partenaires").select("*").order("ordre").order("created_at");
     if (error) return toast("Erreur : " + error.message);
     D.partenaires = data || [];
-    $("#liste-partenaires").innerHTML = D.partenaires.length ? D.partenaires.map((p) => `<article class="carte ${p.actif ? "" : "is-masque"}" data-id="${p.id}">
+    $("#liste-partenaires").innerHTML = D.partenaires.length ? D.partenaires.map((p, k) => `<article class="carte carte--part ${p.actif ? "" : "is-masque"}" data-id="${p.id}">
+      <div class="ordre" aria-label="Position sur le site"><button type="button" data-monter="${p.id}" ${k === 0 ? "disabled" : ""} aria-label="Monter ${esc(p.nom)}">▲</button><span>${k + 1}</span><button type="button" data-descendre="${p.id}" ${k === D.partenaires.length - 1 ? "disabled" : ""} aria-label="Descendre ${esc(p.nom)}">▼</button></div>
       <div class="carte__tete"><div><h3>${esc(p.nom)} ${p.exemple ? '<span class="tag">Exemple</span>' : ""}</h3><p class="sous">${esc(p.commune || "")} · ${esc((p.zones || []).join(", "))}</p></div>${p.rge ? '<span class="statut statut--valide">RGE</span>' : ""}</div>
       <p>${(p.specialites || []).map((s) => `<span class="tag">${esc(s)}</span>`).join(" ")}</p>
       <div class="actions"><button class="b b--petit" data-editer-part="${p.id}">Modifier</button>${p.actif ? "" : '<span class="sous">Masqué du site</span>'}</div></article>`).join("")
@@ -344,12 +354,28 @@
     $("#form-part").addEventListener("submit", async (e) => {
       e.preventDefault(); const f = new FormData(e.target);
       const ligne = { nom: f.get("nom"), commune: f.get("commune"), siren: (f.get("siren") || "").replace(/\D/g, "") || null, telephone: f.get("telephone") || null, email: f.get("email") || null, zones: f.getAll("zones"), specialites: f.getAll("specialites"), rge: !!f.get("rge"), actif: !!f.get("actif"), exemple: !!f.get("exemple") };
+      if (!p.id) ligne.ordre = Math.max(0, ...D.partenaires.map((x) => x.ordre || 0)) + 1;
       const r = p.id ? await sb.from("partenaires").update(ligne).eq("id", p.id) : await sb.from("partenaires").insert(ligne);
       if (r.error) return toast("Erreur : " + r.error.message); fermerPanneau(); await chargerPartenaires(); toast("Installateur enregistré");
     });
     const s = $("#part-suppr"); s && s.addEventListener("click", async () => { if (!confirm("Supprimer cet installateur ?")) return; const r = await sb.from("partenaires").delete().eq("id", p.id); if (r.error) return toast("Erreur : " + r.error.message); fermerPanneau(); await chargerPartenaires(); });
   }
-  $("#liste-partenaires").addEventListener("click", (e) => { const b = e.target.closest("[data-editer-part]"); if (b) editerPartenaire(D.partenaires.find((x) => x.id === b.dataset.editerPart)); });
+  $("#liste-partenaires").addEventListener("click", async (e) => {
+    const b = e.target.closest("[data-editer-part]"); if (b) return editerPartenaire(D.partenaires.find((x) => x.id === b.dataset.editerPart));
+    const m = e.target.closest("[data-monter],[data-descendre]"); if (!m) return;
+    const id = m.dataset.monter || m.dataset.descendre; const i = D.partenaires.findIndex((x) => x.id === id); const j = m.dataset.monter ? i - 1 : i + 1;
+    if (i < 0 || j < 0 || j >= D.partenaires.length) return;
+    const l = [...D.partenaires]; [l[i], l[j]] = [l[j], l[i]];
+    D.partenaires = l.map((x, k) => ({ ...x, ordre: k + 1 }));
+    $$("#liste-partenaires button").forEach((x) => (x.disabled = true));
+    const r = await Promise.all([D.partenaires[i], D.partenaires[j]].map((x) => sb.from("partenaires").update({ ordre: x.ordre }).eq("id", x.id)));
+    const err = r.find((x) => x.error); if (err) toast("Erreur : " + err.error.message);
+    else { // remet un ordre propre 1, 2, 3… pour toute la liste
+      await Promise.all(D.partenaires.map((x) => sb.from("partenaires").update({ ordre: x.ordre }).eq("id", x.id)));
+      toast("Ordre mis à jour sur le site");
+    }
+    chargerPartenaires();
+  });
   $("#btn-nouveau-partenaire").addEventListener("click", () => editerPartenaire(null));
 
   /* =========================================================

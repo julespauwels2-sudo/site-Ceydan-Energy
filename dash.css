@@ -188,3 +188,28 @@ td small{color:var(--gris)}
 .kit-champs{border:1.5px dashed var(--trait);border-radius:14px;padding:12px}
 .kit-champs[hidden]{display:none!important}
 .panneau input[type=file]{min-height:auto;padding:8px;border-style:dashed}
+
+/* Comptes pro compacts */
+.filtres--pros{align-items:center}
+.onglets{display:inline-flex;padding:4px;border-radius:999px;background:#fff;border:1.5px solid var(--trait);gap:2px;flex-wrap:wrap}
+.onglets button{border:0;background:none;padding:7px 14px;border-radius:999px;font-weight:700;cursor:pointer;color:var(--gris)}
+.onglets button b{font-size:.78rem;margin-left:4px;padding:1px 7px;border-radius:999px;background:var(--fond);color:var(--encre)}
+.onglets button.is-on{background:var(--nuit);color:#fff}
+.onglets button.is-on b{background:var(--soleil)}
+table.pros tbody tr{cursor:default}
+table.pros td{padding:10px 14px}
+.pro-ligne--en_attente td:first-child{box-shadow:inset 4px 0 0 var(--soleil)}
+.pro-actions{white-space:nowrap;text-align:right}
+.pro-actions .b{margin-left:4px}
+.pastille{display:inline-block;font-size:.78rem;font-weight:800;padding:4px 9px;border-radius:999px;white-space:nowrap}
+.pastille--ok{background:#e5f4e7;color:var(--vert-f)}
+.pastille--att{background:#fff4d6;color:#8a5a00}
+/* Ordre des installateurs */
+.carte--part{grid-template-columns:auto 1fr;column-gap:16px}
+.carte--part>*:not(.ordre){grid-column:2}
+.ordre{grid-row:1 / span 3;grid-column:1;display:grid;justify-items:center;align-content:center;gap:2px;padding-right:14px;border-right:1px solid var(--trait)}
+.ordre button{width:32px;height:28px;border:1.5px solid var(--trait);border-radius:8px;background:#fff;cursor:pointer;font-size:.75rem;color:var(--vert-f)}
+.ordre button:hover:not(:disabled){border-color:var(--vert);background:#f3faf4}
+.ordre button:disabled{opacity:.3;cursor:default}
+.ordre span{font-weight:900;font-size:.95rem}
+table.pros td:nth-child(4){white-space:nowrap}

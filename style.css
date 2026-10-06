@@ -1599,3 +1599,4 @@ body.avec-saison{--decal:40px}
 .sugg__vide span{color:var(--gris);font-size:.9rem}
 @media (max-width:560px){.sugg{grid-template-columns:44px 1fr}.sugg__img{width:44px;height:44px}.sugg__cat{display:none}}
 .fiche__visuel{position:relative;top:auto}
+.ann-fiche__tete{grid-template-columns:1fr}

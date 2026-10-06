@@ -38,7 +38,7 @@
       const ok = (p) => p.catch(() => null);
       const [prods, parts, regl] = await t(Promise.all([
         ok(rest("produits?select=id,cat,marque,nom,ref,img,stock,extra,description,caracteristiques,fiche_technique&actif=eq.true&order=ordre")),
-        ok(rest("partenaires?select=nom,commune,zones,rge,specialites,telephone,email,siren,exemple&actif=eq.true&order=created_at")),
+        ok(rest("partenaires?select=nom,commune,zones,rge,specialites,telephone,email,siren,exemple,ordre&actif=eq.true&order=ordre,created_at")),
         ok(rest("reglages?select=cle,valeur")),
       ]), 2500);
       if (prods && prods.length) {
@@ -651,18 +651,19 @@
       const z = c ? zoneDe(c) : ""; const type = selT.value;
       let l = parts.filter((p) => (!rge.checked || p.rge) && (!type || (p.specialites || []).includes(type)) && (!z || (p.zones || []).includes(z) || p.commune === c));
       l.forEach((p) => (p.km = c ? distKm(COORDS[c], p.gps) : null));
-      l.sort(tri.value === "nom" ? (a, b) => a.nom.localeCompare(b.nom) : (a, b) => (a.km ?? 0) - (b.km ?? 0) || b.rge - a.rge);
+      // Sans commune : l'ordre choisi dans le dashboard. Avec commune : les plus proches d'abord.
+      if (tri.value === "nom") l.sort((a, b) => a.nom.localeCompare(b.nom));
+      else if (c) l.sort((a, b) => (a.km ?? 0) - (b.km ?? 0) || (a.ordre || 0) - (b.ordre || 0));
       $("#annuaire-compte").textContent = c ? `${l.length} installateur${l.length > 1 ? "s" : ""} près de ${c}` : `${l.length} installateur${l.length > 1 ? "s" : ""} partenaire${l.length > 1 ? "s" : ""} en Guadeloupe`;
       annuaire.innerHTML = l.length ? l.map((p, k) => `<article class="ann-fiche" data-k="${k}">
         ${p.exemple ? '<span class="avi__ex">Exemple</span>' : ""}
-        <div class="ann-fiche__tete"><span class="ann-fiche__mono">${esc(p.nom.split(" ").filter((m) => m.length > 2).slice(0, 2).map((m) => m[0]).join("").toUpperCase())}</span>
+        <div class="ann-fiche__tete">
         <div><h3>${esc(p.nom)}</h3><p>${esc(p.commune)}${p.km != null ? ` <b class="ann-km">à ${p.km < 1 ? "moins d'1" : Math.round(p.km)} km</b>` : ""}</p></div></div>
         <div class="ann-fiche__quali">${p.rge ? '<span class="badge-rge">RGE QualiPV</span>' : '<span class="badge-non">Non RGE</span>'}${(p.specialites || []).map((t) => `<span>${esc(t)}</span>`).join("")}</div>
         <p class="ann-fiche__zone">Intervient en ${esc((p.zones || []).join(", "))}</p>
         <div class="ann-fiche__actions">${p.telephone ? `<a class="btn btn--ligne btn--petit" href="tel:${esc(p.telephone.replace(/\s/g, ""))}">Appeler</a>` : ""}<a class="btn btn--petit" href="contact.html?partenaire=${encodeURIComponent(p.nom)}">Demander un devis</a></div></article>`).join("")
         : `<div class="vide" style="text-align:left"><p><b>Aucun partenaire ne correspond à cette recherche.</b></p><p>Laissez-nous votre projet : nous le transmettons à un installateur qui peut intervenir chez vous.</p><a class="btn btn--petit" href="#" data-quiz-direct>Être mis en relation</a></div>`;
       $$("[data-quiz-direct]", annuaire).forEach((b) => b.addEventListener("click", (e) => { e.preventDefault(); ouvrirQuiz({}); }));
-      $$(".ann-fiche__mono", annuaire).forEach((m, k) => (m.dataset.n = k + 1));
       if (carte) {
         calque.clearLayers(); const pts = [];
         l.forEach((p, k) => {

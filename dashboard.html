@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap">
-<link rel="stylesheet" href="dash.css?v=dda76505">
+<link rel="stylesheet" href="dash.css?v=f15d52ce">
 </head>
 <body>
 
@@ -71,7 +71,8 @@
     <!-- COMPTES PRO -->
     <section class="vue" data-vue-p="pros">
       <header class="vue__tete"><h1>Comptes pro</h1><button class="b" type="button" data-rafraichir>Actualiser</button></header>
-      <div id="liste-pros" class="cartes"></div>
+      <div class="filtres filtres--pros"><div class="onglets" id="pros-onglets" role="group" aria-label="Filtrer les comptes"></div><input type="search" id="pros-recherche" placeholder="Entreprise, SIREN, nom, e-mail…"></div>
+      <div id="liste-pros"></div>
     </section>
 
     <!-- CATALOGUE -->
@@ -87,7 +88,7 @@
 
     <!-- INSTALLATEURS -->
     <section class="vue" data-vue-p="partenaires">
-      <header class="vue__tete"><h1>Installateurs partenaires</h1><button class="b b--jaune" type="button" id="btn-nouveau-partenaire">Ajouter un installateur</button></header>
+      <header class="vue__tete"><div><h1>Installateurs partenaires</h1><p class="aide" style="margin:4px 0 0">Les flèches règlent l'ordre d'affichage sur le site (quand le visiteur n'a pas choisi de commune).</p></div><button class="b b--jaune" type="button" id="btn-nouveau-partenaire">Ajouter un installateur</button></header>
       <div id="liste-partenaires" class="cartes"></div>
     </section>
 
@@ -146,6 +147,6 @@
 
 <script src="config.js?v=2fb7ed92"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="dashboard.js?v=afdaab37"></script>
+<script src="dashboard.js?v=953ecf23"></script>
 </body>
 </html>
