@@ -32,18 +32,20 @@
   window.cedyanCompte = null;
   async function chargerDonnees() {
     if (!SB) return;
-    const besoinSession = !!document.querySelector("#produits, [data-kits], #form-pro, #connexion-pro");
+    const besoinSession = !!document.querySelector("#produits, [data-kits], #form-pro, #connexion-pro, #fiche");
     const t = (p, ms) => Promise.race([p, new Promise((_, ko) => setTimeout(() => ko("délai"), ms))]);
     try {
+      const ok = (p) => p.catch(() => null);
       const [prods, parts, regl] = await t(Promise.all([
-        rest("produits?select=id,cat,marque,nom,ref,img,stock,extra&actif=eq.true&order=ordre"),
-        rest("partenaires?select=nom,commune,zones,rge,specialites,telephone,email,siren,exemple&actif=eq.true&order=created_at"),
-        rest("reglages?select=cle,valeur"),
+        ok(rest("produits?select=id,cat,marque,nom,ref,img,stock,extra,description,caracteristiques,fiche_technique&actif=eq.true&order=ordre")),
+        ok(rest("partenaires?select=nom,commune,zones,rge,specialites,telephone,email,siren,exemple&actif=eq.true&order=created_at")),
+        ok(rest("reglages?select=cle,valeur")),
       ]), 2500);
       if (prods && prods.length) {
-        window.PRODUITS = prods.filter((p) => p.cat !== "kits").map((p) => ({ id: p.id, cat: p.cat, marque: p.marque, nom: p.nom, ref: p.ref, img: p.img, stock: p.stock }));
+        const fiche = (p) => ({ description: p.description || "", caracteristiques: p.caracteristiques || [], fiche: p.fiche_technique || "" });
+        window.PRODUITS = prods.filter((p) => p.cat !== "kits").map((p) => ({ id: p.id, cat: p.cat, marque: p.marque, nom: p.nom, ref: p.ref, img: p.img, stock: p.stock, ...fiche(p) }));
         const K = { isoles: [], reseau: [], secours: [] };
-        prods.filter((p) => p.cat === "kits").forEach((p) => { const x = p.extra || {}; (K[x.type] || (K[x.type] = [])).push({ id: p.id, gamme: x.gamme || undefined, nom: x.nomCourt || p.nom, stockage: x.stockage || p.ref, detail: x.detail || "", pour: x.pour || "", garde: x.garde || "", duree: x.duree || "", img: p.img }); });
+        prods.filter((p) => p.cat === "kits").forEach((p) => { const x = p.extra || {}; const t = K[x.type] ? x.type : "isoles"; K[t].push({ id: p.id, gamme: x.gamme || undefined, nom: x.nomCourt || p.nom, stockage: x.stockage || p.ref || "", detail: x.detail || "", pour: x.pour || "", garde: x.garde || "", duree: x.duree || "", img: p.img, ...fiche(p) }); });
         window.KITS = K;
       }
       if (parts) window.PARTENAIRES = parts;
@@ -401,13 +403,16 @@
     // Les avis d'exemple ne sont jamais affichés sur le site en ligne.
     const sectionAvis = avisBox && avisBox.closest("section");
     const reels = C.google ? { ...C.google, avis: (C.google.avis || []).filter((a) => !a.exemple) } : null;
+    // Les avis arrivent déjà avec les réglages du site (lus directement en base) : pas d'attente.
+    const enBase = (window.CEDYAN_REGLAGES || {}).avis_google;
+    if (enBase && enBase.avis && enBase.avis.length) store.set("cedyan_avis_google", enBase);
     const memo = store.get("cedyan_avis_google", null);
     let affiche = false;
     if (memo && memo.avis && memo.avis.length) { afficherAvis(memo, true); affiche = true; }
     else if (reels && reels.avis.length) { afficherAvis(reels, false); affiche = true; }
     else if (sectionAvis) sectionAvis.hidden = true;
     if (SB) {
-      fetch(SB.url + "/functions/v1/avis-google", { headers: enTetesSB() })
+      fetch(SB.url + "/functions/v1/avis-google", { headers: enTetesSB(), cache: "no-store" })
         .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
         .then((g) => {
           if (!(g && g.note && (g.avis || []).length)) return;
@@ -419,11 +424,13 @@
   }
 
   /* ---------- Catalogue ---------- */
+  const lienFiche = (id) => "produit.html?id=" + encodeURIComponent(id);
+  window.cedyanLienFiche = lienFiche;
   function carteProduit(p) {
     const prix = voitPrix();
     return `<article class="produit${p.cat === "kits" ? " produit--kit" : ""}">
       <div class="produit__img">${visuel(p)}<span class="produit__stock${p.stock ? "" : " produit__stock--cmd"}">${p.cat === "kits" ? "Kit complet" : p.stock ? "En stock" : "Sur commande"}</span></div>
-      <div class="produit__corps"><span class="produit__marque">${esc(p.marque)}</span><h3 class="produit__nom">${esc(p.nom)}</h3><span class="produit__spec">${esc(p.ref || "")}</span>
+      <div class="produit__corps"><span class="produit__marque">${esc(p.marque)}</span><h3 class="produit__nom"><a class="lien-fiche" href="${lienFiche(p.id)}">${esc(p.nom)}</a></h3><span class="produit__spec">${esc(p.ref || "")}</span>
       ${p.pour ? `<span class="produit__spec">Pour : ${esc(p.pour)}</span>` : ""}
       <div class="produit__pied">${prix ? (prixDe(p.id) != null ? `<span class="prix">${euro(prixDe(p.id))}<small>votre tarif HT</small></span>` : '<span class="prix--cache">Tarif sur devis</span>') : '<a class="prix--cache" href="pro.html">Prix pro sur compte</a>'}
       <button class="ajout" type="button" data-ajout="${p.id}" aria-label="Ajouter ${esc(p.nom)} au devis">${SVG.plus}</button></div></div></article>`;
@@ -469,7 +476,7 @@
   /* ---------- Packs cyclone ---------- */
   const OK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
   $$("[data-packs]").forEach((b) => {
-    b.innerHTML = ((window.KITS || {}).secours || []).map((p, i) => `<article class="pack${i === 1 ? " pack--phare" : ""}">${i === 1 ? '<span class="pack__ruban">Le plus choisi</span>' : ""}<span class="pack__gamme">${esc(p.gamme)}</span><h3>${esc(p.nom)}</h3><div class="pack__kwh">${esc(p.stockage.replace(" kWh", ""))}<small>kWh</small></div><p>${esc(p.detail)}</p><ul><li>${OK}<span><b>Garde allumé :</b> ${esc(p.garde)}</span></li><li>${OK}<span>${esc(p.duree)}</span></li></ul><button class="btn ${i === 1 ? "" : "btn--soleil"}" type="button" data-ajout="${p.id}">Ajouter à mon devis</button></article>`).join("");
+    b.innerHTML = ((window.KITS || {}).secours || []).map((p, i) => `<article class="pack${i === 1 ? " pack--phare" : ""}">${i === 1 ? '<span class="pack__ruban">Le plus choisi</span>' : ""}<span class="pack__gamme">${esc(p.gamme)}</span><h3><a class="lien-fiche" href="${lienFiche(p.id)}">${esc(p.nom)}</a></h3><div class="pack__kwh">${esc(p.stockage.replace(" kWh", ""))}<small>kWh</small></div><p>${esc(p.detail)}</p><ul><li>${OK}<span><b>Garde allumé :</b> ${esc(p.garde)}</span></li><li>${OK}<span>${esc(p.duree)}</span></li></ul><button class="btn ${i === 1 ? "" : "btn--soleil"}" type="button" data-ajout="${p.id}">Ajouter à mon devis</button></article>`).join("");
   });
   $$("[data-packs-mini]").forEach((b) => {
     b.innerHTML = ((window.KITS || {}).secours || []).map((p) => `<a class="pack-mini" href="pack-cyclone.html#packs"><b>${esc(p.nom)}</b><span>${esc(p.stockage)}</span><small>${esc(p.pour)}</small></a>`).join("");
@@ -487,7 +494,7 @@
     const rendre = () => {
       const prix = voitPrix();
       box.innerHTML = l.map((k) => `<article class="kitc"><div class="kitc__img">${visuel({ ...k, cat: "kits" })}</div>
-      <div class="kitc__corps"><span class="kitc__stock">${esc(k.stockage)}</span><h3>${esc(k.nom)}</h3><p>${esc(k.detail)}</p><p class="kitc__pour"><b>Pour :</b> ${esc(k.pour)}</p>
+      <div class="kitc__corps"><span class="kitc__stock">${esc(k.stockage)}</span><h3><a class="lien-fiche" href="${lienFiche(k.id)}">${esc(k.nom)}</a></h3><p>${esc(k.detail)}</p><p class="kitc__pour"><b>Pour :</b> ${esc(k.pour)}</p>
       <div class="kitc__pied">${prix && prixDe(k.id) != null ? `<span class="prix">${euro(prixDe(k.id))}<small>votre tarif HT</small></span>` : '<a class="prix--cache" href="pro.html">Prix pro sur compte</a>'}<button class="btn btn--petit" type="button" data-ajout="${k.id}">Ajouter au devis</button></div></div></article>`).join("");
     };
     document.addEventListener("profil", rendre); rendre();
@@ -754,6 +761,152 @@
     const io = new IntersectionObserver((en) => en.forEach((x) => { if (x.isIntersecting) { x.target.classList.add("is-vu"); io.unobserve(x.target); } }), { rootMargin: "0px 0px -8% 0px" });
     $$(".apparait").forEach((el) => io.observe(el));
   } else $$(".apparait").forEach((el) => el.classList.add("is-vu"));
+
+
+  /* ---------- Recherche : suggestions de produits sous la barre ---------- */
+  const normR = (t) => String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9,./ -]/g, " ");
+  const singulier = (m) => (m.length > 3 && /[sx]$/.test(m) ? m.slice(0, -1) : m);
+  function chercher(q) {
+    const mots = normR(q).split(/\s+/).filter(Boolean).map(singulier);
+    if (!mots.length) return [];
+    const cats = Object.fromEntries((window.CATEGORIES || []).map((c) => [c.id, c.nom]));
+    return tousProduits().map((p) => {
+      const nom = normR(p.nom), marque = normR(p.marque), ref = normR(p.ref), cat = normR(cats[p.cat] || p.cat), autre = normR((p.detail || "") + " " + (p.description || ""));
+      let score = 0;
+      for (const m of mots) {
+        const debut = (t) => t.split(/[\s,./-]+/).some((w) => w.startsWith(m));
+        let s = 0;
+        if (ref.replace(/\s/g, "").startsWith(m)) s = 60; else if (debut(ref)) s = 40;
+        if (debut(nom)) s = Math.max(s, 30); else if (nom.includes(m)) s = Math.max(s, 15);
+        if (debut(marque)) s = Math.max(s, 25);
+        if (debut(cat)) s = Math.max(s, 12);
+        if (!s && m.length > 2 && autre.includes(m)) s = 4;
+        if (!s) return { p, score: 0 };
+        score += s;
+      }
+      return { p, score: score + (p.stock ? 2 : 0) };
+    }).filter((x) => x.score > 0).sort((x, y) => y.score - x.score).map((x) => x.p);
+  }
+  function surligner(t, q) {
+    let h = esc(t); const mots = q.trim().split(/\s+/).filter((m) => m.length > 1);
+    mots.forEach((m) => { const re = new RegExp("(" + m.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "ig"); h = h.replace(re, "<mark>$1</mark>"); });
+    return h;
+  }
+  function brancherSuggestions(input, opts = {}) {
+    if (!input) return;
+    const boite = document.createElement("div"); boite.className = "suggestions"; boite.id = "sugg-" + input.id; boite.setAttribute("role", "listbox"); boite.hidden = true;
+    document.body.appendChild(boite);
+    input.setAttribute("role", "combobox"); input.setAttribute("aria-autocomplete", "list"); input.setAttribute("aria-controls", boite.id); input.setAttribute("aria-expanded", "false");
+    const ancre = input.closest(".recherche-hero, .recherche, form") || input;
+    let res = [], actif = -1;
+    const placer = () => {
+      const r = ancre.getBoundingClientRect(); const bas = innerHeight - r.bottom, haut = r.top;
+      boite.style.left = Math.max(8, r.left) + "px"; boite.style.width = Math.min(r.width, innerWidth - 16) + "px";
+      if (bas < 320 && haut > bas) { boite.style.top = ""; boite.style.bottom = innerHeight - r.top + 8 + "px"; boite.classList.add("vers-haut"); }
+      else { boite.style.bottom = ""; boite.style.top = r.bottom + 8 + "px"; boite.classList.remove("vers-haut"); }
+    };
+    const fermer = () => { boite.hidden = true; input.setAttribute("aria-expanded", "false"); input.removeAttribute("aria-activedescendant"); actif = -1; };
+    const voirTout = () => (opts.voirTout ? opts.voirTout(input.value) : (location.href = "catalogue.html?q=" + encodeURIComponent(input.value.trim())));
+    const montrer = () => {
+      const q = input.value.trim();
+      if (q.length < 2) return fermer();
+      res = chercher(q); actif = -1;
+      const cats = Object.fromEntries((window.CATEGORIES || []).map((c) => [c.id, c.nom]));
+      boite.innerHTML = res.length
+        ? res.slice(0, 6).map((p, k) => `<a class="sugg" role="option" id="${boite.id}-${k}" href="${lienFiche(p.id)}"><span class="sugg__img">${visuel(p)}</span><span class="sugg__txt"><b>${surligner(p.nom, q)}</b><small>${surligner([p.marque, p.ref].filter(Boolean).join(" · "), q)}</small></span><span class="sugg__cat">${esc(cats[p.cat] || "")}</span></a>`).join("")
+          + `<button type="button" class="sugg__tout" data-tout>${res.length > 6 ? `Voir les ${res.length} résultats` : "Voir dans le catalogue"} pour « ${esc(q)} » →</button>`
+        : `<div class="sugg__vide"><b>Aucun produit pour « ${esc(q)} »</b><span>Le magasin compte bien plus de références que le site.</span><button type="button" class="btn btn--petit" data-demander>Demander ce produit</button></div>`;
+      boite.hidden = false; input.setAttribute("aria-expanded", "true"); placer();
+    };
+    const marquer = () => { $$(".sugg", boite).forEach((x, k) => x.classList.toggle("is-actif", k === actif)); if (actif >= 0) input.setAttribute("aria-activedescendant", boite.id + "-" + actif); };
+    input.addEventListener("input", montrer);
+    input.addEventListener("focus", () => input.value.trim().length >= 2 && montrer());
+    input.addEventListener("keydown", (e) => {
+      const n = $$(".sugg", boite).length;
+      if (e.key === "ArrowDown" && !boite.hidden) { e.preventDefault(); actif = (actif + 1) % n; marquer(); }
+      else if (e.key === "ArrowUp" && !boite.hidden) { e.preventDefault(); actif = (actif - 1 + n) % n; marquer(); }
+      else if (e.key === "Escape") fermer();
+      else if (e.key === "Enter" && actif >= 0 && !boite.hidden) { e.preventDefault(); $$(".sugg", boite)[actif].click(); }
+      else if (e.key === "Enter" && opts.voirTout) { e.preventDefault(); fermer(); voirTout(); }
+    });
+    boite.addEventListener("mousedown", (e) => e.preventDefault());
+    boite.addEventListener("click", (e) => {
+      if (e.target.closest("[data-tout]")) { fermer(); voirTout(); }
+      else if (e.target.closest("[data-demander]")) { fermer(); const m = $("#message-devis") || $("textarea[name=message]"); ouvrirTiroir(); setTimeout(() => { const t = $(".tiroir textarea"); if (t && !t.value) t.value = "Je cherche : " + input.value.trim(); }, 80); }
+    });
+    input.addEventListener("blur", () => setTimeout(fermer, 120));
+    addEventListener("resize", () => !boite.hidden && placer());
+    addEventListener("scroll", () => !boite.hidden && placer(), { passive: true });
+  }
+  brancherSuggestions($("#q-hero"));
+  brancherSuggestions($("#recherche"), { voirTout: (q) => { const r = $("#recherche"); r.value = q; r.dispatchEvent(new Event("input")); const g = $("#produits"); g && g.scrollIntoView({ behavior: reduit ? "auto" : "smooth", block: "start" }); } });
+
+  /* ---------- Fiche produit ---------- */
+  const ficheBox = $("#fiche");
+  if (ficheBox) {
+    const id = new URLSearchParams(location.search).get("id") || "";
+    const rendreFiche = () => {
+      const p = trouver(id);
+      const cats = Object.fromEntries((window.CATEGORIES || []).map((c) => [c.id, c.nom]));
+      if (!p) {
+        ficheBox.innerHTML = `<div class="vide"><p><b>Ce produit n'est plus en ligne.</b></p><p>Il est peut-être toujours disponible au magasin : appelez-nous ou consultez le catalogue.</p><a class="btn" href="catalogue.html">Voir le catalogue</a></div>`;
+        return;
+      }
+      const catNom = p.cat === "kits" ? "Kits solaires" : cats[p.cat] || "Catalogue";
+      document.title = `${p.nom}${p.ref ? " " + p.ref : ""} | ${p.marque || "Cedyan Energy"} | Cedyan Energy`;
+      const md = $('meta[name="description"]'); if (md) md.setAttribute("content", `${p.nom} ${p.marque || ""} ${p.ref || ""} en stock chez Cedyan Energy, grossiste solaire à Baie-Mahault, Guadeloupe.`.replace(/\s+/g, " "));
+      $("#fiche-fil").innerHTML = `<a href="index.html">Accueil</a> / <a href="catalogue.html">Catalogue</a> / <a href="catalogue.html#${esc(p.cat)}">${esc(catNom)}</a> / <span>${esc(p.nom)}</span>`;
+      const intro = {
+        kits: () => `Kit complet prêt à poser${p.detail ? " : " + p.detail.charAt(0).toLowerCase() + p.detail.slice(1) : ""}.${p.pour ? " Idéal pour : " + p.pour.toLowerCase() + "." : ""} Tout le matériel est en stock à Baie-Mahault et vérifié par notre service technique.`,
+        panneaux: () => `Panneau photovoltaïque ${p.marque || ""}, disponible chez Cedyan Energy à Baie-Mahault. Notre service technique vous aide à dimensionner l'installation : nombre de panneaux, onduleur ou régulateur compatible, fixations.`,
+        batteries: () => `Batterie ${p.marque || ""} pour stocker l'énergie solaire ou tenir pendant les coupures. Avant la commande, nous vérifions avec vous la compatibilité avec votre onduleur ou votre convertisseur.`,
+        onduleurs: () => `Onduleur ${p.marque || ""} pour installation raccordée au réseau. Nous vérifions avec vous la compatibilité avec vos panneaux et, si besoin, avec une batterie.`,
+        convertisseurs: () => `Convertisseur-chargeur ${p.marque || ""}, au cœur des installations isolées et des systèmes de secours. Bascule automatique sur batterie en cas de coupure.`,
+        regulateurs: () => `Régulateur de charge ${p.marque || ""} pour piloter la recharge des batteries à partir des panneaux. Nous vous aidons à choisir le bon calibre selon votre champ solaire.`,
+      };
+      const texte = p.description || (intro[p.cat] ? intro[p.cat]() : `${p.nom} ${p.marque || ""}, ${p.stock ? "en stock" : "disponible sur commande"} chez Cedyan Energy à Baie-Mahault. Besoin d'un conseil de compatibilité ? Notre service technique vous répond.`);
+      const lignes = [["Marque", p.marque], ["Référence", p.ref], ["Catégorie", catNom], ["Disponibilité", p.cat === "kits" ? "Kit complet, en stock" : p.stock ? "En stock à Baie-Mahault" : "Sur commande"]]
+        .concat(p.cat === "kits" ? [["Composition", p.detail], ["Pour", p.pour], ["Garde allumé", p.garde], ["Autonomie", p.duree]] : [])
+        .concat((p.caracteristiques || []).map((c) => (Array.isArray(c) ? c : ["", c])))
+        .filter(([, v]) => v);
+      const prix = voitPrix();
+      const blocPrix = prix
+        ? (prixDe(p.id) != null ? `<p class="fiche__prix">${euro(prixDe(p.id))}<small>votre tarif pro HT</small></p>` : `<p class="fiche__prix fiche__prix--devis">Tarif sur devis</p>`)
+        : `<div class="fiche__pro"><b>Professionnel ?</b><span>Débloquez vos tarifs sur tout le catalogue.</span><a class="btn btn--petit btn--soleil" href="pro.html">${SVG.cle || ""}Voir mon prix pro</a></div>`;
+      const wa = C.whatsapp ? `https://wa.me/${C.whatsapp}?text=${encodeURIComponent("Bonjour, je suis intéressé par : " + p.nom + (p.ref ? " (" + p.ref + ")" : ""))}` : "";
+      ficheBox.innerHTML = `
+        <div class="fiche__visuel"><div class="fiche__img">${visuel(p, "fiche__photo")}</div><span class="produit__stock${p.stock ? "" : " produit__stock--cmd"}">${p.cat === "kits" ? "Kit complet" : p.stock ? "En stock" : "Sur commande"}</span></div>
+        <div class="fiche__infos">
+          <a class="fiche__marque" href="catalogue.html?q=${encodeURIComponent(p.marque || "")}">${esc(p.marque || "")}</a>
+          <h1 class="fiche__nom">${esc(p.nom)}</h1>
+          ${p.ref ? `<p class="fiche__ref">Réf. ${esc(p.ref)}</p>` : ""}
+          ${blocPrix}
+          <div class="fiche__achat">
+            <div class="qte qte--grande"><button type="button" data-fq="-1" aria-label="Moins">−</button><input type="number" min="1" max="999" value="1" id="fiche-q" aria-label="Quantité"><button type="button" data-fq="1" aria-label="Plus">+</button></div>
+            <button class="btn" type="button" id="fiche-ajout">${SVG.plus}Ajouter au devis</button>
+          </div>
+          <div class="fiche__question">${wa ? `<a class="lien" href="${wa}" target="_blank" rel="noopener">Une question ? WhatsApp</a>` : ""}<a class="lien" href="tel:${esc((C.telephoneLien || C.telephone || "").replace(/\s/g, ""))}">Appeler le ${esc(C.telephone || "")}</a></div>
+          <ul class="fiche__plus"><li>${SVG.ok}<span>Stock à Baie-Mahault</span></li><li>${SVG.ok}<span>Livraison en 48 h en Guadeloupe</span></li><li>${SVG.ok}<span>Retrait gratuit au comptoir</span></li><li>${SVG.ok}<span>Garantie fabricant</span></li></ul>
+        </div>
+        <div class="fiche__details">
+          <section><h2>Présentation</h2><p>${esc(texte).replace(/\n/g, "<br>")}</p>${p.fiche ? `<a class="btn btn--ligne btn--petit" href="${esc(p.fiche)}" target="_blank" rel="noopener">Télécharger la fiche technique (PDF)</a>` : ""}</section>
+          <section><h2>Caractéristiques</h2><table class="fiche__carac">${lignes.map(([k, v]) => `<tr>${k ? `<th>${esc(k)}</th><td>${esc(v)}</td>` : `<td colspan="2">${esc(v)}</td>`}</tr>`).join("")}</table></section>
+        </div>`;
+      const q = $("#fiche-q");
+      $$("[data-fq]", ficheBox).forEach((b) => b.addEventListener("click", () => (q.value = Math.max(1, Math.min(999, (+q.value || 1) + +b.dataset.fq)))));
+      $("#fiche-ajout").addEventListener("click", (e) => {
+        const n = Math.max(1, Math.min(999, Math.round(+q.value || 1)));
+        const l = devis.get(); const x = l.find((i) => i.id === p.id); if (x) x.q += n; else l.push({ id: p.id, q: n }); devis.set(l);
+        toast(`${n} × ${p.nom} ajouté${n > 1 ? "s" : ""} à votre devis`);
+        const b = e.currentTarget; b.classList.add("is-in"); setTimeout(() => b.classList.remove("is-in"), 1200);
+      });
+      const sim = tousProduits().filter((x) => x.cat === p.cat && x.id !== p.id).slice(0, 4);
+      $("#fiche-similaires").innerHTML = sim.length ? `<h2 class="t-l">Dans la même gamme</h2><div class="produits">${sim.map(carteProduit).join("")}</div>` : "";
+      let ld = $("#fiche-ld"); if (!ld) { ld = document.createElement("script"); ld.type = "application/ld+json"; ld.id = "fiche-ld"; document.head.appendChild(ld); }
+      ld.textContent = JSON.stringify({ "@context": "https://schema.org", "@type": "Product", name: p.nom, brand: p.marque ? { "@type": "Brand", name: p.marque } : undefined, sku: p.ref || undefined, image: p.img || undefined, description: texte, category: catNom });
+    };
+    rendreFiche(); document.addEventListener("profil", rendreFiche);
+  }
 
   majProfil(); majDevis();
 })();

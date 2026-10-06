@@ -183,3 +183,8 @@ td small{color:var(--gris)}
 .photo-url{font-weight:400;font-size:.85rem;color:var(--gris)}
 .photo-url summary{cursor:pointer;margin-top:4px}
 .photo-url input{margin-top:8px}
+
+.aide-inline{font-weight:400;color:var(--gris);font-size:.82rem}
+.kit-champs{border:1.5px dashed var(--trait);border-radius:14px;padding:12px}
+.kit-champs[hidden]{display:none!important}
+.panneau input[type=file]{min-height:auto;padding:8px;border-style:dashed}

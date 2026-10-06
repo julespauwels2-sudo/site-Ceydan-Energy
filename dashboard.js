@@ -231,7 +231,16 @@
         </label>
         <details class="photo-url"><summary>Ou coller l'adresse d'une image</summary><input name="img" value="${esc(p.img || "")}" placeholder="https://…"></details>
       </div>
-      ${p.cat === "kits" ? '<p class="aide">Les textes détaillés des kits se modifient aussi ici plus tard ; pour l\'instant, demandez à PFlow.</p>' : ""}
+      <label class="champ">Description <span class="aide-inline">(affichée sur la fiche produit)</span><textarea name="description" rows="4" placeholder="À quoi sert ce produit, pour qui, ses points forts…">${esc(p.description || "")}</textarea></label>
+      <label class="champ">Caractéristiques <span class="aide-inline">(une par ligne, au format « Nom : valeur »)</span><textarea name="caracteristiques" rows="5" placeholder="Puissance : 500 Wc&#10;Dimensions : 1 952 × 1 134 × 30 mm&#10;Garantie : 25 ans">${esc(caracVersTexte(p.caracteristiques))}</textarea></label>
+      <div class="champ">Fiche technique (PDF)
+        <div class="ligne"><input type="file" id="pdf-fichier" accept="application/pdf"><input name="fiche_technique" value="${esc(p.fiche_technique || "")}" placeholder="ou adresse d'un PDF en ligne"></div>
+        ${p.fiche_technique ? `<a class="aide" href="${esc(p.fiche_technique)}" target="_blank" rel="noopener">Voir la fiche actuelle</a>` : ""}
+      </div>
+      <fieldset class="champ kit-champs" ${p.cat === "kits" ? "" : "hidden"}><legend>Kit</legend>
+        <div class="ligne"><label class="champ">Type de kit<select name="kit_type">${[["isoles", "Site isolé"], ["reseau", "Raccordé réseau"], ["secours", "Pack Détresse Cyclone"]].map(([k, v]) => `<option value="${k}" ${(p.extra || {}).type === k ? "selected" : ""}>${v}</option>`).join("")}</select></label><label class="champ">Pour qui<input name="kit_pour" value="${esc((p.extra || {}).pour || "")}" placeholder="Maison secondaire, gîte…"></label></div>
+        <label class="champ">Composition du kit<textarea name="kit_detail" rows="3" placeholder="6 panneaux 500 Wc, convertisseur Victron…">${esc((p.extra || {}).detail || "")}</textarea></label>
+      </fieldset>
       <div class="ligne"><label class="inter"><input type="checkbox" name="stock" ${p.stock !== false ? "checked" : ""}><span></span>En stock</label><label class="inter"><input type="checkbox" name="actif" ${p.actif !== false ? "checked" : ""}><span></span>Visible sur le site</label></div>
       <div class="actions"><button class="b b--jaune" type="submit">Enregistrer</button>${p.id && moi.role === "patron" ? '<button class="b b--danger" type="button" id="p-supprimer">Supprimer</button>' : ""}</div>
     </form>`;
@@ -244,6 +253,16 @@
     const blob = await new Promise((ok) => cv.toBlob(ok, "image/webp", 0.86));
     return blob && blob.type === "image/webp" ? { blob, ext: "webp" } : { blob: await new Promise((ok) => cv.toBlob(ok, "image/jpeg", 0.88)), ext: "jpg" };
   }
+  async function envoyerPdf(fichier, idProduit) {
+    if (!/pdf$/i.test(fichier.type) && !/\.pdf$/i.test(fichier.name)) throw new Error("La fiche technique doit être un PDF.");
+    if (fichier.size > 10 * 1024 * 1024) throw new Error("PDF trop lourd (10 Mo maximum).");
+    const chemin = `${idProduit}/fiche-${Date.now()}.pdf`;
+    const { error } = await sb.storage.from("produits").upload(chemin, fichier, { contentType: "application/pdf", cacheControl: "31536000" });
+    if (error) throw new Error("Envoi du PDF impossible : " + error.message);
+    return sb.storage.from("produits").getPublicUrl(chemin).data.publicUrl;
+  }
+  const caracVersTexte = (c) => (Array.isArray(c) ? c.map((x) => (Array.isArray(x) ? x.join(" : ") : x)).join("\n") : "");
+  const texteVersCarac = (t) => String(t || "").split("\n").map((l) => l.trim()).filter(Boolean).map((l) => { const i = l.indexOf(":"); return i > 0 ? [l.slice(0, i).trim(), l.slice(i + 1).trim()] : ["", l]; });
   async function envoyerPhoto(fichier, idProduit) {
     if (!/^image\/(jpeg|png|webp|heic|heif|gif|avif)$/i.test(fichier.type) && !/\.(jpe?g|png|webp|heic|avif)$/i.test(fichier.name)) throw new Error("Choisissez une image (JPG, PNG, WebP).");
     const { blob, ext } = await compresser(fichier);
@@ -254,7 +273,9 @@
   }
   const slug = (t) => t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 50);
   function editerProduit(p) {
+    p = p || {};
     ouvrirPanneau(formProduit(p));
+    const selCat = $("#form-produit [name=cat]"); selCat.addEventListener("change", () => ($(".kit-champs").hidden = selCat.value !== "kits"));
     let photo = null;
     const zone = $("#photo-zone"), inF = $("#photo-fichier"), apercu = $("#photo-apercu");
     const choisir = (f) => { if (!f) return; photo = f; apercu.innerHTML = `<img src="${URL.createObjectURL(f)}" alt="">`; $(".photo-zone__txt b", zone).textContent = "Photo prête : " + f.name; };
@@ -267,9 +288,18 @@
       const id = p && p.id ? p.id : slug(f.get("marque") + " " + f.get("nom")) + "-" + Date.now().toString(36).slice(-3);
       const btn = $("button[type=submit]", e.target); btn.disabled = true; btn.textContent = photo ? "Envoi de la photo…" : "Enregistrement…";
       let img = f.get("img");
-      if (photo) { try { img = await envoyerPhoto(photo, id); } catch (er) { btn.disabled = false; btn.textContent = "Enregistrer"; return toast(er.message); } }
-      const ligne = { id, nom: f.get("nom"), marque: f.get("marque"), ref: f.get("ref"), cat: f.get("cat"), img, stock: !!f.get("stock"), actif: !!f.get("actif"), updated_at: new Date().toISOString() };
-      if (!p || !p.id) ligne.ordre = (Math.max(0, ...D.produits.map((x) => x.ordre || 0)) + 1);
+      let fiche = f.get("fiche_technique") || null; const pdf = $("#pdf-fichier").files[0];
+      try {
+        if (photo) img = await envoyerPhoto(photo, id);
+        if (pdf) { btn.textContent = "Envoi du PDF…"; fiche = await envoyerPdf(pdf, id); }
+      } catch (er) { btn.disabled = false; btn.textContent = "Enregistrer"; return toast(er.message); }
+      const ligne = { id, nom: f.get("nom"), marque: f.get("marque"), ref: f.get("ref"), cat: f.get("cat"), img, stock: !!f.get("stock"), actif: !!f.get("actif"),
+        description: f.get("description") || null, caracteristiques: texteVersCarac(f.get("caracteristiques")), fiche_technique: fiche, updated_at: new Date().toISOString() };
+      if (ligne.cat === "kits") {
+        const t = f.get("kit_type"); const ex = p.extra || {};
+        ligne.extra = { ...ex, type: t, gamme: t === "secours" ? "Pack Détresse Cyclone" : null, nomCourt: t === "secours" ? (ex.nomCourt || ligne.nom.replace(/^Pack Détresse Cyclone\s*/i, "")) : ligne.nom, stockage: ligne.ref, detail: f.get("kit_detail") || "", pour: f.get("kit_pour") || "" };
+      }
+      if (!p.id) ligne.ordre = (Math.max(0, ...D.produits.map((x) => x.ordre || 0)) + 1);
       const { error } = await sb.from("produits").upsert(ligne); if (error) { btn.disabled = false; btn.textContent = "Enregistrer"; return toast("Erreur : " + error.message); }
       const prix = f.get("prix");
       const r2 = prix === "" ? await sb.from("tarifs").delete().eq("produit_id", id) : await sb.from("tarifs").upsert({ produit_id: id, prix: +prix });
@@ -277,13 +307,14 @@
       fermerPanneau(); await chargerProduits(); toast("Produit enregistré");
     });
     const s = $("#p-supprimer"); s && s.addEventListener("click", async () => {
+      if (!p.id) return;
       if (!confirm("Supprimer ce produit du catalogue ? (Vous pouvez aussi simplement le masquer.)")) return;
       const { error } = await sb.from("produits").delete().eq("id", p.id); if (error) return toast("Erreur : " + error.message);
       fermerPanneau(); await chargerProduits(); toast("Produit supprimé");
     });
   }
   $("#liste-produits").addEventListener("click", (e) => { if (!e.target.closest("[data-editer]")) return; const tr = e.target.closest("tr[data-id]"); editerProduit(D.produits.find((x) => x.id === tr.dataset.id)); });
-  $("#btn-nouveau-produit").addEventListener("click", () => editerProduit(null));
+  $("#btn-nouveau-produit").addEventListener("click", () => editerProduit({ cat: $("#p-cat").value || "batteries", stock: true, actif: true }));
 
   /* =========================================================
      INSTALLATEURS PARTENAIRES
