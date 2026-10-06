@@ -55,6 +55,11 @@ Elles sont chargées depuis assets.mixkit.co, seulement quand elles sont visible
 Pour les héberger soi-même (plus fiable) : télécharger le fichier depuis mixkit.co, le mettre à la racine
 et remplacer l'adresse https://assets.mixkit.co/videos/... par le nom du fichier dans le HTML.
 Le jour où Cedyan a ses propres images (drone sur un chantier, magasin, équipe), on les remplace : c'est le meilleur upgrade possible.
+
+## Cache
+style.css, app.js, anim.js et icones.js sont versionnés automatiquement (?v=...) : chaque nouvelle version est vue tout de suite.
+config.js, data.js et partenaires.js ne sont jamais mis en cache : tu peux les modifier directement sur GitHub.
+
 Vidéos utilisées : accueil 46623, 32441 et 46624 ; services 47097 ; cyclone 4059 ; installateurs 23491 ; kits 46502 ; qui sommes-nous 32448 ; catalogue 32520 ; pro 34596 ; contact 46501.
 
 ## Animations
