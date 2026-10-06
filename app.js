@@ -362,6 +362,7 @@
       $("#cat-titre").textContent = q ? `Résultats pour « ${rech.value} »` : c ? c.nom : "Tout le matériel";
       $("#cat-desc").textContent = c ? c.desc : "Kits, panneaux, conversion, stockage, fixations et protections en stock en Guadeloupe.";
       const ki = $("#kits-info"); if (ki) ki.hidden = cat !== "kits";
+      const rc = $("#rappel-cyclone"); if (rc) rc.hidden = !["kits", "batteries", "convertisseurs"].includes(cat);
       grille.innerHTML = liste.length ? liste.map(carteProduit).join("")
         : `<div class="vide" style="grid-column:1/-1"><p><b>Aucun produit ne correspond à « ${esc(rech.value)} ».</b></p><p>Le magasin compte bien plus de références que ce site. Décrivez ce que vous cherchez, on vous répond.</p><button class="btn btn--petit" type="button" data-ouvrir-devis>Demander ce produit</button></div>`;
       $$("[data-ouvrir-devis]", grille).forEach((b) => b.addEventListener("click", ouvrirTiroir));
@@ -610,8 +611,8 @@
     function tick() {
       raf = 0; if (!actif || !geo) return;
       const p = clamp((scrollY - geo.top + innerHeight * 0.1) / (geo.h - innerHeight));
-      const e = ease(clamp((p - 0.1) / 0.6));
-      const f = clamp((p - 0.72) / 0.14);
+      const e = ease(clamp((p - 0.04) / 0.56));
+      const f = clamp((p - 0.64) / 0.12);
       scene.style.setProperty("--e", e.toFixed(4));
       scene.style.setProperty("--p", p.toFixed(4));
       scene.style.setProperty("--fin", f.toFixed(3));

@@ -1447,3 +1447,53 @@ html.intro .hero-v__titre .l>span,html.intro .hero-v__sur,html.intro .hero-v__ba
 .manifeste__lignes{font-size:clamp(2.2rem,4.4vw,4.3rem)}.ml{white-space:nowrap}@media (max-width:640px){.ml{white-space:normal}}
 .noir--relais .noir-ecran{background:radial-gradient(circle at 50% 45%,rgba(251,187,16,.4),rgba(251,187,16,0) 60%),#0a0a0a}.qsn-sur{margin:0;font-weight:800;color:var(--gris);font-size:clamp(1rem,1.6vw,1.25rem)}
 @media (max-width:640px){.cat-hero__visuel{display:none}.cat-hero{padding-bottom:36px}}
+
+/* =====================================================================
+   V7 : saison cyclonique partout, défilements raccourcis
+   ===================================================================== */
+@media (min-width:921px){.kit{height:250vh}}
+/* Barre de saison */
+.barre-saison{background:#0a1028;color:#fff;font-size:.88rem;border-bottom:1px solid rgba(251,187,16,.3)}
+.barre-saison__in{display:flex;align-items:center;gap:14px;height:40px}
+.barre-saison__txt{display:inline-flex;align-items:center;gap:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.barre-saison__txt i{width:8px;height:8px;border-radius:50%;background:var(--soleil);box-shadow:0 0 10px var(--soleil);animation:pulse-j 2s infinite;flex:none}
+.barre-saison__txt b{color:var(--soleil)}
+.barre-saison__lien{color:#fff;font-weight:700;margin-left:auto;white-space:nowrap}
+.barre-saison__fermer{border:0;background:none;color:rgba(255,255,255,.6);cursor:pointer;width:30px;height:30px;display:grid;place-items:center;border-radius:50%}
+.barre-saison__fermer:hover{background:rgba(255,255,255,.1);color:#fff}
+.barre-saison__fermer svg{width:16px}
+.mini-coupe{display:inline-flex;align-items:center;gap:8px;border:0;background:rgba(255,255,255,.08);color:#fff;font-weight:700;font-size:.82rem;padding:4px 12px 4px 4px;border-radius:999px;cursor:pointer;white-space:nowrap;flex:none}
+.mini-coupe:hover{background:rgba(255,255,255,.16)}
+.mini-coupe .coupe-courant__levier{width:36px;height:20px;border-radius:10px}
+.mini-coupe .coupe-courant__levier i{width:14px;height:14px;top:3px;right:3px}
+.mini-coupe.is-on .coupe-courant__levier i{right:19px}
+.header.is-solide .barre-saison{display:none}
+/* Lien menu Pack cyclone */
+.nav__cyclone{display:inline-flex!important;align-items:center;gap:6px;color:var(--soleil)!important;font-weight:800!important}
+.header.is-solide .nav__cyclone{color:#b07d00!important}
+.nav__cyclone svg{width:16px;height:16px}
+/* Écran noir : bouton */
+.noir-ecran__cta{justify-self:center;margin-top:10px;opacity:0;transition:opacity .6s .3s}
+.noir--relais .noir-ecran__cta{opacity:1}
+/* Rappel dans le catalogue */
+.rappel-cyclone{display:flex;align-items:center;gap:12px 16px;flex-wrap:wrap;padding:16px 18px;border-radius:var(--r-l);background:#0a1028;color:#fff;margin-bottom:16px;background-image:radial-gradient(ellipse at 100% 0%,rgba(251,187,16,.25),transparent 55%)}
+.rappel-cyclone__txt{flex:1;min-width:220px;font-size:.95rem}
+.rappel-cyclone__txt b{color:var(--soleil)}
+@media (max-width:920px){
+  .barre-saison__long,.barre-saison__lien{display:none}
+  .barre-saison__in{gap:10px}
+  .nav__cyclone{color:#b07d00!important}
+}
+@media (max-width:640px){.barre-saison__txt{font-size:.8rem}}
+.nav a{white-space:nowrap}
+.cta-court{display:none}
+@media (max-width:1480px){.cta-long{display:none}.cta-court{display:inline}.nav a{padding:10px 10px;font-size:.93rem}}
+@media (max-width:1180px){.nav a{padding:9px 7px;font-size:.88rem}.header .wrap.header__main{gap:12px}}
+body.avec-saison{--decal:40px}
+.banniere{padding-top:calc(var(--header) + var(--decal,0px) + 64px)}
+.banniere--compacte{padding-top:calc(var(--header) + var(--decal,0px) + 44px)}
+.cat-hero,.ct-hero{padding-top:calc(var(--header) + var(--decal,0px) + 40px)}
+.ann-hero{padding-top:calc(var(--header) + var(--decal,0px) + 54px)}
+.cyclones--page{padding-top:calc(var(--header) + var(--decal,0px) + 60px)}
+.page-cyclone .secours-hero{padding-top:calc(var(--header) + var(--decal,0px) + 80px)}
+@media (max-width:640px){.barre-saison .mini-coupe__lbl{display:none}.barre-saison .mini-coupe{padding:4px}}

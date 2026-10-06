@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400&display=swap">
-<link rel="stylesheet" href="style.css?v=2f69529b">
+<link rel="stylesheet" href="style.css?v=ab6f61bb">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Store","name":"Cedyan Energy","description":"Grossiste en matériel photovoltaïque aux Antilles depuis 2012 : panneaux, onduleurs, batteries, fixations et protections en stock à Baie-Mahault.","telephone":"+590590321520","email":"yann.pauwels@cedyanenergytrade.com","foundingDate":"2012","openingHours":["Mo-Th 08:30-16:00","Fr 08:30-13:00"],"address":{"@type":"PostalAddress","streetAddress":"AC Moudong, Immeuble Point Plomberie","postalCode":"97122","addressLocality":"Baie-Mahault","addressRegion":"Guadeloupe","addressCountry":"FR"},"areaServed":["Guadeloupe","Martinique","Saint-Martin","Saint-Barthélemy"],"image":"og-image.jpg"}</script>
 <link rel="preload" as="image" href="photo-toiture.webp">
 <link rel="preconnect" href="https://assets.mixkit.co">
@@ -25,6 +25,14 @@
 <body class="page-accueil">
 <a class="skip" href="#contenu">Aller au contenu</a>
 <header class="header">
+  <div class="barre-saison" data-seulement-saison hidden>
+    <div class="wrap barre-saison__in">
+      <span class="barre-saison__txt"><i aria-hidden="true"></i><b>Saison cyclonique.</b><span class="barre-saison__long"> Votre maison est-elle prête&nbsp;?</span></span>
+      <button class="mini-coupe" type="button" data-blackout aria-label="Couper le courant"><span class="coupe-courant__levier" aria-hidden="true"><i></i></span><span class="mini-coupe__lbl">Couper le courant</span></button>
+      <a class="barre-saison__lien" href="pack-cyclone.html">Voir les packs</a>
+      <button class="barre-saison__fermer" type="button" aria-label="Masquer ce bandeau" data-fermer-saison><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+  </div>
   <div class="wrap header__main">
     <a class="logo" href="index.html" aria-label="Cedyan Energy, accueil"><img class="logo__clair" src="logo-blanc.png" srcset="logo-blanc.png 448w, logo-blanc.webp 896w" sizes="178px" width="178" height="53" alt="Cedyan Energy"><img class="logo__sombre" src="logo-cedyan.png" srcset="logo-cedyan.png 448w, logo-cedyan.webp 896w" sizes="178px" width="178" height="53" alt=""></a>
     <nav class="nav" id="nav" aria-label="Navigation principale">
@@ -32,11 +40,12 @@
       <a href="catalogue.html">Catalogue</a>
       <a href="installateurs.html">Trouver un installateur</a>
       <a href="contact.html">Contact</a>
+      <a class="nav__cyclone" href="pack-cyclone.html" data-seulement-saison hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg>Pack cyclone</a>
       <a class="nav__pro" href="pro.html">Espace pro : débloquez vos tarifs</a>
     </nav>
     <div class="header__actions">
       <button class="devis-btn" type="button" data-ouvrir-devis aria-label="Ouvrir ma demande de devis"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6M9 18h3"/></svg><span class="lbl">Devis</span><b data-devis-n data-n="0"></b></button>
-      <a class="btn btn--soleil btn--petit header__cta" href="pro.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><span data-pro-libelle>Débloquer mes tarifs pro</span></a>
+      <a class="btn btn--soleil btn--petit header__cta" href="pro.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><span class="cta-long" data-pro-libelle>Débloquer mes tarifs pro</span><span class="cta-court">Tarifs pro</span></a>
       <button class="burger" type="button" aria-label="Menu" aria-expanded="false" aria-controls="nav"><span></span></button>
     </div>
   </div>
@@ -67,10 +76,23 @@
     </div>
   </div>
   <div class="hero-v__progress" aria-hidden="true"><i></i><i></i><i></i></div>
-  <a class="hero-v__scroll" href="#manifeste" aria-label="Défiler vers le contenu"><span></span></a>
+  <a class="hero-v__scroll" href="#cyclones-titre" aria-label="Défiler vers le contenu"><span></span></a>
 </section>
 
 <section class="bande-marques"><div class="marquee" aria-label="Marques distribuées"><div class="marquee__piste"><span>Victron Energy</span><i aria-hidden="true">✦</i><span>Huawei</span><i aria-hidden="true">✦</i><span>JA Solar</span><i aria-hidden="true">✦</i><span>Jinko Solar</span><i aria-hidden="true">✦</i><span>Pylontech</span><i aria-hidden="true">✦</i><span>BYD</span><i aria-hidden="true">✦</i><span>GoodWe</span><i aria-hidden="true">✦</i><span>K2 Systems</span><i aria-hidden="true">✦</i><span>Novotegra</span><i aria-hidden="true">✦</i><span>Ecodelta</span><i aria-hidden="true">✦</i><span>AXIworld</span><i aria-hidden="true">✦</i><span>BSL Batt</span><i aria-hidden="true">✦</i><span>Victron Energy</span><i aria-hidden="true">✦</i><span>Huawei</span><i aria-hidden="true">✦</i><span>JA Solar</span><i aria-hidden="true">✦</i><span>Jinko Solar</span><i aria-hidden="true">✦</i><span>Pylontech</span><i aria-hidden="true">✦</i><span>BYD</span><i aria-hidden="true">✦</i><span>GoodWe</span><i aria-hidden="true">✦</i><span>K2 Systems</span><i aria-hidden="true">✦</i><span>Novotegra</span><i aria-hidden="true">✦</i><span>Ecodelta</span><i aria-hidden="true">✦</i><span>AXIworld</span><i aria-hidden="true">✦</i><span>BSL Batt</span><i aria-hidden="true">✦</i></div></div><div class="marquee marquee--inverse" aria-hidden="true"><div class="marquee__piste"><span>BSL Batt</span><i aria-hidden="true">✦</i><span>AXIworld</span><i aria-hidden="true">✦</i><span>Ecodelta</span><i aria-hidden="true">✦</i><span>Novotegra</span><i aria-hidden="true">✦</i><span>K2 Systems</span><i aria-hidden="true">✦</i><span>GoodWe</span><i aria-hidden="true">✦</i><span>BYD</span><i aria-hidden="true">✦</i><span>Pylontech</span><i aria-hidden="true">✦</i><span>Jinko Solar</span><i aria-hidden="true">✦</i><span>JA Solar</span><i aria-hidden="true">✦</i><span>Huawei</span><i aria-hidden="true">✦</i><span>Victron Energy</span><i aria-hidden="true">✦</i><span>BSL Batt</span><i aria-hidden="true">✦</i><span>AXIworld</span><i aria-hidden="true">✦</i><span>Ecodelta</span><i aria-hidden="true">✦</i><span>Novotegra</span><i aria-hidden="true">✦</i><span>K2 Systems</span><i aria-hidden="true">✦</i><span>GoodWe</span><i aria-hidden="true">✦</i><span>BYD</span><i aria-hidden="true">✦</i><span>Pylontech</span><i aria-hidden="true">✦</i><span>Jinko Solar</span><i aria-hidden="true">✦</i><span>JA Solar</span><i aria-hidden="true">✦</i><span>Huawei</span><i aria-hidden="true">✦</i><span>Victron Energy</span><i aria-hidden="true">✦</i></div></div></section>
+
+<section class="cyclones" aria-labelledby="cyclones-titre">
+  <video class="cyclones__video" muted loop playsinline preload="none" data-autoplay aria-hidden="true"><source src="https://assets.mixkit.co/videos/4059/4059-720.mp4" type="video/mp4"><source src="https://assets.mixkit.co/videos/4059/4059-360.mp4" type="video/mp4"></video>
+  <div class="cyclones__voile"></div>
+  <div class="wrap cyclones__in">
+    <p class="cyclones__noms" aria-label="Hugo 1989, Maria 2017, Fiona 2022"><span>Hugo<small>1989</small></span><span>Maria<small>2017</small></span><span>Fiona<small>2022</small></span></p>
+    <h2 class="cyclones__titre" id="cyclones-titre">Le prochain, vous serez prêts.</h2>
+    <p class="kreyol" lang="gcf">Lè kouran koupé, kay-la rété limé.</p>
+    <button class="coupe-courant" type="button" data-blackout><span class="coupe-courant__levier" aria-hidden="true"><i></i></span><span>Couper le courant</span></button>
+    <div class="packs-mini" data-packs-mini></div>
+    <a class="btn btn--soleil" href="pack-cyclone.html">Découvrir le Pack Détresse Cyclone</a>
+  </div>
+</section>
 
 <section class="sec manifeste" id="manifeste">
   <div class="wrap">
@@ -207,19 +229,6 @@
   </div>
 </section>
 
-<section class="cyclones" aria-labelledby="cyclones-titre">
-  <video class="cyclones__video" muted loop playsinline preload="none" data-autoplay aria-hidden="true"><source src="https://assets.mixkit.co/videos/4059/4059-720.mp4" type="video/mp4"><source src="https://assets.mixkit.co/videos/4059/4059-360.mp4" type="video/mp4"></video>
-  <div class="cyclones__voile"></div>
-  <div class="wrap cyclones__in">
-    <p class="cyclones__noms" aria-label="Hugo 1989, Maria 2017, Fiona 2022"><span>Hugo<small>1989</small></span><span>Maria<small>2017</small></span><span>Fiona<small>2022</small></span></p>
-    <h2 class="cyclones__titre" id="cyclones-titre">Le prochain, vous serez prêts.</h2>
-    <p class="kreyol" lang="gcf">Lè kouran koupé, kay-la rété limé.</p>
-    <button class="coupe-courant" type="button" data-blackout><span class="coupe-courant__levier" aria-hidden="true"><i></i></span><span>Couper le courant</span></button>
-    <div class="packs-mini" data-packs-mini></div>
-    <a class="btn btn--soleil" href="pack-cyclone.html">Découvrir le Pack Détresse Cyclone</a>
-  </div>
-</section>
-
 <section class="sec" id="avis">
   <div class="wrap avis-tete">
     <h2 class="t-xl titre-anim">Ils nous font confiance.</h2>
@@ -342,7 +351,7 @@
 <script src="icones.js?v=521c4090"></script>
 <script src="data.js?v=6538fd7f"></script>
 <script src="partenaires.js?v=3096e677"></script>
-<script src="app.js?v=89f08abe"></script>
-<script src="anim.js?v=fae44eb8"></script>
+<script src="app.js?v=3112af57"></script>
+<script src="anim.js?v=0711b3b5"></script>
 </body>
 </html>

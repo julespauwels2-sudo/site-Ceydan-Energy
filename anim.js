@@ -165,7 +165,7 @@
       actif = innerWidth > 920 && !reduit;
       if (!actif) { gamme.style.height = ""; piste.style.transform = ""; return; }
       const deb = piste.scrollWidth - innerWidth + 80;
-      gamme.style.height = innerHeight + Math.max(0, deb) + "px";
+      gamme.style.height = innerHeight + Math.max(0, deb) * 0.5 + "px";
       gamme.dataset.deb = Math.max(0, deb);
       maj();
     };
@@ -280,19 +280,31 @@
   }, { passive: true });
 
 
+  /* ---------- Saison cyclonique : barre et menu (1er juin - 30 novembre) ---------- */
+  const enSaison = (() => { const m = new Date().getMonth(); return m >= 5 && m <= 10; })();
+  if (enSaison) {
+    let ferme = false; try { ferme = sessionStorage.getItem("cedyan_saison_ferme") === "1"; } catch (e) {}
+    $$("[data-seulement-saison]").forEach((el) => { if (el.classList.contains("barre-saison") && ferme) return; el.hidden = false; });
+    if (!ferme && $(".barre-saison")) document.body.classList.add("avec-saison");
+  }
+  $$("[data-fermer-saison]").forEach((b) => b.addEventListener("click", () => {
+    $(".barre-saison").hidden = true; document.body.classList.remove("avec-saison");
+    try { sessionStorage.setItem("cedyan_saison_ferme", "1"); } catch (e) {}
+  }));
+
   /* ---------- Coupure de courant (plein écran) ---------- */
   $$("[data-blackout]").forEach((b) => b.addEventListener("click", () => {
     if (document.body.classList.contains("noir")) return;
     let o = $(".noir-ecran");
     if (!o) {
       o = document.createElement("div"); o.className = "noir-ecran"; o.setAttribute("role", "status");
-      o.innerHTML = '<p class="noir-ecran__l1">Coupure.</p><p class="noir-ecran__l2">0,02 s plus tard, le pack a pris le relais.</p>';
+      o.innerHTML = '<p class="noir-ecran__l1">Coupure.</p><p class="noir-ecran__l2">0,02 s plus tard, le pack a pris le relais.</p>' + (location.pathname.indexOf("pack-cyclone") < 0 ? '<a class="btn btn--soleil noir-ecran__cta" href="pack-cyclone.html">Voir les Packs Détresse Cyclone</a>' : "");
       document.body.appendChild(o);
     }
     b.classList.add("is-on");
     document.body.classList.add("noir");
     setTimeout(() => document.body.classList.add("noir--relais"), reduit ? 200 : 1700);
-    setTimeout(() => { document.body.classList.remove("noir", "noir--relais"); b.classList.remove("is-on"); }, reduit ? 1600 : 4600);
+    setTimeout(() => { document.body.classList.remove("noir", "noir--relais"); $$("[data-blackout]").forEach((x) => x.classList.remove("is-on")); }, reduit ? 2600 : 5600);
   }));
 
   /* ---------- Mot qui tourne (catalogue) ---------- */
