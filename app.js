@@ -500,21 +500,38 @@
     const ZONES = { "Grande-Terre": ["Les Abymes", "Anse-Bertrand", "Le Gosier", "Le Moule", "Morne-à-l'Eau", "Petit-Canal", "Pointe-à-Pitre", "Port-Louis", "Saint-François", "Sainte-Anne"], "Basse-Terre": ["Baie-Mahault", "Baillif", "Basse-Terre", "Bouillante", "Capesterre-Belle-Eau", "Deshaies", "Gourbeyre", "Goyave", "Lamentin", "Petit-Bourg", "Pointe-Noire", "Saint-Claude", "Sainte-Rose", "Trois-Rivières", "Vieux-Fort", "Vieux-Habitants"], "Marie-Galante": ["Grand-Bourg", "Capesterre-de-Marie-Galante", "Saint-Louis"], "Les Saintes": ["Terre-de-Haut", "Terre-de-Bas"], "La Désirade": ["La Désirade"], "Martinique": ["Martinique"], "Saint-Martin": ["Saint-Martin"], "Saint-Barthélemy": ["Saint-Barthélemy"] };
     const zoneDe = (c) => Object.keys(ZONES).find((z) => ZONES[z].includes(c));
     const selC = $("#a-commune"), rge = $("#a-rge"); const spes = $$(".filtres-spe input");
+    const carte = $(".carte-gp"); let zoneChoisie = "";
     const memo = store.get("cedyan_commune", ""); if (memo) selC.value = memo;
     const rendre = () => {
-      const c = selC.value, z = zoneDe(c); store.set("cedyan_commune", c);
+      const c = selC.value, z = c ? zoneDe(c) : zoneChoisie; store.set("cedyan_commune", c);
       const voulu = spes.filter((x) => x.checked).map((x) => x.value);
-      let l = (window.PARTENAIRES || []).filter((p) => (!c || (p.zones || []).includes(z) || p.commune === c) && (!rge.checked || p.rge) && voulu.every((v) => (p.specialites || []).includes(v)));
+      const base = (window.PARTENAIRES || []).filter((p) => (!rge.checked || p.rge) && voulu.every((v) => (p.specialites || []).includes(v)));
+      let l = base.filter((p) => !z || (p.zones || []).includes(z) || p.commune === c);
       l.sort((a, b) => (b.commune === c) - (a.commune === c) || b.rge - a.rge);
-      $("#annuaire-compte").textContent = c ? `${l.length} installateur${l.length > 1 ? "s" : ""} intervenant à ${c}` : `${l.length} installateur${l.length > 1 ? "s" : ""} partenaire${l.length > 1 ? "s" : ""}. Choisissez votre commune pour affiner.`;
+      if (carte) {
+        $$(".zones path", carte).forEach((p) => { p.classList.toggle("is-on", p.dataset.zone === z); p.classList.toggle("a-partenaires", base.some((x) => (x.zones || []).includes(p.dataset.zone))); });
+        $(".pastilles", carte).innerHTML = $$(".zones path", carte).map((p) => {
+          const n = base.filter((x) => (x.zones || []).includes(p.dataset.zone)).length; if (!n) return "";
+          const bb = p.getBBox(); return `<g class="pastille" transform="translate(${bb.x + bb.width - 8},${bb.y + 10})"><circle r="15"/><text y="5">${n}</text></g>`;
+        }).join("");
+      }
+      const lieu = c || z;
+      $("#annuaire-compte").textContent = lieu ? `${l.length} installateur${l.length > 1 ? "s" : ""} pour ${lieu}` : `${l.length} installateur${l.length > 1 ? "s" : ""} partenaire${l.length > 1 ? "s" : ""}`;
       annuaire.innerHTML = l.length ? l.map((p) => `<article class="partenaire">${p.exemple ? '<span class="avi__ex">Exemple</span>' : ""}
-        <div class="partenaire__tete"><h3>${esc(p.nom)}</h3>${p.rge ? '<span class="badge-rge">RGE QualiPV</span>' : ""}</div>
-        <p class="partenaire__lieu">Basé à ${esc(p.commune)}. Intervient en ${esc((p.zones || []).join(", "))}.</p>
-        <div class="partenaire__tags">${(p.specialites || []).map((t) => `<span>${esc(t)}</span>`).join("")}</div>
-        <div class="partenaire__actions">${p.telephone ? `<a class="btn btn--petit" href="tel:${esc(p.telephone.replace(/\s/g, ""))}">Appeler</a>` : ""}<a class="btn ${p.telephone ? "btn--ligne" : ""} btn--petit" href="contact.html?partenaire=${encodeURIComponent(p.nom)}">Demander un devis</a></div></article>`).join("")
-        : `<div class="vide" style="text-align:left"><p><b>Aucun partenaire référencé dans ce secteur pour le moment.</b></p><p>Laissez-nous votre projet : nous le transmettons à un installateur qui peut intervenir chez vous.</p><a class="btn btn--petit" href="#" data-quiz-direct>Être mis en relation</a></div>`;
+        <div class="partenaire__logo" aria-hidden="true">${esc(p.nom.split(" ").filter((m) => m.length > 2).slice(0, 2).map((m) => m[0]).join("").toUpperCase())}</div>
+        <div class="partenaire__corps"><div class="partenaire__tete"><h3>${esc(p.nom)}</h3>${p.rge ? '<span class="badge-rge">RGE QualiPV</span>' : ""}</div>
+        <p class="partenaire__lieu">${esc(p.commune)}, intervient en ${esc((p.zones || []).join(", "))}</p>
+        <div class="partenaire__tags">${(p.specialites || []).map((t) => `<span>${esc(t)}</span>`).join("")}</div></div>
+        <div class="partenaire__actions">${p.telephone ? `<a class="btn btn--ligne btn--petit" href="tel:${esc(p.telephone.replace(/\s/g, ""))}">Appeler</a>` : ""}<a class="btn btn--petit" href="contact.html?partenaire=${encodeURIComponent(p.nom)}">Demander un devis</a></div></article>`).join("")
+        : `<div class="vide" style="text-align:left"><p><b>Aucun partenaire référencé ici pour le moment.</b></p><p>Laissez-nous votre projet : nous le transmettons à un installateur qui peut intervenir chez vous.</p><a class="btn btn--petit" href="#" data-quiz-direct>Être mis en relation</a></div>`;
       $$("[data-quiz-direct]", annuaire).forEach((b) => b.addEventListener("click", (e) => { e.preventDefault(); ouvrirQuiz({}); }));
     };
+    if (carte) {
+      $$(".zones path", carte).forEach((p) => { p.setAttribute("tabindex", "0"); p.setAttribute("role", "button"); p.setAttribute("aria-label", p.dataset.zone);
+        const choisir = () => { zoneChoisie = p.dataset.zone; selC.value = ""; rendre(); };
+        p.addEventListener("click", choisir); p.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); choisir(); } }); });
+      const reset = $("[data-zone-reset]"); reset && reset.addEventListener("click", () => { zoneChoisie = ""; selC.value = ""; rendre(); });
+    }
     [selC, rge, ...spes].forEach((x) => x.addEventListener("change", rendre)); rendre();
   }
   // Pré-remplir le message contact quand on vient de l'annuaire

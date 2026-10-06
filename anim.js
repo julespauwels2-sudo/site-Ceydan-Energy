@@ -194,7 +194,7 @@
     const ctx = cv.getContext("2d"); let gouttes = [], W = 0, H = 0, vis = false;
     const taille = () => {
       W = cv.width = cv.offsetWidth; H = cv.height = cv.offsetHeight;
-      gouttes = Array.from({ length: Math.round(W * H / 9000) }, () => ({ x: Math.random() * W, y: Math.random() * H, l: 10 + Math.random() * 22, v: 9 + Math.random() * 10, o: 0.12 + Math.random() * 0.3 }));
+      gouttes = Array.from({ length: Math.round(W * H / 16000) }, () => ({ x: Math.random() * W, y: Math.random() * H, l: 10 + Math.random() * 22, v: 9 + Math.random() * 10, o: 0.06 + Math.random() * 0.16 }));
     };
     const dessiner = () => {
       if (!vis) return;
@@ -222,6 +222,76 @@
     cloner(); setTimeout(cloner, 300);
   }
   $$("[data-tel-texte]").forEach((e) => { const c = window.CEDYAN_CONFIG; if (c) e.textContent = c.telephone; });
+
+
+  /* ---------- Statut « Ouvert maintenant » (heure de Guadeloupe) ---------- */
+  const C = window.CEDYAN_CONFIG || {};
+  function statut() {
+    const o = C.ouverture || {};
+    const now = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Guadeloupe" }));
+    const j = now.getDay(), h = now.getHours() + now.getMinutes() / 60;
+    const fmt = (x) => Math.floor(x) + "h" + (x % 1 ? String(Math.round((x % 1) * 60)).padStart(2, "0") : "");
+    const jours = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
+    const p = o[j];
+    if (p && h >= p[0] && h < p[1]) return { ouvert: true, txt: "Ouvert, ferme à " + fmt(p[1]) };
+    if (p && h < p[0]) return { ouvert: false, txt: "Fermé, ouvre à " + fmt(p[0]) };
+    for (let k = 1; k <= 7; k++) { const jj = (j + k) % 7; if (o[jj]) return { ouvert: false, txt: "Fermé, ouvre " + (k === 1 ? "demain" : jours[jj]) + " à " + fmt(o[jj][0]) }; }
+    return { ouvert: false, txt: "Fermé" };
+  }
+  $$("[data-statut]").forEach((e) => { const st = statut(); e.classList.toggle("is-ouvert", st.ouvert); $("span", e).textContent = st.txt; });
+  $$("[data-horaires-table]").forEach((t) => {
+    const j = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Guadeloupe" })).getDay();
+    const idx = j >= 1 && j <= 4 ? 0 : j === 5 ? 1 : 2;
+    const tr = t.querySelectorAll("tr")[idx]; if (tr) tr.classList.add("aujourdhui");
+  });
+
+  /* ---------- Simulateur de coupure ---------- */
+  const simu = $("[data-simu]");
+  if (simu) {
+    const zone = simu.closest("[data-simu-zone]");
+    const btn = $("[data-simu-btn]", simu), etat = $(".simu__reseau", simu), etatTxt = $("[data-etat-txt]", simu);
+    const pct = $("[data-pct]", simu), kwhTxt = $("[data-kwh-txt]", simu), auto = $("[data-auto]", simu), horloge = $("[data-horloge]", simu);
+    const jauge = $(".simu__jauge i", simu);
+    let niv = 1, kwh = 4.8, enCoupure = false, timer = 0, heures = 0, deja = false;
+    const apps = $$(".simu__apps li", simu);
+    const puissance = () => apps.filter((li) => +li.dataset.niv <= niv).reduce((a, li) => a + parseFloat(li.querySelector("b").textContent), 0);
+    const autonomie = () => (kwh * 0.9 * 1000) / puissance();
+    const maj = (restant) => {
+      apps.forEach((li) => li.classList.toggle("is-on", +li.dataset.niv <= niv));
+      const p = restant == null ? 100 : Math.max(0, restant);
+      pct.textContent = Math.round(p) + " %";
+      jauge.style.setProperty("--niv", p / 100);
+      kwhTxt.textContent = (kwh * p / 100).toLocaleString("fr-FR", { maximumFractionDigits: 1 }) + " kWh en réserve";
+      auto.textContent = "≈ " + Math.round(autonomie() * p / 100) + " h";
+    };
+    const arreter = () => {
+      clearInterval(timer); enCoupure = false; heures = 0;
+      zone.classList.remove("coupure", "secours"); etat.dataset.etat = "ok"; etatTxt.textContent = "Réseau EDF en ligne";
+      horloge.textContent = "Tout fonctionne sur le réseau"; btn.lastChild.textContent = "Simuler une coupure"; maj(null);
+    };
+    const couper = () => {
+      enCoupure = true; zone.classList.add("coupure"); etat.dataset.etat = "ko"; etatTxt.textContent = "Réseau coupé";
+      btn.lastChild.textContent = "Rétablir le réseau";
+      setTimeout(() => {
+        if (!enCoupure) return;
+        zone.classList.add("secours"); etatTxt.textContent = "Pack actif : bascule en 0,02 s";
+        const total = autonomie();
+        timer = setInterval(() => {
+          heures += 1; const reste = 100 - (heures / total) * 100;
+          horloge.textContent = "Coupure depuis " + heures + " h, tout reste allumé";
+          maj(reste);
+          if (heures >= Math.min(12, Math.floor(total) - 1)) { clearInterval(timer); horloge.textContent = "Après " + heures + " h de coupure, il reste ≈ " + Math.round(total - heures) + " h d'autonomie"; }
+        }, reduit ? 50 : 650);
+      }, reduit ? 0 : 900);
+    };
+    btn.addEventListener("click", () => (enCoupure ? arreter() : couper()));
+    $$("[data-pack]", simu).forEach((b) => b.addEventListener("click", () => {
+      $$("[data-pack]", simu).forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+      niv = +b.dataset.pack; kwh = +b.dataset.kwh; const etaitCoupe = enCoupure; arreter(); if (etaitCoupe) couper();
+    }));
+    maj(null);
+    if ("IntersectionObserver" in window) new IntersectionObserver((en, o) => { if (en[0].isIntersecting && !deja) { deja = true; o.disconnect(); setTimeout(couper, 1200); } }, { threshold: 0.6 }).observe(simu);
+  }
 
   /* ---------- Survols : boutons magnétiques et cartes inclinées ---------- */
   if (!tactile && !reduit) {

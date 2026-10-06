@@ -6,9 +6,11 @@ window.CEDYAN_CONFIG = {
   societe: "Cedyan Energy",
   telephone: "0590 32 15 20",
   telephoneLien: "+590590321520",
-  email: "cedyanenergycaraibes@gmail.com",
+  email: "yann.pauwels@cedyanenergytrade.com",
   adresse: "AC Moudong, Immeuble Point Plomberie, 97122 Baie-Mahault, Guadeloupe",
   horaires: "Du lundi au jeudi de 8h30 à 16h, le vendredi de 8h30 à 13h",
+  // Jours : 1 = lundi … 5 = vendredi. Heures décimales (8.5 = 8h30). Sert au badge « Ouvert maintenant ».
+  ouverture: { 1: [8.5, 16], 2: [8.5, 16], 3: [8.5, 16], 4: [8.5, 16], 5: [8.5, 13] },
   horairesDetail: [["Lundi au jeudi", "8h30 à 16h"], ["Vendredi", "8h30 à 13h"], ["Samedi et dimanche", "Fermé"]],
   mapsLien: "https://www.google.com/maps/search/?api=1&query=Cedyan+Energy+Baie-Mahault",
   facebook: "https://www.facebook.com/Cedyan-Energy-1477937619169786/",
