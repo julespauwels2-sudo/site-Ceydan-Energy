@@ -1,105 +1,129 @@
 /* =========================================================
    CEDYAN ENERGY — Catalogue
    - Ajouter un produit = ajouter une ligne dans PRODUITS.
-   - "prix" n'est affiché qu'aux professionnels vérifiés (SIREN actif).
-     ⚠️ Les prix actuels sont repris de l'ancien site (prix publics) :
-     à remplacer par la grille pro HT avant mise en ligne.
-   - "img" peut pointer vers une image en ligne ; si elle ne charge pas,
-     une illustration de la catégorie s'affiche à la place.
+   - nom : nom simple et lisible / ref : référence fabricant.
+   - "prix" n'est affiché qu'aux professionnels validés.
+     ⚠️ Prix actuels = prix publics de l'ancien site, à remplacer par la grille PRO.
+   - "img" : photo produit. Si elle ne charge pas, une illustration s'affiche.
+   (Étape 2 : ces données passeront dans Supabase, modifiables depuis le dashboard.)
    ========================================================= */
 const IMG = (id, slug) => `https://cedyan-energy.net/${id}-home_default/${slug}.jpg`;
 
 window.CATEGORIES = [
-  { id: "panneaux", nom: "Panneaux photovoltaïques", court: "Panneaux", desc: "Modules bifaciaux et full black de 500 Wc, testés pour le climat tropical." },
-  { id: "onduleurs", nom: "Onduleurs", court: "Onduleurs", desc: "Onduleurs réseau et hybrides Huawei et GoodWe, mono et triphasés." },
-  { id: "convertisseurs", nom: "Convertisseurs", court: "Convertisseurs", desc: "Convertisseurs-chargeurs Victron 24 V et 48 V pour sites isolés et secours." },
-  { id: "regulateurs", nom: "Régulateurs", court: "Régulateurs", desc: "Régulateurs MPPT SmartSolar et BlueSolar pour charger vos batteries au maximum." },
-  { id: "monitoring", nom: "Monitoring et pilotage", court: "Monitoring", desc: "Suivez production, batterie et consommation depuis votre téléphone." },
-  { id: "batteries", nom: "Batteries", court: "Batteries", desc: "Lithium LiFePO4 Pylontech, BYD, Huawei, BSL Batt et OPzS Hoppecke." },
-  { id: "structures", nom: "Structure et fixation", court: "Fixations", desc: "Rails et attaches K2 Systems et Novotegra pour toitures tôle, tuile et bac acier." },
-  { id: "cables", nom: "Câbles et accessoires", court: "Câbles", desc: "Câble solaire H1Z2Z2-K, connecteurs, câbles de communication batterie." },
-  { id: "protections", nom: "Protection électrique", court: "Protections", desc: "Coffrets AC/DC, sectionneurs, disjoncteurs et fusibles adaptés au photovoltaïque." }
+  { id: "kits", nom: "Kits solaires", desc: "Centrales isolées, kits raccordés réseau et Packs Détresse Cyclone, assemblés avec le matériel en stock." },
+  { id: "panneaux", nom: "Panneaux photovoltaïques", desc: "JA Solar, Jinko Solar, Ecodelta et AXIworld." },
+  { id: "regulateurs", nom: "Régulateurs", desc: "Régulateurs MPPT Victron SmartSolar, de 30 à 200 A." },
+  { id: "onduleurs", nom: "Onduleurs", desc: "Onduleurs réseau et hybrides Huawei et GoodWe, monophasés et triphasés." },
+  { id: "convertisseurs", nom: "Convertisseurs", desc: "Convertisseurs-chargeurs Victron MultiPlus-II et Quattro, 24 V et 48 V." },
+  { id: "batteries", nom: "Batteries", desc: "Lithium LiFePO4 Pylontech, BYD, Huawei, BSL Batt et OPzS Hoppecke." },
+  { id: "structures", nom: "Structure et fixation", desc: "Rails, étriers et visserie K2 Systems et Novotegra." },
+  { id: "cables", nom: "Câbles", desc: "Câble solaire, connecteurs et câbles de liaison batterie." },
+  { id: "monitoring", nom: "Monitoring et accessoires", desc: "Passerelles, écrans, compteurs et câbles de communication." },
+  { id: "protections", nom: "Protection électrique", desc: "Coffrets AC et DC, sectionneurs, disjoncteurs et fusibles." }
 ];
 
 window.PRODUITS = [
   // Panneaux
-  { id: "ja-500-lb", cat: "panneaux", marque: "JA Solar", nom: "JAM60D41 500 W bifacial full black", spec: "Double verre 2 mm, demi-cellules", prix: 196.22, img: IMG(1654, "ja-solar-jam60d41lb-500w-bifacial-double-glass-2mm-half-cut-full-black-jam60d41-500lb"), stock: true },
-  { id: "peimar-500", cat: "panneaux", marque: "Peimar", nom: "Module 500 Wc", spec: "Monocristallin, cadre aluminium", prix: null, img: "", stock: true },
-  { id: "trina-vertex", cat: "panneaux", marque: "Trina Solar", nom: "Vertex S+", spec: "Module résidentiel double verre", prix: null, img: "", stock: false },
-
-  // Onduleurs
-  { id: "goodwe-6000", cat: "onduleurs", marque: "GoodWe", nom: "GW6000N-EH hybride", spec: "6 kW monophasé, compatible batterie", prix: 1495, img: IMG(1737, "goodwe-gw6000n-eh"), stock: true },
-  { id: "huawei-10k-map0", cat: "onduleurs", marque: "Huawei", nom: "SUN2000-10K-MAP0 hybride", spec: "10 kW triphasé, garantie 10 ans", prix: 3089, img: IMG(971, "huawei-sun2000-10k-map0-"), stock: true },
-  { id: "huawei-lb0", cat: "onduleurs", marque: "Huawei", nom: "SUN2000-LB0 monophasé", spec: "Prêt pour batterie Luna 2000", prix: null, img: "", stock: true },
-
-  // Convertisseurs
-  { id: "mp2-3000", cat: "convertisseurs", marque: "Victron Energy", nom: "MultiPlus-II 48/3000", spec: "Convertisseur-chargeur 3000 VA", prix: null, img: "", stock: true },
-  { id: "mp2-5000", cat: "convertisseurs", marque: "Victron Energy", nom: "MultiPlus-II 48/5000", spec: "Convertisseur-chargeur 5000 VA", prix: null, img: "", stock: true },
-  { id: "mp2-8000", cat: "convertisseurs", marque: "Victron Energy", nom: "MultiPlus-II 48/8000", spec: "Convertisseur-chargeur 8000 VA", prix: null, img: "", stock: true },
-  { id: "combo-3000", cat: "convertisseurs", marque: "Victron Energy", nom: "Combo MultiPlus-II 3000 + Cerbo GX + US5000", spec: "Pack prêt à brancher, 4,8 kWh", prix: 2619, img: IMG(1673, "combo-multiplus-ii-48v3000-cerbo-gx-us5000"), stock: true },
-  { id: "combo-5000", cat: "convertisseurs", marque: "Victron Energy", nom: "Combo MultiPlus-II 5000 + Cerbo GX + 2 × US5000", spec: "Pack prêt à brancher, 9,6 kWh", prix: 4296, img: IMG(1674, "combo-multiplus-ii-48v5000-cerbo-gx-2-x-us5000"), stock: true },
+  { id: "ja-500", cat: "panneaux", marque: "JA Solar", nom: "Panneau 500 W Full Black", ref: "JAM60D41-500/LB", prix: 196.22, img: IMG(1654, "ja-solar-jam60d41lb-500w-bifacial-double-glass-2mm-half-cut-full-black-jam60d41-500lb"), stock: true },
+  { id: "jinko-tiger", cat: "panneaux", marque: "Jinko Solar", nom: "Panneau Tiger Neo", ref: "Gamme Tiger Neo", prix: null, img: "", stock: true },
+  { id: "ecodelta", cat: "panneaux", marque: "Ecodelta", nom: "Panneau monocristallin", ref: "Gamme Ecodelta", prix: null, img: "", stock: true },
+  { id: "axiworld", cat: "panneaux", marque: "AXIworld", nom: "Panneau AXIworldpremium", ref: "Gamme AXIworld", prix: null, img: "", stock: true },
 
   // Régulateurs
-  { id: "mppt-100-30", cat: "regulateurs", marque: "Victron Energy", nom: "SmartSolar MPPT 100/30", spec: "Bluetooth intégré", prix: 190, img: IMG(277, "bluesolar-mppt-7515-retail"), stock: true },
-  { id: "mppt-100-50", cat: "regulateurs", marque: "Victron Energy", nom: "SmartSolar MPPT 100/50", spec: "Bluetooth intégré", prix: 225, img: IMG(281, "mppt-victron-100-50"), stock: true },
-  { id: "mppt-150-60", cat: "regulateurs", marque: "Victron Energy", nom: "BlueSolar MPPT 150/60", spec: "Pour champs jusqu'à 150 V", prix: null, img: "", stock: true },
-  { id: "mppt-rs-450", cat: "regulateurs", marque: "Victron Energy", nom: "SmartSolar MPPT RS 450/200", spec: "Grandes installations 48 V", prix: null, img: "", stock: false },
+  { id: "mppt-100-30", cat: "regulateurs", marque: "Victron Energy", nom: "Régulateur MPPT 100/30", ref: "SmartSolar MPPT 100/30", prix: 190, img: IMG(277, "bluesolar-mppt-7515-retail"), stock: true },
+  { id: "mppt-100-50", cat: "regulateurs", marque: "Victron Energy", nom: "Régulateur MPPT 100/50", ref: "SmartSolar MPPT 100/50", prix: 225, img: IMG(281, "mppt-victron-100-50"), stock: true },
+  { id: "mppt-150-35", cat: "regulateurs", marque: "Victron Energy", nom: "Régulateur MPPT 150/35", ref: "SmartSolar MPPT 150/35", prix: 225, img: IMG(285, "mppt-victron-150-35"), stock: true },
+  { id: "mppt-150-60", cat: "regulateurs", marque: "Victron Energy", nom: "Régulateur MPPT 150/60", ref: "SmartSolar MPPT 150/60-Tr", prix: 425, img: IMG(1276, "mppt-victron-150-60"), stock: true },
+  { id: "mppt-150-70", cat: "regulateurs", marque: "Victron Energy", nom: "Régulateur MPPT 150/70", ref: "SmartSolar MPPT 150/70-Tr", prix: 465, img: IMG(780, "mppt-victron-150-70"), stock: true },
+  { id: "mppt-250-70", cat: "regulateurs", marque: "Victron Energy", nom: "Régulateur MPPT 250/70", ref: "SmartSolar MPPT 250/70-Tr", prix: 530, img: IMG(794, "smartsolar-mppt-25070-tr"), stock: true },
+  { id: "mppt-250-100", cat: "regulateurs", marque: "Victron Energy", nom: "Régulateur MPPT 250/100", ref: "SmartSolar MPPT 250/100-Tr VE.Can", prix: 680, img: IMG(1751, "smartsolar-mppt-250100-tr-vecan-"), stock: true },
+  { id: "mppt-rs-450", cat: "regulateurs", marque: "Victron Energy", nom: "Régulateur MPPT RS 450/200", ref: "SmartSolar MPPT RS 450/200-Tr", prix: 2350, img: IMG(1511, "smartsolar-mppt-rs-450200-tr"), stock: true },
 
-  // Monitoring
-  { id: "cerbo-gx", cat: "monitoring", marque: "Victron Energy", nom: "Cerbo GX", spec: "Supervision à distance via VRM", prix: null, img: "", stock: true },
-  { id: "pluggable-display", cat: "monitoring", marque: "Victron Energy", nom: "SmartSolar Pluggable Display", spec: "Écran enfichable pour MPPT", prix: 44.99, img: IMG(917, "smartsolar-pluggable-display"), stock: true },
-  { id: "huawei-dongle", cat: "monitoring", marque: "Huawei", nom: "Smart Dongle WLAN-FE", spec: "Suivi FusionSolar", prix: null, img: "", stock: true },
-  { id: "vecan-bms", cat: "monitoring", marque: "Victron Energy", nom: "Câble VE.Can vers BMS type A 1,8 m", spec: "Communication batterie-convertisseur", prix: 21, img: IMG(929, "rj45-utp-cable-03-m"), stock: true },
+  // Onduleurs
+  { id: "goodwe-3000", cat: "onduleurs", marque: "GoodWe", nom: "Onduleur 3 kW", ref: "GW3000-XS G3", prix: 775, img: IMG(1740, "goodwe-gw3000-xs-g3"), stock: true },
+  { id: "goodwe-6000", cat: "onduleurs", marque: "GoodWe", nom: "Onduleur hybride 6 kW", ref: "GW6000N-EH", prix: 1495, img: IMG(1737, "goodwe-gw6000n-eh"), stock: true },
+  { id: "huawei-3k", cat: "onduleurs", marque: "Huawei", nom: "Onduleur hybride 3 kW", ref: "SUN2000-3K-LB0", prix: 1065, img: IMG(991, "huawei-sun2000-3k-lb0"), stock: true },
+  { id: "huawei-5k", cat: "onduleurs", marque: "Huawei", nom: "Onduleur hybride 5 kW", ref: "SUN2000-5K-LB0", prix: 1365, img: IMG(986, "huawei-sun2000-5k-lb0"), stock: true },
+  { id: "huawei-6k", cat: "onduleurs", marque: "Huawei", nom: "Onduleur hybride 6 kW", ref: "SUN2000-6K-LB0", prix: 1582, img: IMG(1375, "huawei-sun2000-6k-lb0"), stock: true },
+  { id: "huawei-8k", cat: "onduleurs", marque: "Huawei", nom: "Onduleur hybride 8 kW", ref: "SUN2000-8KTL-LC0", prix: 2320, img: IMG(1385, "huawei-sun2000-8ktl-lc0"), stock: true },
+  { id: "huawei-10k", cat: "onduleurs", marque: "Huawei", nom: "Onduleur hybride triphasé 10 kW", ref: "SUN2000-10K-MAP0", prix: 3089, img: IMG(971, "huawei-sun2000-10k-map0-"), stock: true },
+
+  // Convertisseurs
+  { id: "mp2-48-3000", cat: "convertisseurs", marque: "Victron Energy", nom: "Convertisseur-chargeur 3000 VA 48 V", ref: "MultiPlus-II 48/3000/35-32", prix: 730, img: IMG(1667, "multiplus-ii-48300035-32-230v"), stock: true },
+  { id: "mp2-24-3000", cat: "convertisseurs", marque: "Victron Energy", nom: "Convertisseur-chargeur 3000 VA 24 V", ref: "MultiPlus-II 24/3000/70-32", prix: 1250, img: IMG(795, "multiplus-ii-24300070-32-230v"), stock: true },
+  { id: "mp2-48-5000", cat: "convertisseurs", marque: "Victron Energy", nom: "Convertisseur-chargeur 5000 VA 48 V", ref: "MultiPlus-II 48/5000/70-50", prix: 1100, img: IMG(489, "multiplus-ii-24300070-32-230v"), stock: true },
+  { id: "mp2-48-8000", cat: "convertisseurs", marque: "Victron Energy", nom: "Convertisseur-chargeur 8000 VA 48 V", ref: "MultiPlus-II 48/8000/110-100", prix: 1950, img: IMG(1419, "multiplus-ii-488000110-100-230v"), stock: true },
+  { id: "mp2-48-10000", cat: "convertisseurs", marque: "Victron Energy", nom: "Convertisseur-chargeur 10 000 VA 48 V", ref: "MultiPlus-II 48/10000/140-100", prix: 2300, img: IMG(1556, "multiplus-ii-4810000140-100-230v-"), stock: true },
+  { id: "quattro-48-5000", cat: "convertisseurs", marque: "Victron Energy", nom: "Quattro 5000 VA 48 V", ref: "Quattro 48/5000/70-100/100", prix: 2315.25, img: IMG(487, "quattro-123000120-5050-230v-vebus"), stock: true },
+  { id: "quattro-48-10000", cat: "convertisseurs", marque: "Victron Energy", nom: "Quattro 10 000 VA 48 V", ref: "Quattro 48/10000/140-100/100", prix: 3651.4, img: IMG(484, "quattro-123000120-5050-230v-vebus"), stock: true },
 
   // Batteries
-  { id: "us2000c", cat: "batteries", marque: "Pylontech", nom: "US2000C 2,4 kWh", spec: "LiFePO4, BMS intégré", prix: 770, img: IMG(604, "batterie-lithium-ion-us2000c-24kwh"), stock: true },
-  { id: "up2500", cat: "batteries", marque: "Pylontech", nom: "UP2500 2,8 kWh", spec: "Format compact", prix: 1000, img: IMG(1571, "batterie-lithium-ion-up2500-28kwh"), stock: true },
-  { id: "us3000", cat: "batteries", marque: "Pylontech", nom: "US3000 3,5 kWh", spec: "LiFePO4 modulaire", prix: 1100, img: IMG(1573, "batterie-lithium-ion-us3000-35kwh"), stock: true },
-  { id: "us5000", cat: "batteries", marque: "Pylontech", nom: "US5000 4,8 kWh", spec: "LiFePO4 modulaire", prix: 1500, img: IMG(1456, "batterie-lithium-ion-us5000-48kwh"), stock: true },
-  { id: "bsl-100", cat: "batteries", marque: "BSL Batt", nom: "LiFePO4 51,2 V 100 Ah", spec: "5,12 kWh", prix: 1050, img: IMG(1743, "bsl-batt-lifepo4-512-v-100-a"), stock: true },
-  { id: "byd-lvs4", cat: "batteries", marque: "BYD", nom: "Battery-Box Premium LVS 4.0", spec: "4 kWh évolutif", prix: 2095, img: IMG(1742, "batterie-byd-lvs-40kwh"), stock: true },
-  { id: "byd-pdu", cat: "batteries", marque: "BYD", nom: "Battery-Box PDU LVS", spec: "Unité de gestion de tour", prix: 537.5, img: IMG(1662, "batterie-box-byd-pdu-"), stock: true },
-  { id: "luna-7", cat: "batteries", marque: "Huawei", nom: "Luna 2000 S1 7 kWh", spec: "LFP, extensible jusqu'à 20,7 kWh", prix: 7508, img: IMG(1745, "huawei-luna-2000-s1-set-de-batterie-7-kwh"), stock: true },
-  { id: "luna-14", cat: "batteries", marque: "Huawei", nom: "Luna 2000 S1 14 kWh", spec: "LFP, 13,8 kWh utiles", prix: 13048, img: IMG(1749, "huawei-luna-2000-s1-set-de-batterie-14-kwh"), stock: true },
-  { id: "opzs-420", cat: "batteries", marque: "Hoppecke", nom: "OPzS 420 Ah 2 V", spec: "Plaques tubulaires, sur commande", prix: 380.4, img: IMG(422, "batterie-1070ah-opz"), stock: false },
-  { id: "opzs-1520", cat: "batteries", marque: "Hoppecke", nom: "OPzS 1520 Ah 2 V", spec: "Plaques tubulaires, sur commande", prix: 801.84, img: IMG(1274, "batterie-1520ah-opz"), stock: false },
+  { id: "us2000c", cat: "batteries", marque: "Pylontech", nom: "Batterie lithium 2,4 kWh", ref: "US2000C", prix: 770, img: IMG(604, "batterie-lithium-ion-us2000c-24kwh"), stock: true },
+  { id: "up2500", cat: "batteries", marque: "Pylontech", nom: "Batterie lithium 2,8 kWh", ref: "UP2500", prix: 1000, img: IMG(1571, "batterie-lithium-ion-up2500-28kwh"), stock: true },
+  { id: "us3000", cat: "batteries", marque: "Pylontech", nom: "Batterie lithium 3,5 kWh", ref: "US3000C", prix: 1100, img: IMG(1573, "batterie-lithium-ion-us3000-35kwh"), stock: true },
+  { id: "us5000", cat: "batteries", marque: "Pylontech", nom: "Batterie lithium 4,8 kWh", ref: "US5000", prix: 1500, img: IMG(1456, "batterie-lithium-ion-us5000-48kwh"), stock: true },
+  { id: "bsl-100", cat: "batteries", marque: "BSL Batt", nom: "Batterie lithium 5,12 kWh", ref: "LiFePO4 51,2 V 100 Ah", prix: 1050, img: IMG(1743, "bsl-batt-lifepo4-512-v-100-a"), stock: true },
+  { id: "byd-lvs4", cat: "batteries", marque: "BYD", nom: "Module batterie 4 kWh", ref: "Battery-Box Premium LVS 4.0", prix: 2095, img: IMG(1742, "batterie-byd-lvs-40kwh"), stock: true },
+  { id: "byd-pdu", cat: "batteries", marque: "BYD", nom: "Unité de gestion de tour", ref: "Battery-Box LVS PDU", prix: 537.5, img: IMG(1662, "batterie-box-byd-pdu-"), stock: true },
+  { id: "luna-7", cat: "batteries", marque: "Huawei", nom: "Batterie lithium 7 kWh", ref: "LUNA2000 S1 7 kWh", prix: 7508, img: IMG(1745, "huawei-luna-2000-s1-set-de-batterie-7-kwh"), stock: true },
+  { id: "luna-14", cat: "batteries", marque: "Huawei", nom: "Batterie lithium 14 kWh", ref: "LUNA2000 S1 14 kWh", prix: 13048, img: IMG(1749, "huawei-luna-2000-s1-set-de-batterie-14-kwh"), stock: true },
+  { id: "opzs-420", cat: "batteries", marque: "Hoppecke", nom: "Batterie OPzS 2 V 420 Ah", ref: "OPzS 420 Ah", prix: 380.4, img: IMG(422, "batterie-1070ah-opz"), stock: false },
+  { id: "opzs-1520", cat: "batteries", marque: "Hoppecke", nom: "Batterie OPzS 2 V 1520 Ah", ref: "OPzS 1520 Ah", prix: 801.84, img: IMG(1274, "batterie-1520ah-opz"), stock: false },
 
   // Structures
-  { id: "k2-rail", cat: "structures", marque: "K2 Systems", nom: "Rail SingleRail 36", spec: "Aluminium, toiture tôle et bac acier", prix: null, img: "", stock: true },
-  { id: "novo-rails-croises", cat: "structures", marque: "Novotegra", nom: "Kit raccord de rails croisés C M14", spec: "Montage en croix", prix: 1.75, img: IMG(1687, "novotegra-kit-de-raccord-de-rails-croises-c-m14"), stock: true },
-  { id: "novo-attache-ext", cat: "structures", marque: "Novotegra", nom: "Attache panneau d'extrémité 30-42 noir", spec: "Cadres 30 à 42 mm", prix: 6.2, img: IMG(1709, "novotegra-kit-d-attache-panneau-d-extremite-30-42-c-noir"), stock: true },
-  { id: "k2-crochet", cat: "structures", marque: "K2 Systems", nom: "Crochet de toit tuile", spec: "Inox, réglable", prix: null, img: "", stock: true },
+  { id: "k2-clamp-mc", cat: "structures", marque: "K2 Systems", nom: "Étrier intermédiaire 25-40 mm", ref: "K2 Clamp MC", prix: 6.55, img: IMG(1514, "k2-clamp-mc-25-40-mm-"), stock: true },
+  { id: "k2-clamp-ec", cat: "structures", marque: "K2 Systems", nom: "Étrier de fin 30-40 mm", ref: "K2 Clamp EC Hybrid", prix: 6.55, img: IMG(1517, "k2-clamp-ec-30-40-hybrid"), stock: true },
+  { id: "k2-raccord", cat: "structures", marque: "K2 Systems", nom: "Raccord de rail SolidRail", ref: "K2 SolidRail", prix: 8.25, img: IMG(666, "raccord-k2-solidrail-kd25059"), stock: true },
+  { id: "vis-m10", cat: "structures", marque: "K2 Systems", nom: "Vis double filetage bois M10 × 180", ref: "Inox", prix: 8.98, img: IMG(1394, "vis-double-filetage-bois-m10x180"), stock: true },
+  { id: "novo-croise", cat: "structures", marque: "Novotegra", nom: "Raccord de rails croisés", ref: "Kit C M14", prix: 1.75, img: IMG(1687, "novotegra-kit-de-raccord-de-rails-croises-c-m14"), stock: true },
+  { id: "novo-ext-noir", cat: "structures", marque: "Novotegra", nom: "Attache d'extrémité noire 30-42 mm", ref: "Kit C noir", prix: 6.2, img: IMG(1709, "novotegra-kit-d-attache-panneau-d-extremite-30-42-c-noir"), stock: true },
+  { id: "novo-centre-noir", cat: "structures", marque: "Novotegra", nom: "Attache centrale noire avec mise à la terre", ref: "Kit C noir MAT", prix: 6.84, img: IMG(1704, "novotegra-kit-d-attache-centrale-panneau-30-42-c-noir-avec-mat"), stock: true },
+  { id: "novo-vis-c47", cat: "structures", marque: "Novotegra", nom: "Kit de vis pour rail C47", ref: "Kit C47", prix: 4.3, img: IMG(1677, "kit-de-vis-c47-novotegra-fixation-rail-photovoltaique"), stock: true },
 
   // Câbles
-  { id: "cable-6", cat: "cables", marque: "Câble solaire", nom: "H1Z2Z2-K 6 mm²", spec: "Au mètre, résistant UV", prix: 2.35, img: IMG(553, "cable-solaire-6mm-h1z2z2-k"), stock: true },
-  { id: "mc4", cat: "cables", marque: "Stäubli Multi-Contact", nom: "Connecteurs MC4 mâle et femelle", spec: "Paire", prix: null, img: "", stock: true },
-  { id: "cables-pylontech", cat: "cables", marque: "Pylontech", nom: "Câbles batterie gammes US et UP", spec: "Jeu de liaison", prix: 55, img: IMG(1598, "cables-de-batterie-pylontech-pour-gammes-us-et-up"), stock: true },
-  { id: "rj45-20", cat: "cables", marque: "Victron Energy", nom: "Câble RJ45 UTP 20 m", spec: "Réseau VE.Bus", prix: 42, img: IMG(475, "rj45-utp-cable-03-m"), stock: true },
+  { id: "cable-6", cat: "cables", marque: "Câble solaire", nom: "Câble solaire 6 mm² au mètre", ref: "H1Z2Z2-K", prix: 2.35, img: IMG(553, "cable-solaire-6mm-h1z2z2-k"), stock: true },
+  { id: "mc4", cat: "cables", marque: "Stäubli", nom: "Connecteurs MC4 (paire)", ref: "MC4 Multi-Contact", prix: null, img: "", stock: true },
+  { id: "cables-pylontech", cat: "cables", marque: "Pylontech", nom: "Jeu de câbles batterie", ref: "Gammes US et UP", prix: 55, img: IMG(1598, "cables-de-batterie-pylontech-pour-gammes-us-et-up"), stock: true },
+  { id: "bloc-25", cat: "cables", marque: "Digital Electric", nom: "Bloc de distribution 25 mm²", ref: "2 entrées / 2 sorties", prix: 12.6, img: IMG(1562, "poignee-de-transport"), stock: true },
+
+  // Monitoring et accessoires
+  { id: "cerbo-gx", cat: "monitoring", marque: "Victron Energy", nom: "Passerelle de supervision", ref: "Cerbo GX", prix: 329.95, img: IMG(893, "cerbo-gx"), stock: true },
+  { id: "gx-touch", cat: "monitoring", marque: "Victron Energy", nom: "Écran tactile 5 pouces", ref: "GX Touch 50", prix: 310.91, img: IMG(914, "gx-touch-50"), stock: true },
+  { id: "pluggable-display", cat: "monitoring", marque: "Victron Energy", nom: "Écran pour régulateur", ref: "SmartSolar Pluggable Display", prix: 44.99, img: IMG(917, "smartsolar-pluggable-display"), stock: true },
+  { id: "huawei-dongle", cat: "monitoring", marque: "Huawei", nom: "Clé Wi-Fi et Ethernet", ref: "Smart Dongle WLAN-FE", prix: 102.6, img: IMG(958, "huawei-smart-dongle-wlanfe-supportant-le-wlan-hotspot-"), stock: true },
+  { id: "huawei-dongle-4g", cat: "monitoring", marque: "Huawei", nom: "Clé 4G", ref: "Smart Dongle B-06-EU", prix: 262.2, img: IMG(661, "huawei-smart-dongleb-06-eu-4g"), stock: true },
+  { id: "huawei-meter", cat: "monitoring", marque: "Huawei", nom: "Compteur intelligent monophasé", ref: "DDSU666-H 100 A", prix: 157.85, img: IMG(1524, "huawei-smart-power-sensor-ddsu666-h-1-ph-100a"), stock: true },
+  { id: "vedirect", cat: "monitoring", marque: "Victron Energy", nom: "Câble VE.Direct 0,9 m", ref: "VE.Direct", prix: 20, img: IMG(192, "vedirect-cable-03m"), stock: true },
+  { id: "vecan-bms", cat: "monitoring", marque: "Victron Energy", nom: "Câble de communication batterie", ref: "VE.Can vers BMS type A", prix: 21, img: IMG(929, "rj45-utp-cable-03-m"), stock: true },
+  { id: "rj45-20", cat: "monitoring", marque: "Victron Energy", nom: "Câble RJ45 20 m", ref: "UTP VE.Bus", prix: 42, img: IMG(475, "rj45-utp-cable-03-m"), stock: true },
 
   // Protections
-  { id: "coffret-acdc", cat: "protections", marque: "Cedyan", nom: "Coffret de protection AC/DC", spec: "Pré-câblé pour kit résidentiel", prix: null, img: "", stock: true },
-  { id: "sectionneur-dc", cat: "protections", marque: "Sectionneur", nom: "Interrupteur sectionneur 40 A / 1000 Vdc", spec: "Coupure côté panneaux", prix: 73.55, img: IMG(647, "sectionneur-dc-40a-1000v"), stock: true },
-  { id: "disj-16", cat: "protections", marque: "Disjoncteur", nom: "Disjoncteur 16 A Ph/N courbe C", spec: "4,5 kA", prix: 8.27, img: IMG(715, "poignee-de-transport"), stock: true },
-  { id: "disj-32", cat: "protections", marque: "Disjoncteur", nom: "Disjoncteur 32 A Ph/N courbe C", spec: "6 kA", prix: 14.48, img: IMG(1756, "disjoncteur-32a-ph-n-courbe-c-6ka"), stock: true },
-  { id: "mega-200-58", cat: "protections", marque: "Victron Energy", nom: "MEGA-fuse 200 A / 58 V", spec: "Pour produits 48 V", prix: 38.67, img: IMG(329, "fuse-holder-for-midi-fuse"), stock: true },
-  { id: "midi-40-58", cat: "protections", marque: "Victron Energy", nom: "MIDI-fuse 40 A / 58 V", spec: "Pour produits 48 V", prix: 12.5, img: IMG(1362, "fuse-holder-for-midi-fuse"), stock: true }
+  { id: "coffret-ac-3", cat: "protections", marque: "Coffret PV", nom: "Coffret AC 3 kW", ref: "16 A IP65", prix: 200.84, img: IMG(1480, "coffret-pv-3kw-ac-16a-ip65"), stock: true },
+  { id: "coffret-ac-6", cat: "protections", marque: "Coffret PV", nom: "Coffret AC 6 kW", ref: "32 A IP65 + interrupteur", prix: 295, img: IMG(1559, "coffret-pv-6kw-ac-32a-ip65-inter-3p"), stock: true },
+  { id: "coffret-acdc-3", cat: "protections", marque: "Coffret PV", nom: "Coffret AC/DC 3 kW", ref: "MCPV 600 Vdc 25 A", prix: 380.8, img: IMG(1476, "mcpv-1t2e1s-600vdc-25a-pf-3kw"), stock: true },
+  { id: "coffret-abs-12", cat: "protections", marque: "Coffret ABS", nom: "Coffret étanche 12 modules", ref: "IP65", prix: 40.48, img: IMG(1759, "coffret-abs-12-modules"), stock: true },
+  { id: "sectionneur-dc", cat: "protections", marque: "Sectionneur", nom: "Sectionneur DC 40 A", ref: "1000 Vdc", prix: 73.55, img: IMG(647, "sectionneur-dc-40a-1000v"), stock: true },
+  { id: "disj-16", cat: "protections", marque: "Disjoncteur", nom: "Disjoncteur 16 A", ref: "Ph/N courbe C 4,5 kA", prix: 8.27, img: IMG(715, "poignee-de-transport"), stock: true },
+  { id: "disj-32", cat: "protections", marque: "Disjoncteur", nom: "Disjoncteur 32 A", ref: "Ph/N courbe C 6 kA", prix: 14.48, img: IMG(1756, "disjoncteur-32a-ph-n-courbe-c-6ka"), stock: true },
+  { id: "mega-200-58", cat: "protections", marque: "Victron Energy", nom: "Fusible MEGA 200 A", ref: "MEGA-fuse 58 V", prix: 38.67, img: IMG(329, "fuse-holder-for-midi-fuse"), stock: true },
+  { id: "midi-40-58", cat: "protections", marque: "Victron Energy", nom: "Fusible MIDI 40 A", ref: "MIDI-fuse 58 V", prix: 12.5, img: IMG(1362, "fuse-holder-for-midi-fuse"), stock: true }
 ];
 
-/* Kits : pas de prix public, uniquement sur demande (ou affichés aux pros). */
+/* Kits : affichés dans la catégorie « Kits solaires » du catalogue. */
 window.KITS = {
   isoles: [
-    { id: "iso-3-bsl", nom: "Centrale isolée 3 kVA", stockage: "5,1 kWh BSL Batt", detail: "6 panneaux Peimar 500 Wc, MultiPlus-II 48/3000, MPPT 150/60, Cerbo GX", pour: "Carbet, petite maison, local technique", prix: 6480, img: IMG(1799, "centrale-solaire-30-kva-batterie-bsl-batt-51kwh") },
-    { id: "iso-3-pylon", nom: "Centrale isolée 3 kVA", stockage: "4,8 kWh Pylontech", detail: "6 panneaux Peimar 500 Wc, MultiPlus-II 48/3000, MPPT 150/60, Cerbo GX", pour: "Maison secondaire, gîte", prix: 6985, img: IMG(1795, "centrale-solaire-30-kva-batterie-pylontech-48kwh") },
-    { id: "iso-5-pylon", nom: "Centrale isolée 5 kVA", stockage: "9,6 kWh Pylontech", detail: "9 panneaux JA Solar bifaciaux 500 Wc, MultiPlus-II, MPPT SmartSolar, Cerbo GX", pour: "Maison familiale hors réseau", prix: 9460, img: IMG(1784, "centrale-solaire-50-kva-batterie-pylontech-96kwh") },
-    { id: "iso-8-pylon", nom: "Centrale isolée 8 kVA", stockage: "14,4 kWh Pylontech", detail: "18 panneaux Peimar 500 Wc, MultiPlus-II 48/8000, MPPT RS 450/200", pour: "Grande maison, exploitation agricole", prix: 17860, img: IMG(1793, "centrale-solaire-80-kva-batterie-pylontech-144kwh") }
+    { id: "iso-3-bsl", nom: "Centrale isolée 3 kVA", stockage: "5,1 kWh BSL Batt", detail: "6 panneaux 500 Wc, convertisseur Victron 3000 VA, régulateur MPPT, Cerbo GX, fixations et protections", pour: "Carbet, petite maison, local technique", prix: 6480, img: IMG(1799, "centrale-solaire-30-kva-batterie-bsl-batt-51kwh") },
+    { id: "iso-3-pylon", nom: "Centrale isolée 3 kVA", stockage: "4,8 kWh Pylontech", detail: "6 panneaux 500 Wc, convertisseur Victron 3000 VA, régulateur MPPT, Cerbo GX, fixations et protections", pour: "Maison secondaire, gîte", prix: 6985, img: IMG(1795, "centrale-solaire-30-kva-batterie-pylontech-48kwh") },
+    { id: "iso-5-pylon", nom: "Centrale isolée 5 kVA", stockage: "9,6 kWh Pylontech", detail: "9 panneaux JA Solar 500 Wc, convertisseur Victron, régulateur MPPT, Cerbo GX", pour: "Maison familiale hors réseau", prix: 9460, img: IMG(1784, "centrale-solaire-50-kva-batterie-pylontech-96kwh") },
+    { id: "iso-8-pylon", nom: "Centrale isolée 8 kVA", stockage: "14,4 kWh Pylontech", detail: "18 panneaux 500 Wc, convertisseur Victron 8000 VA, régulateur MPPT RS", pour: "Grande maison, exploitation agricole", prix: 17860, img: IMG(1793, "centrale-solaire-80-kva-batterie-pylontech-144kwh") }
   ],
   reseau: [
-    { id: "res-3-sans", nom: "Centrale raccordée 3 kWc", stockage: "Sans batterie", detail: "6 panneaux JA Solar bifaciaux 500 Wc, onduleur GoodWe, suivi sur téléphone", pour: "Baisser la facture le jour, revendre le surplus", prix: 4299, img: IMG(1790, "centrale-solaire-30-kva-sans-batterie") },
-    { id: "res-3-huawei", nom: "Centrale raccordée 3 kWc Huawei", stockage: "Prête pour batterie Luna 2000", detail: "6 panneaux JA Solar bifaciaux 500 Wc, onduleur Huawei SUN2000-LB0, FusionSolar", pour: "Commencer sans batterie, l'ajouter plus tard", prix: 5000, img: IMG(1789, "centrale-solaire-30-kva-huawei-batterie") }
+    { id: "res-3-sans", nom: "Centrale raccordée 3 kWc", stockage: "Sans batterie", detail: "6 panneaux JA Solar 500 Wc, onduleur GoodWe, suivi sur téléphone", pour: "Autoconsommation de jour et revente du surplus", prix: 4299, img: IMG(1790, "centrale-solaire-30-kva-sans-batterie") },
+    { id: "res-3-huawei", nom: "Centrale raccordée 3 kWc Huawei", stockage: "Prête pour batterie", detail: "6 panneaux JA Solar 500 Wc, onduleur hybride Huawei SUN2000, FusionSolar", pour: "Commencer sans batterie, l'ajouter plus tard", prix: 5000, img: IMG(1789, "centrale-solaire-30-kva-huawei-batterie") }
   ],
   secours: [
-    { id: "sec-veille", gamme: "Pack Détresse Cyclone", nom: "Essentiel", stockage: "4,8 kWh", detail: "Victron MultiPlus-II 48/3000, Cerbo GX, batterie Pylontech US5000", garde: "Réfrigérateur, éclairage, box internet, ventilateurs, recharge des téléphones", duree: "Environ une journée et une nuit pour les essentiels", prix: 2619 },
-    { id: "sec-foyer", gamme: "Pack Détresse Cyclone", nom: "Foyer", stockage: "9,6 kWh", detail: "Victron MultiPlus-II 48/5000, Cerbo GX, 2 batteries Pylontech US5000", garde: "Les essentiels, plus congélateur, pompe à eau, télévision", duree: "Environ deux jours pour un foyer raisonnable", prix: 4296 },
-    { id: "sec-bastion", gamme: "Pack Détresse Cyclone", nom: "Bastion", stockage: "14,4 kWh", detail: "Victron MultiPlus-II 48/8000, Cerbo GX, 3 batteries Pylontech US5000", garde: "Presque toute la maison, ou un commerce, un cabinet, une boulangerie", duree: "Plusieurs jours, et sans limite si vous ajoutez des panneaux", prix: 6749 }
+    { id: "sec-essentiel", gamme: "Pack Détresse Cyclone", nom: "Essentiel", stockage: "4,8 kWh", detail: "Convertisseur Victron 3000 VA, Cerbo GX, batterie Pylontech US5000", garde: "Réfrigérateur, éclairage, box internet, ventilateurs, recharge des téléphones", duree: "Environ une journée et une nuit pour les essentiels", pour: "Garder les essentiels pendant une coupure", prix: 2619, img: IMG(1673, "combo-multiplus-ii-48v3000-cerbo-gx-us5000") },
+    { id: "sec-foyer", gamme: "Pack Détresse Cyclone", nom: "Foyer", stockage: "9,6 kWh", detail: "Convertisseur Victron 5000 VA, Cerbo GX, 2 batteries Pylontech US5000", garde: "Les essentiels, plus congélateur, pompe à eau, télévision", duree: "Environ deux jours pour un foyer raisonnable", pour: "Toute une famille pendant une longue coupure", prix: 4296, img: IMG(1674, "combo-multiplus-ii-48v5000-cerbo-gx-2-x-us5000") },
+    { id: "sec-bastion", gamme: "Pack Détresse Cyclone", nom: "Bastion", stockage: "14,4 kWh", detail: "Convertisseur Victron 8000 VA, Cerbo GX, 3 batteries Pylontech US5000", garde: "Presque toute la maison, ou un commerce, un cabinet, une boulangerie", duree: "Plusieurs jours, et sans limite avec des panneaux", pour: "Grande maison, commerce, cabinet", prix: 6749, img: IMG(1672, "combo-multiplus-ii-48v8000-cerbo-gx-3-x-us5000") }
   ]
 };

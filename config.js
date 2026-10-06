@@ -8,7 +8,8 @@ window.CEDYAN_CONFIG = {
   telephoneLien: "+590590321520",
   email: "cedyanenergycaraibes@gmail.com",
   adresse: "AC Moudong, Immeuble Point Plomberie, 97122 Baie-Mahault, Guadeloupe",
-  horaires: "Du lundi au vendredi, 8h à 17h", // ⚠️ à confirmer avec le client
+  horaires: "Du lundi au jeudi de 8h30 à 16h, le vendredi de 8h30 à 13h",
+  horairesDetail: [["Lundi au jeudi", "8h30 à 16h"], ["Vendredi", "8h30 à 13h"], ["Samedi et dimanche", "Fermé"]],
   mapsLien: "https://www.google.com/maps/search/?api=1&query=Cedyan+Energy+Baie-Mahault",
   facebook: "https://www.facebook.com/Cedyan-Energy-1477937619169786/",
   youtube: "https://www.youtube.com/channel/UCXPs2lO-xhEK2AEzHWEL8Zg",
@@ -20,6 +21,13 @@ window.CEDYAN_CONFIG = {
   // URL qui reçoit les leads en JSON (POST). Webhook Make / n8n / Zapier / Supabase Edge Function.
   // Vide = le lead part par e-mail (ouverture du logiciel mail du visiteur).
   leadWebhook: "",
+
+  // Espace pro : true = les prix se débloquent tout de suite après le SIRET (mode démo).
+  // false = le patron doit valider le Kbis avant (mode normal, actif avec le dashboard).
+  demoDeblocageImmediat: false,
+
+  // Étape 2 (dashboard) : URL et clé publique du projet Supabase.
+  supabase: { url: "", anonKey: "" },
 
   // Prime à l'investissement EDF SEI Guadeloupe (autoconsommation avec vente du surplus).
   // Barème trimestriel en € par Wc. Source : photovoltaique.info (ZNI Guadeloupe).

@@ -54,36 +54,29 @@
   });
   $$(".nav a").forEach((a) => a.addEventListener("click", () => document.body.classList.remove("menu-open")));
 
-  /* ---------- Profil particulier / pro ---------- */
+  /* ---------- Statut pro ---------- */
   const pro = () => store.get("cedyan_pro", null);
-  const profil = () => store.get("cedyan_profil", pro() ? "pro" : "particulier");
-  const voitPrix = () => profil() === "pro" && !!pro();
+  const voitPrix = () => !!pro();
   function majProfil() {
-    const p = profil();
-    $$("[data-profil]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.profil === p)));
     $$("[data-si-pro]").forEach((e) => (e.hidden = !voitPrix()));
     $$("[data-si-part]").forEach((e) => (e.hidden = voitPrix()));
     $$("[data-pro-nom]").forEach((e) => (e.textContent = pro() ? pro().nom : ""));
+    $$("[data-pro-libelle]").forEach((e) => (e.textContent = pro() ? "Mon espace pro" : "Débloquer mes tarifs pro"));
     document.dispatchEvent(new CustomEvent("profil"));
   }
-  $$("[data-profil]").forEach((b) => b.addEventListener("click", (ev) => {
-    if (b.dataset.profil === "pro" && !pro()) return; // lien vers pro.html
-    ev.preventDefault();
-    store.set("cedyan_profil", b.dataset.profil);
-    majProfil();
-    toast(b.dataset.profil === "pro" ? "Tarifs professionnels affichés" : "Vue particulier : prix sur devis");
-  }));
+  const profil = () => (pro() ? "pro" : "particulier");
 
   /* ---------- Liste de devis ---------- */
   const devis = { get: () => store.get("cedyan_devis", []), set: (l) => { store.set("cedyan_devis", l); majDevis(); } };
-  const tousProduits = () => [].concat(window.PRODUITS || [], ...Object.values(window.KITS || {}).map((l) => l.map((k) => ({ ...k, cat: "kit", marque: k.gamme || "Kit Cedyan", spec: k.stockage }))));
+  const kitsListe = () => [].concat(...Object.entries(window.KITS || {}).map(([t, l]) => l.map((k) => ({ ...k, cat: "kits", type: t, marque: k.gamme || (t === "isoles" ? "Kit isolé" : "Kit raccordé réseau"), nom: k.gamme ? k.gamme + " " + k.nom : k.nom, ref: k.stockage, stock: true }))));
+  const tousProduits = () => [].concat(kitsListe(), window.PRODUITS || []);
   const trouver = (id) => tousProduits().find((p) => p.id === id);
   function ajouterDevis(id, btn) {
     const l = devis.get(); const x = l.find((i) => i.id === id);
     if (x) x.q++; else l.push({ id, q: 1 });
     devis.set(l);
     const p = trouver(id);
-    toast((p ? (p.gamme ? p.gamme + " " : "") + p.nom : "Produit") + " ajouté à votre devis");
+    toast((p ? p.nom : "Produit") + " ajouté à votre devis");
     if (btn) { btn.classList.add("is-in"); btn.innerHTML = SVG.ok; setTimeout(() => { btn.classList.remove("is-in"); btn.innerHTML = SVG.plus; }, 1400); }
   }
   window.cedyanAjouter = ajouterDevis;
@@ -111,7 +104,7 @@
     }
     liste.innerHTML = l.map((i) => {
       const p = trouver(i.id); if (!p) return "";
-      return `<div class="ligne-devis"><div>${visuel(p)}</div><div><b>${esc(p.gamme ? p.gamme + " " + p.nom : p.nom)}</b><small>${esc(p.marque || "")}</small></div>
+      return `<div class="ligne-devis"><div>${visuel(p)}</div><div><b>${esc(p.nom)}</b><small>${esc(p.marque || "")}${p.ref ? " · " + esc(p.ref) : ""}</small></div>
       <div class="qte"><button type="button" data-q="-1" data-id="${p.id}" aria-label="Retirer un">−</button><span>${i.q}</span><button type="button" data-q="1" data-id="${p.id}" aria-label="Ajouter un">+</button></div></div>`;
     }).join("");
   }
@@ -136,6 +129,8 @@
   utm();
   async function envoyerLead(lead) {
     const payload = Object.assign({ date: new Date().toISOString(), page: location.pathname, profil: profil(), pro_verifie: pro(), utm: utm() }, lead);
+    payload.pour_quand = payload.pour_quand || (payload.reponses && payload.reponses.delai) || "Non précisé";
+    payload.priorite = payload.pour_quand === "Au plus vite" ? "haute" : payload.pour_quand === "D'ici 3 mois" ? "moyenne" : "basse";
     store.set("cedyan_dernier_lead", payload);
     if (C.leadWebhook) {
       try {
@@ -147,6 +142,7 @@
     const lignes = [];
     const ajoute = (k, v) => v && lignes.push(k + " : " + v);
     ajoute("Type de demande", payload.type);
+    ajoute("Pour quand", payload.pour_quand + " (priorité " + payload.priorite + ")");
     Object.entries(payload.contact || {}).forEach(([k, v]) => ajoute(k, v));
     Object.entries(payload.reponses || {}).forEach(([k, v]) => ajoute(k, v));
     if (payload.recommandation) ajoute("Recommandation", payload.recommandation);
@@ -181,8 +177,8 @@
   if (formDevis) formDevis.addEventListener("submit", async (e) => {
     e.preventDefault(); if (!valider(formDevis)) return;
     const d = lireForm(formDevis);
-    const panier = devis.get().map((i) => { const p = trouver(i.id); return { id: i.id, q: i.q, nom: p ? (p.gamme ? p.gamme + " " : "") + p.nom : i.id }; });
-    await envoyerLead({ type: "devis", sujet: "demande de devis (" + panier.length + " produit" + (panier.length > 1 ? "s" : "") + ")", contact: { nom: d.nom, telephone: d.telephone, email: d.email, commune: d.commune }, message: d.message, panier, score: scoreLead({ tel: d.telephone, panier }) });
+    const panier = devis.get().map((i) => { const p = trouver(i.id); return { id: i.id, q: i.q, nom: p ? p.nom + (p.ref ? " (" + p.ref + ")" : "") : i.id }; });
+    await envoyerLead({ type: "devis", sujet: "demande de devis (" + panier.length + " produit" + (panier.length > 1 ? "s" : "") + ")", contact: { nom: d.nom, telephone: d.telephone, email: d.email, commune: d.commune, profil: d.profil }, pour_quand: d.delai, message: d.message, panier, score: scoreLead({ tel: d.telephone, panier, delai: d.delai, typeClient: d.profil === "Installateur ou électricien" ? "Professionnel du bâtiment" : "" }) });
     devis.set([]); formDevis.reset();
     $(".tiroir__liste").innerHTML = `<div class="vide"><p><b>Demande envoyée.</b></p><p>Un conseiller Cedyan vous rappelle ou vous écrit sous 24 h ouvrées avec votre devis.</p></div>`;
   });
@@ -336,34 +332,44 @@
   }
 
   /* ---------- Catalogue ---------- */
+  function carteProduit(p) {
+    const prix = voitPrix();
+    return `<article class="produit${p.cat === "kits" ? " produit--kit" : ""}">
+      <div class="produit__img">${visuel(p)}<span class="produit__stock${p.stock ? "" : " produit__stock--cmd"}">${p.cat === "kits" ? "Kit complet" : p.stock ? "En stock" : "Sur commande"}</span></div>
+      <div class="produit__corps"><span class="produit__marque">${esc(p.marque)}</span><h3 class="produit__nom">${esc(p.nom)}</h3><span class="produit__spec">${esc(p.ref || "")}</span>
+      ${p.pour ? `<span class="produit__spec">Pour : ${esc(p.pour)}</span>` : ""}
+      <div class="produit__pied">${prix ? (p.prix ? `<span class="prix">${euro(p.prix)}<small>votre tarif</small></span>` : '<span class="prix--cache">Tarif sur devis</span>') : '<a class="prix--cache" href="pro.html">Prix pro sur compte</a>'}
+      <button class="ajout" type="button" data-ajout="${p.id}" aria-label="Ajouter ${esc(p.nom)} au devis">${SVG.plus}</button></div></div></article>`;
+  }
   const grille = $("#produits");
   if (grille && window.PRODUITS) {
     const filtres = $("#filtres"); const rech = $("#recherche");
+    const qUrl = new URLSearchParams(location.search).get("q");
+    if (qUrl && rech) rech.value = qUrl;
     let cat = (location.hash || "").slice(1) || "tout";
-    const cats = [{ id: "tout", court: "Tout le matériel" }].concat(window.CATEGORIES);
+    const tous = tousProduits();
+    const cats = [{ id: "tout", nom: "Tout le matériel" }].concat(window.CATEGORIES);
     filtres.insertAdjacentHTML("beforeend", cats.map((c) => {
-      const n = c.id === "tout" ? PRODUITS.length : PRODUITS.filter((p) => p.cat === c.id).length;
-      return `<button type="button" data-cat="${c.id}" aria-pressed="false">${esc(c.nom || c.court)}<small>${n}</small></button>`;
+      const n = c.id === "tout" ? tous.length : tous.filter((p) => p.cat === c.id).length;
+      return `<button type="button" data-cat="${c.id}" aria-pressed="false">${esc(c.nom)}<small>${n}</small></button>`;
     }).join(""));
+    const norm = (t) => String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     const rendre = () => {
-      const q = (rech && rech.value || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-      const liste = PRODUITS.filter((p) => (cat === "tout" || p.cat === cat) && (!q || (p.nom + " " + p.marque + " " + p.spec).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(q)));
+      const q = norm(rech && rech.value);
+      const liste = tous.filter((p) => (cat === "tout" || p.cat === cat) && (!q || q.split(/\s+/).every((m) => norm(p.nom + " " + p.marque + " " + (p.ref || "") + " " + (p.detail || "")).includes(m))));
       $$("button", filtres).forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.cat === cat)));
       const c = window.CATEGORIES.find((x) => x.id === cat);
-      $("#cat-titre").textContent = c ? c.nom : "Tout le matériel";
-      $("#cat-desc").textContent = c ? c.desc : "Panneaux, onduleurs, batteries, fixations et protections : ce que nous avons en stock en Guadeloupe.";
-      const prix = voitPrix();
-      grille.innerHTML = liste.length ? liste.map((p) => `<article class="produit">
-        <div class="produit__img">${visuel(p)}<span class="produit__stock${p.stock ? "" : " produit__stock--cmd"}">${p.stock ? "En stock" : "Sur commande"}</span></div>
-        <div class="produit__corps"><span class="produit__marque">${esc(p.marque)}</span><h3 class="produit__nom">${esc(p.nom)}</h3><span class="produit__spec">${esc(p.spec)}</span>
-        <div class="produit__pied">${prix ? (p.prix ? `<span class="prix">${euro(p.prix)}<small>votre tarif</small></span>` : '<span class="prix--cache">Tarif sur devis</span>') : '<span class="prix--cache">Prix sur devis</span>'}
-        <button class="ajout" type="button" data-ajout="${p.id}" aria-label="Ajouter ${esc(p.nom)} au devis">${SVG.plus}</button></div></div></article>`).join("")
-        : `<div class="vide" style="grid-column:1/-1"><p><b>Aucun produit ne correspond à « ${esc(rech.value)} ».</b></p><p>Nous avons bien plus de références en magasin que sur le site. Décrivez ce que vous cherchez, on vous répond.</p><button class="btn btn--petit" type="button" data-ouvrir-devis>Demander ce produit</button></div>`;
+      $("#cat-titre").textContent = q ? `Résultats pour « ${rech.value} »` : c ? c.nom : "Tout le matériel";
+      $("#cat-desc").textContent = c ? c.desc : "Kits, panneaux, conversion, stockage, fixations et protections en stock en Guadeloupe.";
+      const ki = $("#kits-info"); if (ki) ki.hidden = cat !== "kits";
+      grille.innerHTML = liste.length ? liste.map(carteProduit).join("")
+        : `<div class="vide" style="grid-column:1/-1"><p><b>Aucun produit ne correspond à « ${esc(rech.value)} ».</b></p><p>Le magasin compte bien plus de références que ce site. Décrivez ce que vous cherchez, on vous répond.</p><button class="btn btn--petit" type="button" data-ouvrir-devis>Demander ce produit</button></div>`;
       $$("[data-ouvrir-devis]", grille).forEach((b) => b.addEventListener("click", ouvrirTiroir));
     };
     filtres.addEventListener("click", (e) => {
       const b = e.target.closest("button[data-cat]"); if (!b) return;
-      cat = b.dataset.cat; history.replaceState(null, "", cat === "tout" ? location.pathname : "#" + cat); rendre();
+      cat = b.dataset.cat; if (rech) rech.value = "";
+      history.replaceState(null, "", cat === "tout" ? location.pathname : "#" + cat); rendre();
       if (innerWidth < 920) grille.scrollIntoView({ behavior: reduit ? "auto" : "smooth", block: "start" });
     });
     rech && rech.addEventListener("input", rendre);
@@ -372,14 +378,29 @@
     rendre();
   }
 
+  /* ---------- Packs cyclone ---------- */
+  const OK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+  $$("[data-packs]").forEach((b) => {
+    b.innerHTML = ((window.KITS || {}).secours || []).map((p, i) => `<article class="pack${i === 1 ? " pack--phare" : ""}">${i === 1 ? '<span class="pack__ruban">Le plus choisi</span>' : ""}<span class="pack__gamme">${esc(p.gamme)}</span><h3>${esc(p.nom)}</h3><div class="pack__kwh">${esc(p.stockage.replace(" kWh", ""))}<small>kWh</small></div><p>${esc(p.detail)}</p><ul><li>${OK}<span><b>Garde allumé :</b> ${esc(p.garde)}</span></li><li>${OK}<span>${esc(p.duree)}</span></li></ul><button class="btn ${i === 1 ? "" : "btn--soleil"}" type="button" data-ajout="${p.id}">Ajouter à mon devis</button></article>`).join("");
+  });
+  $$("[data-packs-mini]").forEach((b) => {
+    b.innerHTML = ((window.KITS || {}).secours || []).map((p) => `<a class="pack-mini" href="pack-cyclone.html#packs"><b>${esc(p.nom)}</b><span>${esc(p.stockage)}</span><small>${esc(p.pour)}</small></a>`).join("");
+  });
+  $$("[data-img-kit]").forEach((el) => {
+    const k = kitsListe().find((x) => x.id === el.dataset.imgKit); if (!k || !k.img) return;
+    const im = new Image(); im.alt = ""; im.loading = "lazy"; im.decoding = "async";
+    im.onload = () => { el.innerHTML = ""; el.appendChild(im); el.classList.add("a-photo"); };
+    im.src = k.img;
+  });
+
   /* ---------- Kits ---------- */
   $$("[data-kits]").forEach((box) => {
     const l = (window.KITS || {})[box.dataset.kits] || [];
     const rendre = () => {
       const prix = voitPrix();
-      box.innerHTML = l.map((k) => `<article class="kitc"><div class="kitc__img">${visuel({ ...k, cat: box.dataset.kits === "reseau" ? "panneaux" : "batteries" })}</div>
+      box.innerHTML = l.map((k) => `<article class="kitc"><div class="kitc__img">${visuel({ ...k, cat: "kits" })}</div>
       <div class="kitc__corps"><span class="kitc__stock">${esc(k.stockage)}</span><h3>${esc(k.nom)}</h3><p>${esc(k.detail)}</p><p class="kitc__pour"><b>Pour :</b> ${esc(k.pour)}</p>
-      <div class="kitc__pied">${prix && k.prix ? `<span class="prix">${euro(k.prix)}<small>votre tarif</small></span>` : '<span class="prix--cache">Prix sur devis</span>'}<button class="btn btn--petit" type="button" data-ajout="${k.id}">Ajouter au devis</button></div></div></article>`).join("");
+      <div class="kitc__pied">${prix && k.prix ? `<span class="prix">${euro(k.prix)}<small>votre tarif</small></span>` : '<a class="prix--cache" href="pro.html">Prix pro sur compte</a>'}<button class="btn btn--petit" type="button" data-ajout="${k.id}">Ajouter au devis</button></div></div></article>`).join("");
     };
     document.addEventListener("profil", rendre); rendre();
   });
@@ -416,29 +437,40 @@
   if (formPro) {
     const sortie = $("#verif", formPro);
     const sirenIn = $("#pro-siren", formPro);
+    const kbis = $("#pro-kbis", formPro);
     sirenIn.addEventListener("input", () => { sirenIn.value = sirenIn.value.replace(/[^\d ]/g, "").slice(0, 17); });
+    kbis && kbis.addEventListener("change", () => {
+      const f = kbis.files[0]; const lbl = $("[data-fichier-nom]", formPro);
+      if (f && f.size > 8 * 1024 * 1024) { kbis.value = ""; lbl.textContent = "Fichier trop lourd (8 Mo maximum)"; return; }
+      lbl.textContent = f ? f.name : "Choisir un fichier PDF ou une photo";
+      kbis.closest(".fichier").classList.toggle("is-ok", !!f);
+    });
     formPro.addEventListener("submit", async (e) => {
       e.preventDefault(); if (!valider(formPro)) return;
       const d = lireForm(formPro); const btn = $("button[type=submit]", formPro);
       btn.disabled = true; btn.textContent = "Vérification en cours…";
       sortie.className = "verif is-wait"; sortie.textContent = "Nous interrogeons le registre national des entreprises…";
       const v = await verifierSiren(d.siren);
-      btn.disabled = false; btn.textContent = "Vérifier et débloquer mes tarifs";
+      btn.disabled = false; btn.textContent = "Envoyer ma demande d'ouverture";
       if (v.etat === "ko") { sortie.className = "verif is-ko"; sortie.textContent = v.msg; sirenIn.setAttribute("aria-invalid", "true"); sirenIn.focus(); return; }
-      const contact = { nom: d.nom, entreprise: v.nom || d.entreprise, metier: d.metier, telephone: d.telephone, email: d.email, siren: v.siren };
-      if (v.etat === "attente") {
-        sortie.className = "verif is-wait"; sortie.textContent = v.msg;
-        await envoyerLead({ type: "compte-pro", sujet: "ouverture compte pro (vérification manuelle)", contact, verification: "manuelle", score: 70 });
-        return;
+      const fichier = kbis && kbis.files[0];
+      const contact = { nom: d.nom, entreprise: v.nom || "", metier: d.metier, telephone: d.telephone, email: d.email, siren: v.siren };
+      const verification = v.etat === "ok" ? { registre: "entreprise active", naf: v.naf, code_postal: v.cp, secteur_energie: v.energie, dom: v.dom } : { registre: "non joignable, à vérifier à la main" };
+      // Étape 2 : envoi du Kbis dans Supabase Storage + e-mail au patron.
+      const envoiKbis = window.cedyanEnvoyerKbis ? await window.cedyanEnvoyerKbis(fichier, contact) : null;
+      if (C.demoDeblocageImmediat && v.etat === "ok") {
+        store.set("cedyan_pro", { siren: v.siren, nom: v.nom, date: new Date().toISOString() }); majProfil();
+        sortie.className = "verif is-ok";
+        sortie.innerHTML = `<b>${esc(v.nom)}</b> est active au registre national. Mode démonstration : vos tarifs sont débloqués. <a class="lien" href="catalogue.html">Voir le catalogue</a>`;
+      } else {
+        sortie.className = "verif is-ok";
+        sortie.innerHTML = (v.etat === "ok" ? `<b>${esc(v.nom)}</b> est bien active au registre national. ` : "") + "Votre demande et votre Kbis sont transmis au responsable. Après validation, sous 24 h ouvrées, vous recevez vos accès par e-mail.";
+        formPro.querySelectorAll("input,select,button").forEach((x) => (x.disabled = true));
       }
-      store.set("cedyan_pro", { siren: v.siren, nom: v.nom, naf: v.naf, cp: v.cp, date: new Date().toISOString() });
-      store.set("cedyan_profil", "pro"); majProfil();
-      sortie.className = "verif is-ok";
-      sortie.innerHTML = `<b>${esc(v.nom)}</b> est bien active au registre national. Vos tarifs sont débloqués sur ce navigateur. <a class="lien" href="catalogue.html">Voir le catalogue avec mes tarifs</a>`;
-      await envoyerLead({ type: "compte-pro", sujet: "nouveau compte pro : " + v.nom, contact, verification: { naf: v.naf, code_postal: v.cp, secteur_energie: v.energie, dom: v.dom }, score: v.energie ? 85 : 65 });
+      await envoyerLead({ type: "compte-pro", sujet: "Demande de compte pro : " + (v.nom || d.siren) + " (Kbis à valider)", contact, verification, kbis: fichier ? { nom: fichier.name, taille: fichier.size, envoye: !!envoiKbis } : null, pour_quand: "Au plus vite", score: v.energie ? 85 : 65 });
     });
   }
-  $$("[data-pro-sortir]").forEach((b) => b.addEventListener("click", () => { localStorage.removeItem("cedyan_pro"); store.set("cedyan_profil", "particulier"); majProfil(); toast("Espace pro fermé sur ce navigateur"); }));
+  $$("[data-pro-sortir]").forEach((b) => b.addEventListener("click", () => { localStorage.removeItem("cedyan_pro"); majProfil(); toast("Vous êtes déconnecté de l'espace pro"); }));
   // Raccourci SIRET (bandeau pro de l'accueil) -> pré-remplit pro.html
   const mini = $("#mini-pro");
   if (mini) mini.addEventListener("submit", (e) => { e.preventDefault(); location.href = "pro.html?siren=" + encodeURIComponent($("input", mini).value.replace(/\D/g, "")); });
@@ -447,9 +479,47 @@
   /* ---------- Formulaires simples (pack cyclone, contact) ---------- */
   $$("form[data-lead]").forEach((f) => f.addEventListener("submit", async (e) => {
     e.preventDefault(); if (!valider(f)) return; const d = lireForm(f);
-    await envoyerLead({ type: f.dataset.lead, sujet: f.dataset.sujet || f.dataset.lead, contact: { nom: d.nom, telephone: d.telephone, email: d.email, commune: d.commune }, reponses: { choix: d.choix }, message: d.message, score: scoreLead({ tel: d.telephone, delai: d.delai }) });
+    await envoyerLead({ type: f.dataset.lead, sujet: f.dataset.sujet || f.dataset.lead, contact: { nom: d.nom, telephone: d.telephone, email: d.email, commune: d.commune }, reponses: { choix: d.choix }, pour_quand: d.delai, message: d.message, score: scoreLead({ tel: d.telephone, delai: d.delai }) });
     f.innerHTML = `<div class="verif is-ok" style="display:block"><b>Merci ${esc((d.nom || "").split(" ")[0])}.</b> Un conseiller vous rappelle sous 24 h ouvrées.</div>`;
   }));
+
+  /* ---------- Horaires ---------- */
+  $$("[data-horaires-table]").forEach((t) => (t.innerHTML = (C.horairesDetail || []).map(([j, h]) => `<tr><th scope="row">${esc(j)}</th><td>${esc(h)}</td></tr>`).join("")));
+
+  /* ---------- Vidéo YouTube (chargée au clic) ---------- */
+  $$("[data-youtube]").forEach((b) => b.addEventListener("click", () => {
+    const f = document.createElement("iframe");
+    f.src = "https://www.youtube-nocookie.com/embed/" + b.dataset.youtube + "?autoplay=1";
+    f.title = "Vidéo Cedyan Energy"; f.allow = "autoplay; encrypted-media; picture-in-picture"; f.allowFullscreen = true;
+    b.replaceWith(f);
+  }));
+
+  /* ---------- Annuaire des installateurs ---------- */
+  const annuaire = $("#annuaire-liste");
+  if (annuaire) {
+    const ZONES = { "Grande-Terre": ["Les Abymes", "Anse-Bertrand", "Le Gosier", "Le Moule", "Morne-à-l'Eau", "Petit-Canal", "Pointe-à-Pitre", "Port-Louis", "Saint-François", "Sainte-Anne"], "Basse-Terre": ["Baie-Mahault", "Baillif", "Basse-Terre", "Bouillante", "Capesterre-Belle-Eau", "Deshaies", "Gourbeyre", "Goyave", "Lamentin", "Petit-Bourg", "Pointe-Noire", "Saint-Claude", "Sainte-Rose", "Trois-Rivières", "Vieux-Fort", "Vieux-Habitants"], "Marie-Galante": ["Grand-Bourg", "Capesterre-de-Marie-Galante", "Saint-Louis"], "Les Saintes": ["Terre-de-Haut", "Terre-de-Bas"], "La Désirade": ["La Désirade"], "Martinique": ["Martinique"], "Saint-Martin": ["Saint-Martin"], "Saint-Barthélemy": ["Saint-Barthélemy"] };
+    const zoneDe = (c) => Object.keys(ZONES).find((z) => ZONES[z].includes(c));
+    const selC = $("#a-commune"), rge = $("#a-rge"); const spes = $$(".filtres-spe input");
+    const memo = store.get("cedyan_commune", ""); if (memo) selC.value = memo;
+    const rendre = () => {
+      const c = selC.value, z = zoneDe(c); store.set("cedyan_commune", c);
+      const voulu = spes.filter((x) => x.checked).map((x) => x.value);
+      let l = (window.PARTENAIRES || []).filter((p) => (!c || (p.zones || []).includes(z) || p.commune === c) && (!rge.checked || p.rge) && voulu.every((v) => (p.specialites || []).includes(v)));
+      l.sort((a, b) => (b.commune === c) - (a.commune === c) || b.rge - a.rge);
+      $("#annuaire-compte").textContent = c ? `${l.length} installateur${l.length > 1 ? "s" : ""} intervenant à ${c}` : `${l.length} installateur${l.length > 1 ? "s" : ""} partenaire${l.length > 1 ? "s" : ""}. Choisissez votre commune pour affiner.`;
+      annuaire.innerHTML = l.length ? l.map((p) => `<article class="partenaire">${p.exemple ? '<span class="avi__ex">Exemple</span>' : ""}
+        <div class="partenaire__tete"><h3>${esc(p.nom)}</h3>${p.rge ? '<span class="badge-rge">RGE QualiPV</span>' : ""}</div>
+        <p class="partenaire__lieu">Basé à ${esc(p.commune)}. Intervient en ${esc((p.zones || []).join(", "))}.</p>
+        <div class="partenaire__tags">${(p.specialites || []).map((t) => `<span>${esc(t)}</span>`).join("")}</div>
+        <div class="partenaire__actions">${p.telephone ? `<a class="btn btn--petit" href="tel:${esc(p.telephone.replace(/\s/g, ""))}">Appeler</a>` : ""}<a class="btn ${p.telephone ? "btn--ligne" : ""} btn--petit" href="contact.html?partenaire=${encodeURIComponent(p.nom)}">Demander un devis</a></div></article>`).join("")
+        : `<div class="vide" style="text-align:left"><p><b>Aucun partenaire référencé dans ce secteur pour le moment.</b></p><p>Laissez-nous votre projet : nous le transmettons à un installateur qui peut intervenir chez vous.</p><a class="btn btn--petit" href="#" data-quiz-direct>Être mis en relation</a></div>`;
+      $$("[data-quiz-direct]", annuaire).forEach((b) => b.addEventListener("click", (e) => { e.preventDefault(); ouvrirQuiz({}); }));
+    };
+    [selC, rge, ...spes].forEach((x) => x.addEventListener("change", rendre)); rendre();
+  }
+  // Pré-remplir le message contact quand on vient de l'annuaire
+  const partenaireQ = new URLSearchParams(location.search).get("partenaire");
+  if (partenaireQ && $("#ct-msg")) { $("#ct-msg").value = "Je souhaite être mis en relation avec " + partenaireQ + " pour mon projet : "; $("#ct-objet").value = "Demande de prix"; }
 
   /* ---------- Kit décomposé (accueil) ---------- */
   const kit = $(".kit");
