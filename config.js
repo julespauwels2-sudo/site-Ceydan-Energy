@@ -24,12 +24,11 @@ window.CEDYAN_CONFIG = {
   // Vide = le lead part par e-mail (ouverture du logiciel mail du visiteur).
   leadWebhook: "",
 
-  // Espace pro : true = les prix se débloquent tout de suite après le SIRET (mode démo).
-  // false = le patron doit valider le Kbis avant (mode normal, actif avec le dashboard).
-  demoDeblocageImmediat: false,
-
-  // Étape 2 (dashboard) : URL et clé publique du projet Supabase.
-  supabase: { url: "", anonKey: "" },
+  // Supabase (base de données, dashboard, alertes). Clé publique : elle peut être visible.
+  supabase: {
+    url: "https://uotqqkhraqxtlssgavlm.supabase.co",
+    anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVvdHFxa2hyYXF4dGxzc2dhdmxtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyNDI1NTAsImV4cCI6MjEwNjgxODU1MH0.61NliFrPeWNilEmXPayAONTIVF49tmq3arjgdzSwPpM"
+  },
 
   // Prime à l'investissement EDF SEI Guadeloupe (autoconsommation avec vente du surplus).
   // Barème trimestriel en € par Wc. Source : photovoltaique.info (ZNI Guadeloupe).

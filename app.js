@@ -3,7 +3,7 @@
    Profil particulier/pro, liste de devis, questionnaire,
    envoi des leads, catalogue, kits, prime, kit décomposé.
    ========================================================= */
-(function () {
+(async function () {
   "use strict";
   document.documentElement.classList.add("js");
   const C = window.CEDYAN_CONFIG || {};
@@ -22,6 +22,48 @@
     ok: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>'
   };
 
+  /* ---------- Supabase : catalogue, partenaires, réglages, session pro ---------- */
+  const SB = C.supabase && C.supabase.url && C.supabase.anonKey ? C.supabase : null;
+  const LIB_SB = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js";
+  const chargerScript = (src) => new Promise((ok, ko) => { if (window.supabase) return ok(); const s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = ko; document.head.appendChild(s); });
+  const enTetesSB = () => ({ apikey: SB.anonKey, Authorization: "Bearer " + SB.anonKey });
+  const rest = (chemin) => fetch(SB.url + "/rest/v1/" + chemin, { headers: enTetesSB() }).then((r) => (r.ok ? r.json() : Promise.reject(r.status)));
+  let sbClient = null;
+  window.cedyanCompte = null;
+  async function chargerDonnees() {
+    if (!SB) return;
+    const besoinSession = !!document.querySelector("#produits, [data-kits], #form-pro, #connexion-pro");
+    const t = (p, ms) => Promise.race([p, new Promise((_, ko) => setTimeout(() => ko("délai"), ms))]);
+    try {
+      const [prods, parts, regl] = await t(Promise.all([
+        rest("produits?select=id,cat,marque,nom,ref,img,stock,extra&actif=eq.true&order=ordre"),
+        rest("partenaires?select=nom,commune,zones,rge,specialites,telephone,email,siren,exemple&actif=eq.true&order=created_at"),
+        rest("reglages?select=cle,valeur"),
+      ]), 2500);
+      if (prods && prods.length) {
+        window.PRODUITS = prods.filter((p) => p.cat !== "kits").map((p) => ({ id: p.id, cat: p.cat, marque: p.marque, nom: p.nom, ref: p.ref, img: p.img, stock: p.stock }));
+        const K = { isoles: [], reseau: [], secours: [] };
+        prods.filter((p) => p.cat === "kits").forEach((p) => { const x = p.extra || {}; (K[x.type] || (K[x.type] = [])).push({ id: p.id, gamme: x.gamme || undefined, nom: x.nomCourt || p.nom, stockage: x.stockage || p.ref, detail: x.detail || "", pour: x.pour || "", garde: x.garde || "", duree: x.duree || "", img: p.img }); });
+        window.KITS = K;
+      }
+      if (parts) window.PARTENAIRES = parts;
+      window.CEDYAN_REGLAGES = Object.fromEntries((regl || []).map((r) => [r.cle, r.valeur]));
+    } catch (e) { /* le site reste utilisable avec les données locales */ }
+    if (!besoinSession) return;
+    try {
+      await t(chargerScript(LIB_SB), 4000);
+      sbClient = window.supabase.createClient(SB.url, SB.anonKey);
+      const { data: { session } } = await sbClient.auth.getSession();
+      if (!session) { store.set("cedyan_pro", null); return; }
+      const { data: comptes } = await sbClient.from("comptes_pro").select("statut, entreprise, siren, created_at").order("created_at", { ascending: false }).limit(1);
+      const c = (comptes || [])[0] || null;
+      window.cedyanCompte = c ? { ...c, email: session.user.email } : { statut: "aucun", email: session.user.email };
+      if (c && c.statut === "valide") {
+        const { data: tar } = await sbClient.from("tarifs").select("produit_id, prix");
+        store.set("cedyan_pro", { nom: c.entreprise || session.user.email, email: session.user.email, tarifs: Object.fromEntries((tar || []).map((x) => [x.produit_id, +x.prix])), date: Date.now() });
+      } else store.set("cedyan_pro", null);
+    } catch (e) {}
+  }
   /* ---------- Toast ---------- */
   let toastT;
   function toast(msg) {
@@ -55,8 +97,9 @@
   $$(".nav a").forEach((a) => a.addEventListener("click", () => document.body.classList.remove("menu-open")));
 
   /* ---------- Statut pro ---------- */
-  const pro = () => store.get("cedyan_pro", null);
+  const pro = () => { const p = store.get("cedyan_pro", null); return p && p.tarifs && Date.now() - (p.date || 0) < 7 * 864e5 ? p : null; };
   const voitPrix = () => !!pro();
+  const prixDe = (id) => (pro() && pro().tarifs[id] != null ? pro().tarifs[id] : null);
   function majProfil() {
     $$("[data-si-pro]").forEach((e) => (e.hidden = !voitPrix()));
     $$("[data-si-part]").forEach((e) => (e.hidden = voitPrix()));
@@ -127,11 +170,20 @@
     return store.get("cedyan_utm", {});
   }
   utm();
-  async function envoyerLead(lead) {
+  async function envoyerLead(lead, fichier) {
     const payload = Object.assign({ date: new Date().toISOString(), page: location.pathname, profil: profil(), pro_verifie: pro(), utm: utm() }, lead);
     payload.pour_quand = payload.pour_quand || (payload.reponses && payload.reponses.delai) || "Non précisé";
     payload.priorite = payload.pour_quand === "Au plus vite" ? "haute" : payload.pour_quand === "D'ici 3 mois" ? "moyenne" : "basse";
     store.set("cedyan_dernier_lead", payload);
+    if (SB) {
+      try {
+        const opts = { method: "POST", headers: enTetesSB() };
+        if (fichier) { const fd = new FormData(); fd.append("payload", JSON.stringify(payload)); fd.append("kbis", fichier); opts.body = fd; }
+        else { opts.headers = { ...opts.headers, "Content-Type": "application/json" }; opts.body = JSON.stringify(payload); }
+        const r = await fetch(SB.url + "/functions/v1/demande", opts);
+        if (r.ok) return { ok: true, via: "supabase" };
+      } catch (e) {}
+    }
     if (C.leadWebhook) {
       try {
         const r = await fetch(C.leadWebhook, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
@@ -301,6 +353,10 @@
     return { titre: "Accès au catalogue professionnel", texte: "Panneaux, onduleurs, batteries, protections : vérifiez votre SIRET pour voir les tarifs et préparer votre commande.", lien: "pro.html", cta: "Ouvrir mon espace pro" };
   }
 
+  // Les données (catalogue, partenaires, session pro) arrivent ici : tout ce qui précède marche déjà.
+  await chargerDonnees();
+  document.dispatchEvent(new CustomEvent("cedyan:donnees"));
+
   /* ---------- Prime ---------- */
   function primePour(kwc) {
     const p = (C.prime && C.prime.paliers) || [];
@@ -338,7 +394,7 @@
       <div class="produit__img">${visuel(p)}<span class="produit__stock${p.stock ? "" : " produit__stock--cmd"}">${p.cat === "kits" ? "Kit complet" : p.stock ? "En stock" : "Sur commande"}</span></div>
       <div class="produit__corps"><span class="produit__marque">${esc(p.marque)}</span><h3 class="produit__nom">${esc(p.nom)}</h3><span class="produit__spec">${esc(p.ref || "")}</span>
       ${p.pour ? `<span class="produit__spec">Pour : ${esc(p.pour)}</span>` : ""}
-      <div class="produit__pied">${prix ? (p.prix ? `<span class="prix">${euro(p.prix)}<small>votre tarif</small></span>` : '<span class="prix--cache">Tarif sur devis</span>') : '<a class="prix--cache" href="pro.html">Prix pro sur compte</a>'}
+      <div class="produit__pied">${prix ? (prixDe(p.id) != null ? `<span class="prix">${euro(prixDe(p.id))}<small>votre tarif HT</small></span>` : '<span class="prix--cache">Tarif sur devis</span>') : '<a class="prix--cache" href="pro.html">Prix pro sur compte</a>'}
       <button class="ajout" type="button" data-ajout="${p.id}" aria-label="Ajouter ${esc(p.nom)} au devis">${SVG.plus}</button></div></div></article>`;
   }
   const grille = $("#produits");
@@ -401,7 +457,7 @@
       const prix = voitPrix();
       box.innerHTML = l.map((k) => `<article class="kitc"><div class="kitc__img">${visuel({ ...k, cat: "kits" })}</div>
       <div class="kitc__corps"><span class="kitc__stock">${esc(k.stockage)}</span><h3>${esc(k.nom)}</h3><p>${esc(k.detail)}</p><p class="kitc__pour"><b>Pour :</b> ${esc(k.pour)}</p>
-      <div class="kitc__pied">${prix && k.prix ? `<span class="prix">${euro(k.prix)}<small>votre tarif</small></span>` : '<a class="prix--cache" href="pro.html">Prix pro sur compte</a>'}<button class="btn btn--petit" type="button" data-ajout="${k.id}">Ajouter au devis</button></div></div></article>`).join("");
+      <div class="kitc__pied">${prix && prixDe(k.id) != null ? `<span class="prix">${euro(prixDe(k.id))}<small>votre tarif HT</small></span>` : '<a class="prix--cache" href="pro.html">Prix pro sur compte</a>'}<button class="btn btn--petit" type="button" data-ajout="${k.id}">Ajouter au devis</button></div></div></article>`).join("");
     };
     document.addEventListener("profil", rendre); rendre();
   });
@@ -457,21 +513,58 @@
       const fichier = kbis && kbis.files[0];
       const contact = { nom: d.nom, entreprise: v.nom || "", metier: d.metier, telephone: d.telephone, email: d.email, siren: v.siren };
       const verification = v.etat === "ok" ? { registre: "entreprise active", naf: v.naf, code_postal: v.cp, secteur_energie: v.energie, dom: v.dom } : { registre: "non joignable, à vérifier à la main" };
-      // Étape 2 : envoi du Kbis dans Supabase Storage + e-mail au patron.
-      const envoiKbis = window.cedyanEnvoyerKbis ? await window.cedyanEnvoyerKbis(fichier, contact) : null;
-      if (C.demoDeblocageImmediat && v.etat === "ok") {
-        store.set("cedyan_pro", { siren: v.siren, nom: v.nom, date: new Date().toISOString() }); majProfil();
-        sortie.className = "verif is-ok";
-        sortie.innerHTML = `<b>${esc(v.nom)}</b> est active au registre national. Mode démonstration : vos tarifs sont débloqués. <a class="lien" href="catalogue.html">Voir le catalogue</a>`;
-      } else {
-        sortie.className = "verif is-ok";
-        sortie.innerHTML = (v.etat === "ok" ? `<b>${esc(v.nom)}</b> est bien active au registre national. ` : "") + "Votre demande et votre Kbis sont transmis au responsable. Après validation, sous 24 h ouvrées, vous recevez vos accès par e-mail.";
-        formPro.querySelectorAll("input,select,button").forEach((x) => (x.disabled = true));
-      }
-      await envoyerLead({ type: "compte-pro", sujet: "Demande de compte pro : " + (v.nom || d.siren) + " (Kbis à valider)", contact, verification, kbis: fichier ? { nom: fichier.name, taille: fichier.size, envoye: !!envoiKbis } : null, pour_quand: "Au plus vite", score: v.energie ? 85 : 65 });
+      btn.disabled = true; btn.textContent = "Envoi de votre Kbis…";
+      await envoyerLead({ type: "compte-pro", sujet: "Demande de compte pro : " + (v.nom || d.siren) + " (Kbis à valider)", contact, verification, pour_quand: "Au plus vite", score: v.energie ? 85 : 65 }, fichier);
+      sortie.className = "verif is-ok";
+      sortie.innerHTML = (v.etat === "ok" ? `<b>${esc(v.nom)}</b> est bien active au registre national. ` : "") + "Votre demande et votre Kbis sont transmis au responsable. Après validation, sous 24 h ouvrées, vous recevez un e-mail pour vous connecter et voir vos tarifs.";
+      formPro.querySelectorAll("input,select,button").forEach((x) => (x.disabled = true));
     });
   }
-  $$("[data-pro-sortir]").forEach((b) => b.addEventListener("click", () => { localStorage.removeItem("cedyan_pro"); majProfil(); toast("Vous êtes déconnecté de l'espace pro"); }));
+  $$("[data-pro-sortir]").forEach((b) => b.addEventListener("click", async () => { try { sbClient && (await sbClient.auth.signOut()); } catch (e) {} localStorage.removeItem("cedyan_pro"); majProfil(); toast("Vous êtes déconnecté de l'espace pro"); setTimeout(() => location.reload(), 600); }));
+
+  /* ---------- Connexion pro (lien magique par e-mail) ---------- */
+  const fCo = $("#form-connexion");
+  if (fCo) {
+    const sortieCo = $("#connexion-etat");
+    const cpt = window.cedyanCompte;
+    if (cpt && cpt.statut === "en_attente") { sortieCo.className = "verif is-wait"; sortieCo.textContent = "Connecté avec " + cpt.email + ". Votre compte est en cours de validation : vous recevrez un e-mail dès qu'il sera validé."; }
+    else if (cpt && cpt.statut === "refuse") { sortieCo.className = "verif is-ko"; sortieCo.textContent = "Votre demande n'a pas pu être validée. Appelez-nous au " + C.telephone + "."; }
+    else if (cpt && cpt.statut === "aucun") { sortieCo.className = "verif is-wait"; sortieCo.textContent = "Connecté avec " + cpt.email + ", mais aucune demande de compte pro n'est liée à cette adresse. Remplissez le formulaire ci-dessous."; }
+    fCo.addEventListener("submit", async (e) => {
+      e.preventDefault(); const em = $("#co-email", fCo).value.trim();
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) { sortieCo.className = "verif is-ko"; sortieCo.textContent = "Saisissez une adresse e-mail valide."; return; }
+      try {
+        if (!sbClient) { await chargerScript(LIB_SB); sbClient = window.supabase.createClient(SB.url, SB.anonKey); }
+        const { error } = await sbClient.auth.signInWithOtp({ email: em, options: { emailRedirectTo: location.origin + "/pro.html" } });
+        if (error) throw error;
+        sortieCo.className = "verif is-ok"; sortieCo.textContent = "C'est envoyé. Ouvrez l'e-mail reçu sur " + em + " et cliquez sur le lien pour vous connecter.";
+      } catch (er) { sortieCo.className = "verif is-ko"; sortieCo.textContent = "Envoi impossible pour le moment. Réessayez dans quelques minutes."; }
+    });
+  }
+
+  /* ---------- Mode alerte cyclone (réglé depuis le dashboard) ---------- */
+  const alerte = (window.CEDYAN_REGLAGES || {}).alerte_cyclone;
+  if (alerte && alerte.actif) {
+    const barre = $(".barre-saison");
+    if (barre) {
+      barre.hidden = false; barre.classList.add("barre-saison--alerte", "barre-saison--" + (alerte.niveau === "rouge" ? "rouge" : "orange"));
+      document.body.classList.add("avec-saison");
+      const t = $(".barre-saison__txt", barre); if (t) t.innerHTML = '<i aria-hidden="true"></i><b>' + esc(alerte.message || "Vigilance cyclonique") + "</b>";
+      const f = $(".barre-saison__fermer", barre); if (f) f.remove();
+    }
+    $$(".nav__cyclone").forEach((n) => (n.hidden = false));
+  }
+
+  /* ---------- Statistiques de visite (sans cookie) ---------- */
+  if (SB && !/dashboard/.test(location.pathname)) {
+    try {
+      let sid = sessionStorage.getItem("cedyan_sid"); if (!sid) { sid = Math.random().toString(36).slice(2) + Date.now().toString(36); sessionStorage.setItem("cedyan_sid", sid); }
+      let ref = ""; try { ref = document.referrer ? new URL(document.referrer).hostname : ""; } catch (e) {}
+      if (ref === location.hostname) ref = "";
+      fetch(SB.url + "/rest/v1/visites", { method: "POST", keepalive: true, headers: { ...enTetesSB(), "Content-Type": "application/json", Prefer: "return=minimal" },
+        body: JSON.stringify({ page: (location.pathname.replace(/\.html$/, "") || "/").slice(0, 200), ref: ref.slice(0, 300), source: (utm().utm_source || "").slice(0, 100), session: sid.slice(0, 64), mobile: innerWidth < 768 }) }).catch(() => {});
+    } catch (e) {}
+  }
   // Raccourci SIRET (bandeau pro de l'accueil) -> pré-remplit pro.html
   const mini = $("#mini-pro");
   if (mini) mini.addEventListener("submit", (e) => { e.preventDefault(); location.href = "pro.html?siren=" + encodeURIComponent($("input", mini).value.replace(/\D/g, "")); });

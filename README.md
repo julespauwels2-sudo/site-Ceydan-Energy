@@ -32,10 +32,23 @@ Tout se règle dans **config.js** et **data.js**, pas besoin de toucher au reste
 config.js → demoDeblocageImmediat: true débloque les prix tout de suite (pour une démo uniquement).
 Tant que le dashboard n'est pas branché, le fichier Kbis n'est pas transmis (seul son nom l'est).
 
-## Étape 2 : dashboard (Supabase)
-Prévu : comptes pros avec validation du Kbis, prix servis côté serveur, demandes triées par « pour quand »,
-gestion des produits et des partenaires installateurs, statistiques de trafic, alertes e-mail et WhatsApp.
-Chaque lead contient déjà `pour_quand` et `priorite` (haute / moyenne / basse) pour le tri.
+## Dashboard et base de données (Supabase, projet « Cedyanenergy »)
+- Dashboard : /dashboard.html (connexion par lien e-mail, réservé aux personnes de la table « staff »).
+- Demandes : tout formulaire du site arrive dans la base, trié par « pour quand », avec alerte e-mail
+  (et WhatsApp si « au plus vite » ou compte pro).
+- Comptes pro : SIRET + Kbis (stockage privé). Le patron valide : le pro reçoit un e-mail, se connecte
+  sur pro.html et voit ses prix. Les prix sont dans la table « tarifs », lisibles uniquement par les pros validés.
+- Catalogue et installateurs : modifiables depuis le dashboard, visibles tout de suite sur le site.
+  data.js et partenaires.js ne servent plus que de secours si la base ne répond pas.
+- Trafic : statistiques maison, sans cookie (table « visites »).
+- Réglages : mode alerte cyclone (barre orange ou rouge sur tout le site) et bouton de test des alertes.
+
+Secrets à créer dans Supabase (Edge Functions > Secrets) :
+RESEND_API_KEY, PATRON_EMAIL, CALLMEBOT_PHONE, CALLMEBOT_APIKEY
+Optionnels : EMAIL_FROM (ex. « Cedyan Energy <alertes@cedyanenergytrade.com> » une fois le domaine validé), SITE_URL.
+Tant que le domaine n'est pas validé dans Resend, les e-mails ne partent que vers l'adresse du compte Resend.
+
+Fonctions : « demande » (publique, reçoit les formulaires) et « equipe » (réservée à l'équipe).
 
 ## Annuaire des installateurs
 partenaires.js : une ligne par installateur. Les 3 fiches « Exemple » sont à supprimer.

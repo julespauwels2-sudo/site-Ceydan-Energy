@@ -219,7 +219,7 @@
   const avis = $("#avis-liste");
   if (avis && avis.closest(".avis-defile")) {
     const cloner = () => { if (avis.children.length && !avis.dataset.clone) { avis.dataset.clone = "1"; avis.insertAdjacentHTML("beforeend", avis.innerHTML); } };
-    cloner(); setTimeout(cloner, 300);
+    cloner(); setTimeout(cloner, 300); document.addEventListener("cedyan:donnees", () => setTimeout(cloner, 50));
   }
   $$("[data-tel-texte]").forEach((e) => { const c = window.CEDYAN_CONFIG; if (c) e.textContent = c.telephone; });
 

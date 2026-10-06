@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Dashboard | Cedyan Energy</title>
+<link rel="icon" href="favicon.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap">
+<link rel="stylesheet" href="dash.css?v=60237792">
+</head>
+<body>
+
+<!-- Connexion -->
+<section class="connexion" id="ecran-connexion" hidden>
+  <div class="connexion__carte">
+    <img src="logo-cedyan.png" width="200" height="60" alt="Cedyan Energy">
+    <h1>Dashboard</h1>
+    <p>Saisissez votre e-mail : vous recevez un lien de connexion.</p>
+    <form id="form-login" novalidate>
+      <label class="sr" for="login-email">E-mail</label>
+      <input id="login-email" type="email" autocomplete="email" placeholder="prenom.nom@cedyanenergytrade.com" required>
+      <button class="b b--jaune" type="submit">Recevoir mon lien</button>
+    </form>
+    <p class="msg" id="login-msg" role="status" aria-live="polite"></p>
+  </div>
+</section>
+
+<!-- Accès refusé -->
+<section class="connexion" id="ecran-refus" hidden>
+  <div class="connexion__carte">
+    <img src="logo-cedyan.png" width="200" height="60" alt="Cedyan Energy">
+    <h1>Accès réservé</h1>
+    <p id="refus-txt">Cette adresse n'a pas accès au dashboard. Demandez au patron de vous ajouter à l'équipe.</p>
+    <button class="b" type="button" data-deconnexion>Changer d'adresse</button>
+  </div>
+</section>
+
+<!-- Application -->
+<div class="app" id="app" hidden>
+  <aside class="side">
+    <img class="side__logo" src="logo-blanc.png" width="170" height="51" alt="Cedyan Energy">
+    <nav class="side__nav" aria-label="Sections">
+      <button type="button" data-vue="demandes" class="is-on">Demandes <b data-badge="demandes"></b></button>
+      <button type="button" data-vue="pros">Comptes pro <b data-badge="pros"></b></button>
+      <button type="button" data-vue="catalogue">Catalogue</button>
+      <button type="button" data-vue="partenaires">Installateurs</button>
+      <button type="button" data-vue="trafic">Trafic</button>
+      <button type="button" data-vue="equipe">Équipe</button>
+      <button type="button" data-vue="reglages">Réglages</button>
+    </nav>
+    <div class="side__moi"><span id="moi-nom"></span><button type="button" class="lien-clair" data-deconnexion>Se déconnecter</button></div>
+  </aside>
+
+  <main class="main">
+    <!-- DEMANDES -->
+    <section class="vue is-on" data-vue-p="demandes">
+      <header class="vue__tete"><h1>Demandes</h1><button class="b" type="button" data-rafraichir>Actualiser</button></header>
+      <div class="kpis" id="kpis-demandes"></div>
+      <div class="filtres">
+        <input type="search" id="f-recherche" placeholder="Nom, téléphone, commune…">
+        <select id="f-statut"><option value="actives">Nouvelles et en cours</option><option value="">Tous les statuts</option><option value="nouveau">Nouveau</option><option value="en_cours">En cours</option><option value="devis_envoye">Devis envoyé</option><option value="gagne">Gagné</option><option value="perdu">Perdu</option></select>
+        <select id="f-type"><option value="">Tous les types</option><option value="devis">Devis</option><option value="questionnaire">Questionnaire</option><option value="pack-cyclone">Pack cyclone</option><option value="contact">Contact</option><option value="compte-pro">Compte pro</option></select>
+        <select id="f-tri"><option value="priorite">Tri : pour quand</option><option value="date">Tri : plus récentes</option><option value="score">Tri : score</option></select>
+      </div>
+      <div class="tableau"><table><thead><tr><th>Pour quand</th><th>Reçue</th><th>Contact</th><th>Type</th><th>Commune</th><th>Score</th><th>Statut</th></tr></thead><tbody id="liste-demandes"></tbody></table></div>
+    </section>
+
+    <!-- COMPTES PRO -->
+    <section class="vue" data-vue-p="pros">
+      <header class="vue__tete"><h1>Comptes pro</h1><button class="b" type="button" data-rafraichir>Actualiser</button></header>
+      <div id="liste-pros" class="cartes"></div>
+    </section>
+
+    <!-- CATALOGUE -->
+    <section class="vue" data-vue-p="catalogue">
+      <header class="vue__tete"><h1>Catalogue</h1><button class="b b--jaune" type="button" id="btn-nouveau-produit">Ajouter un produit</button></header>
+      <div class="filtres">
+        <input type="search" id="p-recherche" placeholder="Nom, référence, marque…">
+        <select id="p-cat"><option value="">Toutes les catégories</option></select>
+      </div>
+      <p class="aide">Les modifications sont visibles sur le site immédiatement. Les prix ne sont montrés qu'aux pros validés (HT).</p>
+      <div class="tableau"><table><thead><tr><th>Produit</th><th>Catégorie</th><th>Prix pro</th><th>Stock</th><th>Visible</th><th></th></tr></thead><tbody id="liste-produits"></tbody></table></div>
+    </section>
+
+    <!-- INSTALLATEURS -->
+    <section class="vue" data-vue-p="partenaires">
+      <header class="vue__tete"><h1>Installateurs partenaires</h1><button class="b b--jaune" type="button" id="btn-nouveau-partenaire">Ajouter un installateur</button></header>
+      <div id="liste-partenaires" class="cartes"></div>
+    </section>
+
+    <!-- TRAFIC -->
+    <section class="vue" data-vue-p="trafic">
+      <header class="vue__tete"><h1>Trafic</h1><select id="t-periode"><option value="7">7 derniers jours</option><option value="30" selected>30 derniers jours</option><option value="90">90 derniers jours</option></select></header>
+      <div class="kpis" id="kpis-trafic"></div>
+      <div class="bloc"><h2>Visites par jour</h2><div id="graphe"></div></div>
+      <div class="deux">
+        <div class="bloc"><h2>Pages les plus vues</h2><ol class="classement" id="top-pages"></ol></div>
+        <div class="bloc"><h2>D'où viennent les visiteurs</h2><ol class="classement" id="top-sources"></ol></div>
+      </div>
+    </section>
+
+    <!-- ÉQUIPE -->
+    <section class="vue" data-vue-p="equipe">
+      <header class="vue__tete"><h1>Équipe</h1></header>
+      <div class="bloc"><ul class="equipe" id="liste-equipe"></ul></div>
+      <form class="bloc formulaire" id="form-inviter" hidden>
+        <h2>Ajouter quelqu'un</h2>
+        <div class="ligne"><input name="nom" placeholder="Prénom et nom"><input name="email" type="email" placeholder="E-mail" required><select name="role"><option value="employe">Employé</option><option value="patron">Patron</option></select><button class="b b--jaune" type="submit">Donner l'accès</button></div>
+        <p class="msg" id="inviter-msg"></p>
+      </form>
+    </section>
+
+    <!-- RÉGLAGES -->
+    <section class="vue" data-vue-p="reglages">
+      <header class="vue__tete"><h1>Réglages</h1></header>
+      <form class="bloc formulaire" id="form-alerte">
+        <h2>Mode alerte cyclone</h2>
+        <p class="aide">À activer en vigilance cyclonique. Une barre orange ou rouge s'affiche en haut de toutes les pages du site.</p>
+        <label class="inter"><input type="checkbox" name="actif"><span></span>Alerte active sur le site</label>
+        <div class="ligne"><select name="niveau"><option value="orange">Orange</option><option value="rouge">Rouge</option></select><input name="message" maxlength="140" placeholder="Message affiché"></div>
+        <button class="b b--jaune" type="submit">Enregistrer</button>
+        <p class="msg" id="alerte-msg"></p>
+      </form>
+      <div class="bloc">
+        <h2>Tester les alertes</h2>
+        <p class="aide">Envoie un e-mail et un WhatsApp de test au patron, pour vérifier Resend et CallMeBot.</p>
+        <button class="b" type="button" id="btn-test">Envoyer un test</button>
+        <p class="msg" id="test-msg"></p>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- Panneau latéral (détail) -->
+<div class="panneau" id="panneau" hidden>
+  <div class="panneau__voile" data-fermer-panneau></div>
+  <div class="panneau__boite" role="dialog" aria-modal="true" aria-labelledby="panneau-titre">
+    <button class="panneau__fermer" type="button" data-fermer-panneau aria-label="Fermer">×</button>
+    <div id="panneau-corps"></div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script src="config.js?v=2fb7ed92"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="dashboard.js?v=56cda558"></script>
+</body>
+</html>
