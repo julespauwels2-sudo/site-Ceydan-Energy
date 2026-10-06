@@ -397,16 +397,24 @@
     document.dispatchEvent(new CustomEvent("cedyan:avis"));
   }
   if (avisBox || $("[data-google-note]")) {
-    const manuels = C.google && (C.google.avis || []).some((a) => !a.exemple);
-    let fait = false;
-    const repli = () => { if (!fait && C.google) { fait = true; afficherAvis(C.google, false); } };
-    if (manuels || !SB) repli();
+    // Ordre : 1) derniers avis Google gardés sur l'appareil, 2) avis frais de Google, 3) avis réels saisis dans config.js.
+    // Les avis d'exemple ne sont jamais affichés sur le site en ligne.
+    const sectionAvis = avisBox && avisBox.closest("section");
+    const reels = C.google ? { ...C.google, avis: (C.google.avis || []).filter((a) => !a.exemple) } : null;
+    const memo = store.get("cedyan_avis_google", null);
+    let affiche = false;
+    if (memo && memo.avis && memo.avis.length) { afficherAvis(memo, true); affiche = true; }
+    else if (reels && reels.avis.length) { afficherAvis(reels, false); affiche = true; }
+    else if (sectionAvis) sectionAvis.hidden = true;
     if (SB) {
-      const ctl = new AbortController(); const minuteur = setTimeout(() => { ctl.abort(); repli(); }, 3500);
-      fetch(SB.url + "/functions/v1/avis-google", { headers: enTetesSB(), signal: ctl.signal })
+      fetch(SB.url + "/functions/v1/avis-google", { headers: enTetesSB() })
         .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
-        .then((g) => { clearTimeout(minuteur); if (g && g.note && (g.avis || []).length) { fait = true; afficherAvis(g, true); } else repli(); })
-        .catch(() => { clearTimeout(minuteur); repli(); });
+        .then((g) => {
+          if (!(g && g.note && (g.avis || []).length)) return;
+          store.set("cedyan_avis_google", g);
+          if (!memo || memo.maj !== g.maj || !affiche) { afficherAvis(g, true); if (sectionAvis) sectionAvis.hidden = false; }
+        })
+        .catch(() => {});
     }
   }
 
