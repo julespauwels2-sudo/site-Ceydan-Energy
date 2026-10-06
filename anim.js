@@ -65,7 +65,7 @@
       if (x.target.dataset.compte) compter(x.target);
       io.unobserve(x.target);
     }), { rootMargin: "0px 0px -12% 0px" });
-    $$(".titre-anim, [data-compte], .gcarte, .solution, .services-v li, .etapes-pro li, .pack, .partenaire, .regle, .contact-carte").forEach((el) => io.observe(el));
+    $$(".titre-anim, [data-compte], .manifeste__lignes, .cyclones__noms, .qsn-annee, .gcarte, .solution, .services-v li, .etapes-pro li, .pack, .partenaire, .regle, .contact-carte").forEach((el) => io.observe(el));
   } else $$(".titre-anim, .gcarte, .solution").forEach((e) => e.classList.add("is-vu"));
 
   /* ---------- Vidéos de fond : lecture seulement quand visibles ---------- */
@@ -278,6 +278,32 @@
   if (pile.length && !reduit) addEventListener("scroll", () => {
     pile.forEach((el) => { const r = el.getBoundingClientRect(); if (r.bottom < -200 || r.top > innerHeight + 200) return; el.style.translate = `0 ${(r.top - innerHeight / 2) * +el.dataset.parallax}px`; });
   }, { passive: true });
+
+
+  /* ---------- Coupure de courant (plein écran) ---------- */
+  $$("[data-blackout]").forEach((b) => b.addEventListener("click", () => {
+    if (document.body.classList.contains("noir")) return;
+    let o = $(".noir-ecran");
+    if (!o) {
+      o = document.createElement("div"); o.className = "noir-ecran"; o.setAttribute("role", "status");
+      o.innerHTML = '<p class="noir-ecran__l1">Coupure.</p><p class="noir-ecran__l2">0,02 s plus tard, le pack a pris le relais.</p>';
+      document.body.appendChild(o);
+    }
+    b.classList.add("is-on");
+    document.body.classList.add("noir");
+    setTimeout(() => document.body.classList.add("noir--relais"), reduit ? 200 : 1700);
+    setTimeout(() => { document.body.classList.remove("noir", "noir--relais"); b.classList.remove("is-on"); }, reduit ? 1600 : 4600);
+  }));
+
+  /* ---------- Mot qui tourne (catalogue) ---------- */
+  $$("[data-mots-tournants]").forEach((el) => {
+    const mots = el.dataset.motsTournants.split(","); let k = 0; const b = $("b", el);
+    if (reduit) return;
+    setInterval(() => {
+      el.classList.add("sort");
+      setTimeout(() => { k = (k + 1) % mots.length; b.textContent = mots[k]; el.classList.remove("sort"); el.classList.add("entre"); requestAnimationFrame(() => requestAnimationFrame(() => el.classList.remove("entre"))); }, 320);
+    }, 2200);
+  });
 
   /* ---------- Survols : boutons magnétiques et cartes inclinées ---------- */
   if (!tactile && !reduit) {
