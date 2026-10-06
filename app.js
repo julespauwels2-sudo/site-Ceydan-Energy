@@ -865,7 +865,7 @@
         regulateurs: () => `Régulateur de charge ${p.marque || ""} pour piloter la recharge des batteries à partir des panneaux. Nous vous aidons à choisir le bon calibre selon votre champ solaire.`,
       };
       const texte = p.description || (intro[p.cat] ? intro[p.cat]() : `${p.nom} ${p.marque || ""}, ${p.stock ? "en stock" : "disponible sur commande"} chez Cedyan Energy à Baie-Mahault. Besoin d'un conseil de compatibilité ? Notre service technique vous répond.`);
-      const lignes = [["Marque", p.marque], ["Référence", p.ref], ["Catégorie", catNom], ["Disponibilité", p.cat === "kits" ? "Kit complet, en stock" : p.stock ? "En stock à Baie-Mahault" : "Sur commande"]]
+      const lignes = [[p.cat === "kits" ? "Gamme" : "Marque", p.marque], ["Référence", p.ref], ["Catégorie", catNom], ["Disponibilité", p.cat === "kits" ? "Kit complet, en stock" : p.stock ? "En stock à Baie-Mahault" : "Sur commande"]]
         .concat(p.cat === "kits" ? [["Composition", p.detail], ["Pour", p.pour], ["Garde allumé", p.garde], ["Autonomie", p.duree]] : [])
         .concat((p.caracteristiques || []).map((c) => (Array.isArray(c) ? c : ["", c])))
         .filter(([, v]) => v);
