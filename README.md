@@ -81,7 +81,7 @@ gamme en défilement horizontal, pluie et éclairs, survols. Tout se coupe autom
 a activé « réduire les animations » ou le mode économie de données.
 
 ## Trouver un installateur
-- Carte réelle : Leaflet (cdnjs) avec le fond de carte CARTO Voyager (gratuit, attribution affichée).
+- Carte réelle : Leaflet (cdnjs) avec le fond de carte OpenStreetMap (gratuit, attribution affichée).
 - Distances calculées depuis la commune saisie. Coordonnées des communes dans app.js (COORDS).
 - Onglet « Vérifier une entreprise » : registre national (recherche-entreprises.api.gouv.fr)
   + annuaire RGE public de l'ADEME (data.ademe.fr). Si l'ADEME ne répond pas, lien vers France Rénov'.
@@ -94,7 +94,7 @@ a activé « réduire les animations » ou le mode économie de données.
 
 ## Conformité (audit d'octobre 2026)
 - Mentions légales (LCEN) complètes : identité de CEDYAN ENERGY SAS (RCS Pointe-à-Pitre 789 041 514), hébergeurs, CGV, avis, annuaire.
-  Reste à compléter : le médiateur de la consommation (zone jaune).
+
 - Politique de confidentialité RGPD : politique-confidentialite.html (finalités, bases légales, durées, sous-traitants, droits, cookies).
 - Aucun cookie publicitaire. Google Maps (contact) et YouTube (qui sommes-nous) ne se chargent qu'au clic.
 - Police Inter hébergée sur le site : déposer InterVariable.woff2 (rsms.me/inter) à la racine. Sans ce fichier, police système.

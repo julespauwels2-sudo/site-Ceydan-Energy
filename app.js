@@ -661,7 +661,7 @@
     let carte = null, calque = null, pinCommune = null;
     if (window.L && $("#carte-annuaire")) {
       carte = L.map("carte-annuaire", { scrollWheelZoom: false, zoomControl: true }).setView([16.17, -61.45], 10);
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", { attribution: "© OpenStreetMap, © CARTO", subdomains: "abcd", maxZoom: 18 }).addTo(carte);
+      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>', maxZoom: 19 }).addTo(carte);
       calque = L.layerGroup().addTo(carte);
       L.marker(CEDYAN_GPS, { icon: L.divIcon({ className: "pin pin--cedyan", html: "<span>Cedyan</span>", iconSize: [64, 28], iconAnchor: [32, 28] }) }).addTo(carte).bindPopup("<b>Cedyan Energy</b><br>Magasin et comptoir, Baie-Mahault");
     } else $(".ann-carte") && $(".ann-carte").classList.add("sans-carte");
