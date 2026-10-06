@@ -13,10 +13,8 @@
 <meta property="og:locale" content="fr_FR">
 <link rel="icon" href="favicon.png" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400&display=swap">
-<link rel="stylesheet" href="style.css?v=f53b37ed">
+<link rel="preload" href="InterVariable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="style.css?v=a860abbf">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Store","name":"Cedyan Energy","description":"Grossiste en matériel photovoltaïque aux Antilles depuis 2012 : panneaux, onduleurs, batteries, fixations et protections en stock à Baie-Mahault.","telephone":"+590590321520","email":"yann.pauwels@cedyanenergytrade.com","foundingDate":"2012","openingHours":["Mo-Th 08:30-16:00","Fr 08:30-13:00"],"address":{"@type":"PostalAddress","streetAddress":"AC Moudong, Immeuble Point Plomberie","postalCode":"97122","addressLocality":"Baie-Mahault","addressRegion":"Guadeloupe","addressCountry":"FR"},"areaServed":["Guadeloupe","Martinique","Saint-Martin","Saint-Barthélemy"],"image":"og-image.jpg"}</script>
 <link rel="preload" as="image" href="photo-toiture.webp">
 <link rel="preconnect" href="https://assets.mixkit.co">
@@ -288,6 +286,7 @@
         <li><a href="contact.html">Contact</a></li>
         <li><a href="pro.html">Espace professionnel</a></li>
         <li><a href="mentions-legales.html">Mentions légales</a></li>
+        <li><a href="politique-confidentialite.html">Confidentialité</a></li>
         <li><a href="https://cedyan-energy.net/img/cms/CGV/CGV%20produits%20en%20ligne%20pour%20les%20particuliers.pdf" target="_blank" rel="noopener">CGV particuliers (PDF)</a></li>
         <li><a href="https://www.facebook.com/Cedyan-Energy-1477937619169786/" target="_blank" rel="noopener">Facebook</a></li>
         <li><a href="https://www.youtube.com/channel/UCXPs2lO-xhEK2AEzHWEL8Zg" target="_blank" rel="noopener">YouTube</a></li>
@@ -339,7 +338,8 @@
           <div class="champ"><label for="d-delai">Pour quand ?</label><select class="select" id="d-delai" name="delai" required><option value="">Choisir…</option><option>Au plus vite</option><option>D'ici 3 mois</option><option>Je me renseigne</option></select></div>
         </div>
         <div class="champ"><label for="d-msg">Votre projet <span class="info">(facultatif)</span></label><textarea class="textarea" id="d-msg" name="message" rows="3" placeholder="Puissance souhaitée, type de toiture, adresse du chantier…"></textarea></div>
-        <label class="consent"><input type="checkbox" name="rgpd" required><span>J'accepte d'être recontacté au sujet de cette demande.</span></label>
+        <div class="hp" aria-hidden="true"><label>Ne pas remplir<input type="text" name="site_web" tabindex="-1" autocomplete="off"></label></div>
+        <label class="consent"><input type="checkbox" name="rgpd" required><span>J'accepte que Cedyan Energy utilise ces informations pour traiter ma demande et me recontacter. <a href="politique-confidentialite.html" target="_blank">En savoir plus</a></span></label>
         <p class="erreur" hidden>Vérifiez les champs entourés en rouge.</p>
         <button class="btn" type="submit">Envoyer ma demande de devis</button>
       </form>
@@ -351,7 +351,7 @@
 <script src="icones.js?v=521c4090"></script>
 <script src="data.js?v=578196c3"></script>
 <script src="partenaires.js?v=3096e677"></script>
-<script src="app.js?v=e354dbdb"></script>
+<script src="app.js?v=98383e08"></script>
 <script src="anim.js?v=d9afd884"></script>
 </body>
 </html>

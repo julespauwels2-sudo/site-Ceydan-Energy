@@ -1,3 +1,4 @@
+@font-face{font-family:"Inter";font-style:normal;font-weight:100 900;font-display:swap;src:url("InterVariable.woff2") format("woff2")}
 /* CEDYAN ENERGY — Dashboard */
 :root{--vert:#218034;--vert-f:#14551f;--nuit:#08170d;--soleil:#fbbb10;--bleu:#2b4b9b;--encre:#16241a;--gris:#56665b;--trait:#dfe7e0;--fond:#f3f6f2;--rouge:#b42318}
 *{box-sizing:border-box}

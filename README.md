@@ -91,3 +91,16 @@ a activé « réduire les animations » ou le mode économie de données.
 - Fonction Supabase « avis-google » : note, nombre d'avis et avis récents de la fiche Google (API Places New), cache de 6 h.
 - Secret à créer : GOOGLE_PLACES_KEY (clé avec « Places API (New) » activée). GOOGLE_PLACE_ID est facultatif.
 - Si la fonction ne répond pas, le site affiche les avis saisis à la main dans config.js → google.
+
+## Conformité (audit d'octobre 2026)
+- Mentions légales (LCEN) complètes : identité de CEDYAN ENERGY SAS (RCS Pointe-à-Pitre 789 041 514), hébergeurs, CGV, avis, annuaire.
+  Reste à compléter : le médiateur de la consommation (zone jaune).
+- Politique de confidentialité RGPD : politique-confidentialite.html (finalités, bases légales, durées, sous-traitants, droits, cookies).
+- Aucun cookie publicitaire. Google Maps (contact) et YouTube (qui sommes-nous) ne se chargent qu'au clic.
+- Police Inter hébergée sur le site : déposer InterVariable.woff2 (rsms.me/inter) à la racine. Sans ce fichier, police système.
+- Statistiques anonymes : respect de Do Not Track / Global Privacy Control et bouton d'opposition sur la page confidentialité.
+- Durées de conservation appliquées chaque nuit (pg_cron, fonction prive.purge_donnees) : visites 25 mois, demandes 3 ans,
+  comptes pro refusés 1 an (Kbis supprimé dès le refus). Bouton d'effacement complet d'un compte pro dans le dashboard (patron).
+- Formulaires : case d'information + lien vers la politique, champ piège anti-robots, limite anti-abus côté serveur.
+- Annuaire : fiches d'exemple jamais affichées, critères de classement indiqués, lien capitalistique signalé (case dans le dashboard).
+- En-têtes de sécurité (vercel.json) et robots.txt (dashboard non indexé).

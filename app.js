@@ -38,7 +38,7 @@
       const ok = (p) => p.catch(() => null);
       const [prods, parts, regl] = await t(Promise.all([
         ok(rest("produits?select=id,cat,marque,nom,ref,img,stock,extra,description,caracteristiques,fiche_technique&actif=eq.true&order=ordre")),
-        ok(rest("partenaires?select=nom,commune,zones,rge,specialites,telephone,email,siren,exemple,ordre&actif=eq.true&order=ordre,created_at")),
+        ok(rest("partenaires?select=nom,commune,zones,rge,specialites,telephone,email,siren,exemple,ordre,lien_cedyan&actif=eq.true&exemple=eq.false&order=ordre,created_at")),
         ok(rest("reglages?select=cle,valeur")),
       ]), 2500);
       if (prods && prods.length) {
@@ -164,19 +164,24 @@
   $$("[data-ouvrir-devis]").forEach((b) => b.addEventListener("click", ouvrirTiroir));
   $$("[data-fermer-devis]").forEach((b) => b.addEventListener("click", fermerTiroir));
 
+  /* ---------- Anti-robots (champ invisible) ---------- */
+  document.addEventListener("submit", (e) => {
+    const hp = e.target.querySelector && e.target.querySelector('input[name="site_web"]');
+    if (hp && hp.value) { e.preventDefault(); e.stopImmediatePropagation(); e.target.reset(); toast("Merci, votre demande est bien partie."); }
+  }, true);
+
   /* ---------- Envoi des leads ---------- */
   function utm() {
     const q = new URLSearchParams(location.search); const o = {};
     ["utm_source", "utm_medium", "utm_campaign", "utm_content", "fbclid", "gclid"].forEach((k) => q.get(k) && (o[k] = q.get(k)));
-    if (Object.keys(o).length) store.set("cedyan_utm", o);
-    return store.get("cedyan_utm", {});
+    try { localStorage.removeItem("cedyan_utm"); localStorage.removeItem("cedyan_dernier_lead"); } catch (e) {}
+    try { if (Object.keys(o).length) sessionStorage.setItem("cedyan_utm", JSON.stringify(o)); return JSON.parse(sessionStorage.getItem("cedyan_utm") || "{}"); } catch (e) { return o; }
   }
   utm();
   async function envoyerLead(lead, fichier) {
     const payload = Object.assign({ date: new Date().toISOString(), page: location.pathname, profil: profil(), pro_verifie: pro(), utm: utm() }, lead);
     payload.pour_quand = payload.pour_quand || (payload.reponses && payload.reponses.delai) || "Non précisé";
     payload.priorite = payload.pour_quand === "Au plus vite" ? "haute" : payload.pour_quand === "D'ici 3 mois" ? "moyenne" : "basse";
-    store.set("cedyan_dernier_lead", payload);
     if (SB) {
       try {
         const opts = { method: "POST", headers: enTetesSB() };
@@ -387,12 +392,14 @@
     avisBox.innerHTML = liste.map((a) => {
       const n = Math.max(1, Math.min(5, Math.round(a.note || 5)));
       const qui = depuisGoogle
-        ? `<footer class="avi__pied">${a.photo ? `<img src="${esc(a.photo)}" alt="" width="32" height="32" loading="lazy" referrerpolicy="no-referrer">` : ""}<span><b>${a.lienAuteur ? `<a href="${esc(a.lienAuteur)}" target="_blank" rel="noopener">${esc(a.nom)}</a>` : esc(a.nom)}</b><small>${esc(a.quand || "")}, sur Google</small></span></footer>`
+        ? `<footer class="avi__pied"><span class="avi__initiale" aria-hidden="true">${esc(String(a.nom || "?").trim().charAt(0).toUpperCase())}</span><span><b>${a.lienAuteur ? `<a href="${esc(a.lienAuteur)}" target="_blank" rel="noopener">${esc(a.nom)}</a>` : esc(a.nom)}</b><small>${esc(a.quand || "")}, sur Google</small></span></footer>`
         : `<footer><b>${esc(a.nom)}</b>${a.commune ? ", " + esc(a.commune) : ""}</footer>`;
       const texte = String(a.texte || ""); const court = texte.length > 260 ? texte.slice(0, 250).replace(/\s+\S*$/, "") + "…" : texte;
       return `<article class="avi">${a.exemple ? '<span class="avi__ex">Exemple</span>' : ""}<span class="etoiles" aria-label="${n} sur 5">${"★".repeat(n)}${"☆".repeat(5 - n)}</span><p>${esc(court)}</p>${qui}</article>`;
     }).join("");
     delete avisBox.dataset.clone;
+    const sec = avisBox.closest("section");
+    if (sec && depuisGoogle && !$(".avis-mention", sec)) sec.insertAdjacentHTML("beforeend", '<p class="wrap avis-mention">Avis publiés sur Google, affichés sans modification ni contrôle par Cedyan Energy. Sélection et ordre déterminés par Google. <a class="lien" data-google-lien href="#" target="_blank" rel="noopener">Voir tous les avis</a></p>');
     if (g.note) $$("[data-google-note]").forEach((e) => (e.textContent = (+g.note).toFixed(1).replace(".", ",")));
     $$("[data-google-nb]").forEach((e) => (e.textContent = g.nombreAvis ? g.nombreAvis + " avis Google" : "Avis Google"));
     $$("[data-google-lien]").forEach((x) => (x.href = g.lien || g.lienAvis || "#"));
@@ -594,7 +601,19 @@
   }
 
   /* ---------- Statistiques de visite (sans cookie) ---------- */
-  if (SB && !/dashboard/.test(location.pathname)) {
+  const statsRefusees = () => { try { return localStorage.getItem("cedyan_stats_off") === "1"; } catch (e) { return false; } };
+  const nePasPister = navigator.globalPrivacyControl === true || navigator.doNotTrack === "1" || window.doNotTrack === "1";
+  const boutonStats = $("#stats-bouton");
+  if (boutonStats) {
+    const majStats = () => {
+      const off = statsRefusees() || nePasPister;
+      $("#stats-etat").textContent = nePasPister ? "Votre navigateur demande à ne pas être pisté : vos visites ne sont pas comptées." : off ? "Vos visites ne sont plus comptées sur cet appareil." : "Vos visites sont comptées de façon anonyme.";
+      boutonStats.textContent = off ? "Recompter mes visites" : "Ne plus compter mes visites"; boutonStats.hidden = nePasPister;
+    };
+    boutonStats.addEventListener("click", () => { try { statsRefusees() ? localStorage.removeItem("cedyan_stats_off") : localStorage.setItem("cedyan_stats_off", "1"); } catch (e) {} majStats(); });
+    majStats();
+  }
+  if (SB && !/dashboard/.test(location.pathname) && !statsRefusees() && !nePasPister) {
     try {
       let sid = sessionStorage.getItem("cedyan_sid"); if (!sid) { sid = Math.random().toString(36).slice(2) + Date.now().toString(36); sessionStorage.setItem("cedyan_sid", sid); }
       let ref = ""; try { ref = document.referrer ? new URL(document.referrer).hostname : ""; } catch (e) {}
@@ -637,7 +656,7 @@
     const inC = $("#a-commune"), selT = $("#a-type"), rge = $("#a-rge"), tri = $("#a-tri");
     $("#liste-communes").innerHTML = COMMUNES.filter((c) => COORDS[c]).map((c) => `<option value="${esc(c)}">`).join("");
     const memo = store.get("cedyan_commune", ""); if (memo && COORDS[memo]) inC.value = memo;
-    const parts = (window.PARTENAIRES || []).map((p, k) => { const g = COORDS[p.commune] || CEDYAN_GPS; return { ...p, gps: p.gps || [g[0] + ((k * 37) % 7 - 3) * 0.004, g[1] + ((k * 53) % 7 - 3) * 0.004] }; });
+    const parts = (window.PARTENAIRES || []).filter((p) => !p.exemple).map((p, k) => { const g = COORDS[p.commune] || CEDYAN_GPS; return { ...p, gps: p.gps || [g[0] + ((k * 37) % 7 - 3) * 0.004, g[1] + ((k * 53) % 7 - 3) * 0.004] }; });
     // Carte Leaflet
     let carte = null, calque = null, pinCommune = null;
     if (window.L && $("#carte-annuaire")) {
@@ -658,7 +677,7 @@
       annuaire.innerHTML = l.length ? l.map((p, k) => `<article class="ann-fiche" data-k="${k}">
         ${p.exemple ? '<span class="avi__ex">Exemple</span>' : ""}
         <div class="ann-fiche__tete">
-        <div><h3>${esc(p.nom)}</h3><p>${esc(p.commune)}${p.km != null ? ` <b class="ann-km">à ${p.km < 1 ? "moins d'1" : Math.round(p.km)} km</b>` : ""}</p></div></div>
+        <div><h3>${esc(p.nom)}${p.lien_cedyan ? ' <span class="badge-lien" title="Cedyan Energy a un lien capitalistique avec cette entreprise">Société liée à Cedyan Energy</span>' : ""}</h3><p>${esc(p.commune)}${p.km != null ? ` <b class="ann-km">à ${p.km < 1 ? "moins d'1" : Math.round(p.km)} km</b>` : ""}</p></div></div>
         <div class="ann-fiche__quali">${p.rge ? '<span class="badge-rge">RGE QualiPV</span>' : '<span class="badge-non">Non RGE</span>'}${(p.specialites || []).map((t) => `<span>${esc(t)}</span>`).join("")}</div>
         <p class="ann-fiche__zone">Intervient en ${esc((p.zones || []).join(", "))}</p>
         <div class="ann-fiche__actions">${p.telephone ? `<a class="btn btn--ligne btn--petit" href="tel:${esc(p.telephone.replace(/\s/g, ""))}">Appeler</a>` : ""}<a class="btn btn--petit" href="contact.html?partenaire=${encodeURIComponent(p.nom)}">Demander un devis</a></div></article>`).join("")
@@ -709,7 +728,17 @@
   }
   // Pré-remplir le message contact quand on vient de l'annuaire
   const partenaireQ = new URLSearchParams(location.search).get("partenaire");
-  if (partenaireQ && $("#ct-msg")) { $("#ct-msg").value = "Je souhaite être mis en relation avec " + partenaireQ + " pour mon projet : "; $("#ct-objet").value = "Demande de prix"; }
+  if (partenaireQ && $("#ct-msg")) {
+    $("#ct-msg").value = "Je souhaite être mis en relation avec " + partenaireQ + " pour mon projet : "; $("#ct-objet").value = "Demande de prix";
+    const c = $("#ct-msg").closest("form").querySelector(".consent span");
+    if (c) c.innerHTML = "J'accepte que Cedyan Energy utilise ces informations pour traiter ma demande et les transmette à " + esc(partenaireQ) + " pour qu'il me recontacte. " + '<a href="politique-confidentialite.html#mise-en-relation" target="_blank">En savoir plus</a>';
+  }
+
+  /* ---------- Carte Google Maps : chargée seulement sur demande ---------- */
+  $$("[data-afficher-carte]").forEach((b) => b.addEventListener("click", () => {
+    const box = b.closest("[data-carte-google]");
+    box.innerHTML = `<iframe title="Plan d'accès Cedyan Energy" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="${box.dataset.carteGoogle}"></iframe>`;
+  }));
 
   /* ---------- Kit décomposé (accueil) ---------- */
   const kit = $(".kit");

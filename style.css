@@ -1,3 +1,6 @@
+/* Police Inter hébergée sur le site (aucune connexion à Google Fonts).
+   Fichier attendu à la racine : InterVariable.woff2 (rsms.me/inter). En son absence, police système. */
+@font-face{font-family:"Inter";font-style:normal;font-weight:100 900;font-display:swap;src:url("InterVariable.woff2") format("woff2")}
 /* =========================================================
    CEDYAN ENERGY — style
    Charte 2024 : Inter (Black / Bold / Regular / Italic),
@@ -1600,3 +1603,28 @@ body.avec-saison{--decal:40px}
 @media (max-width:560px){.sugg{grid-template-columns:44px 1fr}.sugg__img{width:44px;height:44px}.sugg__cat{display:none}}
 .fiche__visuel{position:relative;top:auto}
 .ann-fiche__tete{grid-template-columns:1fr}
+
+/* =====================================================================
+   Conformité : formulaires, carte, avis, pages légales
+   ===================================================================== */
+.hp{position:absolute!important;left:-10000px!important;width:1px;height:1px;overflow:hidden}
+.consent a{color:inherit;text-decoration:underline}
+.carte-consent{position:absolute;inset:0;display:grid;place-items:center;background:linear-gradient(135deg,#1c3a26,#0c1e13);padding:24px}
+.carte-consent__in{display:grid;gap:10px;justify-items:center;text-align:center;max-width:340px;color:#fff}
+.carte-consent__in span{color:#b9cdbd;font-size:.92rem}
+.ct-hero__carte iframe{position:absolute;inset:0}
+.avis-mention{margin-top:18px;font-size:.85rem;color:var(--gris)}
+.avi__initiale{width:32px;height:32px;border-radius:50%;background:var(--menthe-pale);color:var(--vert-fonce);display:grid;place-items:center;font-weight:800;flex:none}
+.badge-lien{display:inline-block;vertical-align:middle;font-size:.72rem;font-weight:800;padding:3px 8px;border-radius:999px;background:#fff4d6;color:#7a5200;margin-left:6px}
+.ann-transparence{margin:-6px 0 16px;font-size:.86rem;color:var(--gris);max-width:900px}
+.video__lbl small{display:block;font-size:.75rem;font-weight:500;opacity:.8}
+.legal__maj{color:var(--gris);font-size:.9rem}
+.legal__resume{padding:18px 20px;border-radius:var(--r-l);background:var(--menthe-pale);border-left:4px solid var(--vert)}
+.legal__liste{padding-left:20px;display:grid;gap:6px}
+.tableau-legal{overflow-x:auto;border:1px solid var(--trait);border-radius:var(--r-l);margin:12px 0}
+.tableau-legal table{width:100%;border-collapse:collapse;font-size:.9rem;min-width:720px}
+.tableau-legal th,.tableau-legal td{padding:10px 12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--trait)}
+.tableau-legal th{background:var(--fond);font-weight:800}
+.stats-choix{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;padding:16px 18px;border-radius:var(--r-l);background:var(--fond);margin-top:12px}
+.stats-choix span{color:var(--gris);flex:1;min-width:220px}
+.carte-consent{place-items:start center;padding-top:14%}

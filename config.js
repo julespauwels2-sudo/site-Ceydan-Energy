@@ -18,7 +18,7 @@ window.CEDYAN_CONFIG = {
 
   // Numéro WhatsApp au format international SANS + ni espaces (ex : 590690123456).
   // Vide = les boutons WhatsApp sont masqués.
-  whatsapp: " 590690324264",
+  whatsapp: "",
 
   // URL qui reçoit les leads en JSON (POST). Webhook Make / n8n / Zapier / Supabase Edge Function.
   // Vide = le lead part par e-mail (ouverture du logiciel mail du visiteur).

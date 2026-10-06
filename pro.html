@@ -13,10 +13,8 @@
 <meta property="og:locale" content="fr_FR">
 <link rel="icon" href="favicon.png" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400&display=swap">
-<link rel="stylesheet" href="style.css?v=f53b37ed">
+<link rel="preload" href="InterVariable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="style.css?v=a860abbf">
 </head>
 <body class="page-pro">
 <a class="skip" href="#contenu">Aller au contenu</a>
@@ -90,7 +88,8 @@
     <div class="grille-2"><div class="champ"><label for="pro-tel">Téléphone</label><input class="input" id="pro-tel" name="telephone" type="tel" autocomplete="tel" required></div>
     <div class="champ"><label for="pro-mail">E-mail professionnel</label><input class="input" id="pro-mail" name="email" type="email" autocomplete="email" required></div></div>
     <div class="champ"><label for="pro-kbis">Extrait Kbis de moins de 3 mois</label><label class="fichier" for="pro-kbis"><input id="pro-kbis" name="kbis" type="file" accept=".pdf,image/*" required><span class="fichier__txt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6M9 18h3"/></svg><span data-fichier-nom>Choisir un fichier PDF ou une photo</span></span></label></div>
-    <label class="consent"><input type="checkbox" name="rgpd" required><span>J'accepte que Cedyan Energy vérifie mon entreprise et me recontacte pour l'ouverture de mon compte.</span></label>
+    <div class="hp" aria-hidden="true"><label>Ne pas remplir<input type="text" name="site_web" tabindex="-1" autocomplete="off"></label></div>
+        <label class="consent"><input type="checkbox" name="rgpd" required><span>J'accepte que Cedyan Energy vérifie mon entreprise, conserve mon Kbis le temps de l'ouverture et de la vie de mon compte, et me recontacte. <a href="politique-confidentialite.html" target="_blank">En savoir plus</a></span></label>
     <p class="erreur" hidden>Vérifiez les champs entourés en rouge.</p>
     <div id="verif" class="verif" role="status" aria-live="polite"></div>
     <button class="btn" type="submit">Envoyer ma demande d'ouverture</button>
@@ -124,6 +123,7 @@
         <li><a href="contact.html">Contact</a></li>
         <li><a href="pro.html">Espace professionnel</a></li>
         <li><a href="mentions-legales.html">Mentions légales</a></li>
+        <li><a href="politique-confidentialite.html">Confidentialité</a></li>
         <li><a href="https://cedyan-energy.net/img/cms/CGV/CGV%20produits%20en%20ligne%20pour%20les%20particuliers.pdf" target="_blank" rel="noopener">CGV particuliers (PDF)</a></li>
         <li><a href="https://www.facebook.com/Cedyan-Energy-1477937619169786/" target="_blank" rel="noopener">Facebook</a></li>
         <li><a href="https://www.youtube.com/channel/UCXPs2lO-xhEK2AEzHWEL8Zg" target="_blank" rel="noopener">YouTube</a></li>
@@ -175,7 +175,8 @@
           <div class="champ"><label for="d-delai">Pour quand ?</label><select class="select" id="d-delai" name="delai" required><option value="">Choisir…</option><option>Au plus vite</option><option>D'ici 3 mois</option><option>Je me renseigne</option></select></div>
         </div>
         <div class="champ"><label for="d-msg">Votre projet <span class="info">(facultatif)</span></label><textarea class="textarea" id="d-msg" name="message" rows="3" placeholder="Puissance souhaitée, type de toiture, adresse du chantier…"></textarea></div>
-        <label class="consent"><input type="checkbox" name="rgpd" required><span>J'accepte d'être recontacté au sujet de cette demande.</span></label>
+        <div class="hp" aria-hidden="true"><label>Ne pas remplir<input type="text" name="site_web" tabindex="-1" autocomplete="off"></label></div>
+        <label class="consent"><input type="checkbox" name="rgpd" required><span>J'accepte que Cedyan Energy utilise ces informations pour traiter ma demande et me recontacter. <a href="politique-confidentialite.html" target="_blank">En savoir plus</a></span></label>
         <p class="erreur" hidden>Vérifiez les champs entourés en rouge.</p>
         <button class="btn" type="submit">Envoyer ma demande de devis</button>
       </form>
@@ -187,7 +188,7 @@
 <script src="icones.js?v=521c4090"></script>
 <script src="data.js?v=578196c3"></script>
 <script src="partenaires.js?v=3096e677"></script>
-<script src="app.js?v=e354dbdb"></script>
+<script src="app.js?v=98383e08"></script>
 <script src="anim.js?v=d9afd884"></script>
 </body>
 </html>

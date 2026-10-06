@@ -13,10 +13,8 @@
 <meta property="og:locale" content="fr_FR">
 <link rel="icon" href="favicon.png" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400&display=swap">
-<link rel="stylesheet" href="style.css?v=f53b37ed">
+<link rel="preload" href="InterVariable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="style.css?v=a860abbf">
 </head>
 <body class="page-contact">
 <a class="skip" href="#contenu">Aller au contenu</a>
@@ -62,7 +60,9 @@
       </div>
     </div>
     <div class="ct-hero__carte">
-      <iframe title="Plan d'accès Cedyan Energy" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.google.com/maps?q=16.2562,-61.5781&z=15&output=embed"></iframe>
+      <div class="carte-consent" data-carte-google="https://www.google.com/maps?q=16.2562,-61.5781&z=15&output=embed">
+        <div class="carte-consent__in"><b>Plan d'accès</b><span>La carte est fournie par Google Maps, qui peut déposer des cookies. Elle ne se charge que si vous le demandez.</span><button class="btn btn--petit btn--soleil" type="button" data-afficher-carte>Afficher la carte</button></div>
+      </div>
       <div class="ct-hero__adresse"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg><span><b>AC Moudong, Immeuble Point Plomberie</b><br>97122 Baie-Mahault</span><a class="btn btn--petit" data-maps href="#" target="_blank" rel="noopener">Itinéraire</a></div>
     </div>
   </div>
@@ -82,7 +82,8 @@
         <div class="champ"><label for="ct-delai">Pour quand ?</label><select class="select" id="ct-delai" name="delai" required><option value="">Choisir…</option><option>Au plus vite</option><option>D'ici 3 mois</option><option>Je me renseigne</option></select></div></div>
         <div class="champ"><label for="ct-msg">Message</label><textarea class="textarea" id="ct-msg" name="message" rows="5" required></textarea></div>
         <div class="grille-2"><div class="champ"><label for="ct-mail">E-mail <span class="info">(facultatif)</span></label><input class="input" id="ct-mail" name="email" type="email" autocomplete="email"></div><div class="champ"><label for="ct-com">Commune</label><select class="select" id="ct-com" name="commune" data-communes></select></div></div>
-        <label class="consent"><input type="checkbox" name="rgpd" required><span>J'accepte d'être recontacté au sujet de ma demande. <a href="mentions-legales.html#donnees">Données personnelles</a></span></label>
+        <div class="hp" aria-hidden="true"><label>Ne pas remplir<input type="text" name="site_web" tabindex="-1" autocomplete="off"></label></div>
+        <label class="consent"><input type="checkbox" name="rgpd" required><span>J'accepte que Cedyan Energy utilise ces informations pour traiter ma demande et me recontacter. <a href="politique-confidentialite.html" target="_blank">En savoir plus</a></span></label>
         <p class="erreur" hidden>Vérifiez les champs entourés en rouge.</p>
         <button class="btn" type="submit">Envoyer mon message</button>
       </form>
@@ -117,6 +118,7 @@
         <li><a href="contact.html">Contact</a></li>
         <li><a href="pro.html">Espace professionnel</a></li>
         <li><a href="mentions-legales.html">Mentions légales</a></li>
+        <li><a href="politique-confidentialite.html">Confidentialité</a></li>
         <li><a href="https://cedyan-energy.net/img/cms/CGV/CGV%20produits%20en%20ligne%20pour%20les%20particuliers.pdf" target="_blank" rel="noopener">CGV particuliers (PDF)</a></li>
         <li><a href="https://www.facebook.com/Cedyan-Energy-1477937619169786/" target="_blank" rel="noopener">Facebook</a></li>
         <li><a href="https://www.youtube.com/channel/UCXPs2lO-xhEK2AEzHWEL8Zg" target="_blank" rel="noopener">YouTube</a></li>
@@ -168,7 +170,8 @@
           <div class="champ"><label for="d-delai">Pour quand ?</label><select class="select" id="d-delai" name="delai" required><option value="">Choisir…</option><option>Au plus vite</option><option>D'ici 3 mois</option><option>Je me renseigne</option></select></div>
         </div>
         <div class="champ"><label for="d-msg">Votre projet <span class="info">(facultatif)</span></label><textarea class="textarea" id="d-msg" name="message" rows="3" placeholder="Puissance souhaitée, type de toiture, adresse du chantier…"></textarea></div>
-        <label class="consent"><input type="checkbox" name="rgpd" required><span>J'accepte d'être recontacté au sujet de cette demande.</span></label>
+        <div class="hp" aria-hidden="true"><label>Ne pas remplir<input type="text" name="site_web" tabindex="-1" autocomplete="off"></label></div>
+        <label class="consent"><input type="checkbox" name="rgpd" required><span>J'accepte que Cedyan Energy utilise ces informations pour traiter ma demande et me recontacter. <a href="politique-confidentialite.html" target="_blank">En savoir plus</a></span></label>
         <p class="erreur" hidden>Vérifiez les champs entourés en rouge.</p>
         <button class="btn" type="submit">Envoyer ma demande de devis</button>
       </form>
@@ -180,7 +183,7 @@
 <script src="icones.js?v=521c4090"></script>
 <script src="data.js?v=578196c3"></script>
 <script src="partenaires.js?v=3096e677"></script>
-<script src="app.js?v=e354dbdb"></script>
+<script src="app.js?v=98383e08"></script>
 <script src="anim.js?v=d9afd884"></script>
 </body>
 </html>

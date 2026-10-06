@@ -167,7 +167,7 @@
       <td><span class="pastille ${ok ? "pastille--ok" : "pastille--att"}" title="${ok ? "Active au registre national" : "Registre non vérifié"}${v.naf ? " · NAF " + esc(v.naf) : ""}">${ok ? "✓ Active" : "⚠ À contrôler"}</span></td>
       <td title="${date(p.created_at)}">${depuis(p.created_at)}</td>
       <td><span class="statut statut--${p.statut}">${{ en_attente: "À valider", valide: "Validé", refuse: "Refusé" }[p.statut]}</span></td>
-      <td class="pro-actions">${p.kbis_path ? `<button class="b b--petit" data-kbis="${p.id}">Kbis</button>` : '<span class="sous" title="Pas de Kbis joint">Sans Kbis</span>'}${p.statut !== "valide" ? `<button class="b b--petit b--vert" data-decision="valide" data-id="${p.id}">Valider</button>` : ""}${p.statut !== "refuse" ? `<button class="b b--petit b--danger" data-decision="refuse" data-id="${p.id}" title="Refuser">${p.statut === "valide" ? "Révoquer" : "Refuser"}</button>` : ""}</td></tr>`; }).join("")}</tbody></table></div>`
+      <td class="pro-actions">${p.kbis_path ? `<button class="b b--petit" data-kbis="${p.id}">Kbis</button>` : '<span class="sous" title="Pas de Kbis joint">Sans Kbis</span>'}${p.statut !== "valide" ? `<button class="b b--petit b--vert" data-decision="valide" data-id="${p.id}">Valider</button>` : ""}${p.statut !== "refuse" ? `<button class="b b--petit b--danger" data-decision="refuse" data-id="${p.id}" title="Refuser">${p.statut === "valide" ? "Révoquer" : "Refuser"}</button>` : ""}${moi.role === "patron" ? `<button class="b b--petit" data-suppr-pro="${p.id}" title="Effacer définitivement ce compte, son Kbis et sa demande (droit à l'effacement)">🗑</button>` : ""}</td></tr>`; }).join("")}</tbody></table></div>`
       : `<p class="vide">${q ? "Aucun compte ne correspond." : filtrePros === "en_attente" ? "Aucun compte à valider. Tout est à jour." : "Aucun compte pro pour le moment."}</p>`;
   }
   $("#pros-onglets").addEventListener("click", (e) => { const b = e.target.closest("[data-fp]"); if (!b) return; filtrePros = b.dataset.fp; rendrePros(); });
@@ -175,6 +175,12 @@
   $("#liste-pros").addEventListener("click", async (e) => {
     const k = e.target.closest("[data-kbis]");
     if (k) { try { const j = await appelEquipe({ action: "kbis_url", id: k.dataset.kbis }); window.open(j.url, "_blank", "noopener"); } catch (er) { toast(er.message); } return; }
+    const sp = e.target.closest("[data-suppr-pro]");
+    if (sp) {
+      if (!confirm("Effacer définitivement ce compte, son Kbis et la demande liée ? À utiliser notamment quand la personne demande la suppression de ses données.")) return;
+      try { await appelEquipe({ action: "supprimer_pro", id: sp.dataset.supprPro }); toast("Compte effacé"); await Promise.all([chargerPros(), chargerDemandes()]); } catch (er) { toast(er.message); }
+      return;
+    }
     const b = e.target.closest("[data-decision]"); if (!b) return;
     const valide = b.dataset.decision === "valide";
     if (!confirm(valide ? "Valider ce compte ? Le pro recevra un e-mail et verra ses tarifs." : "Refuser ce compte ? Le pro recevra un e-mail et ne verra plus les tarifs.")) return;
@@ -334,7 +340,7 @@
     D.partenaires = data || [];
     $("#liste-partenaires").innerHTML = D.partenaires.length ? D.partenaires.map((p, k) => `<article class="carte carte--part ${p.actif ? "" : "is-masque"}" data-id="${p.id}">
       <div class="ordre" aria-label="Position sur le site"><button type="button" data-monter="${p.id}" ${k === 0 ? "disabled" : ""} aria-label="Monter ${esc(p.nom)}">▲</button><span>${k + 1}</span><button type="button" data-descendre="${p.id}" ${k === D.partenaires.length - 1 ? "disabled" : ""} aria-label="Descendre ${esc(p.nom)}">▼</button></div>
-      <div class="carte__tete"><div><h3>${esc(p.nom)} ${p.exemple ? '<span class="tag">Exemple</span>' : ""}</h3><p class="sous">${esc(p.commune || "")} · ${esc((p.zones || []).join(", "))}</p></div>${p.rge ? '<span class="statut statut--valide">RGE</span>' : ""}</div>
+      <div class="carte__tete"><div><h3>${esc(p.nom)} ${p.exemple ? '<span class="tag">Exemple, masqué du site</span>' : ""}${p.lien_cedyan ? ' <span class="tag">Société liée</span>' : ""}</h3><p class="sous">${esc(p.commune || "")} · ${esc((p.zones || []).join(", "))}</p></div>${p.rge ? '<span class="statut statut--valide">RGE</span>' : ""}</div>
       <p>${(p.specialites || []).map((s) => `<span class="tag">${esc(s)}</span>`).join(" ")}</p>
       <div class="actions"><button class="b b--petit" data-editer-part="${p.id}">Modifier</button>${p.actif ? "" : '<span class="sous">Masqué du site</span>'}</div></article>`).join("")
       : `<p class="vide">Aucun installateur. Ajoutez le premier.</p>`;
@@ -348,12 +354,13 @@
         <div class="ligne"><label class="champ">Téléphone<input name="telephone" value="${esc(p.telephone || "")}"></label><label class="champ">E-mail<input name="email" type="email" value="${esc(p.email || "")}"></label></div>
         <fieldset class="champ"><legend>Zones d'intervention</legend><div class="cases">${ZONES.map((z) => `<label><input type="checkbox" name="zones" value="${z}" ${(p.zones || []).includes(z) ? "checked" : ""}> ${z}</label>`).join("")}</div></fieldset>
         <fieldset class="champ"><legend>Spécialités</legend><div class="cases">${SPECS.map((z) => `<label><input type="checkbox" name="specialites" value="${z}" ${(p.specialites || []).includes(z) ? "checked" : ""}> ${z}</label>`).join("")}</div></fieldset>
-        <div class="ligne"><label class="inter"><input type="checkbox" name="rge" ${p.rge ? "checked" : ""}><span></span>Certifié RGE QualiPV</label><label class="inter"><input type="checkbox" name="actif" ${p.actif !== false ? "checked" : ""}><span></span>Visible sur le site</label><label class="inter"><input type="checkbox" name="exemple" ${p.exemple ? "checked" : ""}><span></span>Fiche d'exemple</label></div>
+        <div class="ligne"><label class="inter"><input type="checkbox" name="rge" ${p.rge ? "checked" : ""}><span></span>Certifié RGE QualiPV</label><label class="inter"><input type="checkbox" name="actif" ${p.actif !== false ? "checked" : ""}><span></span>Visible sur le site</label><label class="inter"><input type="checkbox" name="exemple" ${p.exemple ? "checked" : ""}><span></span>Fiche d'exemple (jamais affichée sur le site)</label></div>
+        <label class="inter"><input type="checkbox" name="lien_cedyan" ${p.lien_cedyan ? "checked" : ""}><span></span>Société liée à Cedyan Energy (participation au capital) : affiché sur sa fiche, obligatoire pour la transparence</label>
         <div class="actions"><button class="b b--jaune" type="submit">Enregistrer</button>${p.id ? '<button class="b b--danger" type="button" id="part-suppr">Supprimer</button>' : ""}</div>
       </form>`);
     $("#form-part").addEventListener("submit", async (e) => {
       e.preventDefault(); const f = new FormData(e.target);
-      const ligne = { nom: f.get("nom"), commune: f.get("commune"), siren: (f.get("siren") || "").replace(/\D/g, "") || null, telephone: f.get("telephone") || null, email: f.get("email") || null, zones: f.getAll("zones"), specialites: f.getAll("specialites"), rge: !!f.get("rge"), actif: !!f.get("actif"), exemple: !!f.get("exemple") };
+      const ligne = { nom: f.get("nom"), commune: f.get("commune"), siren: (f.get("siren") || "").replace(/\D/g, "") || null, telephone: f.get("telephone") || null, email: f.get("email") || null, zones: f.getAll("zones"), specialites: f.getAll("specialites"), rge: !!f.get("rge"), actif: !!f.get("actif"), exemple: !!f.get("exemple"), lien_cedyan: !!f.get("lien_cedyan") };
       if (!p.id) ligne.ordre = Math.max(0, ...D.partenaires.map((x) => x.ordre || 0)) + 1;
       const r = p.id ? await sb.from("partenaires").update(ligne).eq("id", p.id) : await sb.from("partenaires").insert(ligne);
       if (r.error) return toast("Erreur : " + r.error.message); fermerPanneau(); await chargerPartenaires(); toast("Installateur enregistré");
