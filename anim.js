@@ -162,9 +162,9 @@
   if (gamme && piste) {
     let actif = false;
     const mesurer = () => {
-      actif = innerWidth > 920 && !reduit;
+      actif = !reduit;
       if (!actif) { gamme.style.height = ""; piste.style.transform = ""; return; }
-      const deb = piste.scrollWidth - innerWidth + 80;
+      const deb = piste.scrollWidth - innerWidth + (innerWidth <= 920 ? 32 : 80);
       gamme.style.height = innerHeight + Math.max(0, deb) * 0.5 + "px";
       gamme.dataset.deb = Math.max(0, deb);
       maj();
@@ -218,7 +218,12 @@
   /* ---------- Avis : défilement continu ---------- */
   const avis = $("#avis-liste");
   if (avis && avis.closest(".avis-defile")) {
-    const cloner = () => { if (avis.children.length && !avis.dataset.clone) { avis.dataset.clone = "1"; avis.insertAdjacentHTML("beforeend", avis.innerHTML); } };
+    // Sur ordinateur : bande qui défile (copie masquée aux lecteurs d'écran). Sur mobile : cartes à faire glisser, sans copie.
+    const cloner = () => {
+      if (!avis.children.length || avis.dataset.clone || innerWidth <= 920) return;
+      avis.dataset.clone = "1";
+      Array.from(avis.children).forEach((c) => { const k = c.cloneNode(true); k.setAttribute("aria-hidden", "true"); k.querySelectorAll("a").forEach((x) => x.setAttribute("tabindex", "-1")); avis.appendChild(k); });
+    };
     cloner(); setTimeout(cloner, 300); document.addEventListener("cedyan:donnees", () => setTimeout(cloner, 50)); document.addEventListener("cedyan:avis", () => setTimeout(cloner, 30));
   }
   $$("[data-tel-texte]").forEach((e) => { const c = window.CEDYAN_CONFIG; if (c) e.textContent = c.telephone; });

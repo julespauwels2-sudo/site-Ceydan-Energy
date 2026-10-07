@@ -934,7 +934,7 @@ html.intro .hero-v__titre .l>span,html.intro .hero-v__sur,html.intro .hero-v__ba
   .menu-open .header .burger{background:var(--fond)}
   .menu-open .header .burger span::before,.menu-open .header .burger span::after{background:var(--encre)}
   .gamme__collant{position:static;height:auto;padding:80px 0 60px}
-  .gamme__piste{overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:12px;scrollbar-width:none;transform:none!important}
+  .gamme__piste{padding-bottom:12px;scrollbar-width:none}
   .gcarte{scroll-snap-align:start;width:76vw;height:430px}
   .cyclone-v__grid,.duo{grid-template-columns:1fr}
   .cyclone-v__illu{max-width:300px;order:-1}
@@ -1645,3 +1645,74 @@ body.avec-saison{--decal:40px}
 .carte-osm{position:absolute;inset:0;z-index:0}
 .carte-osm.sans-carte::after{content:"Plan indisponible";position:absolute;inset:0;display:grid;place-items:center;color:#b9cdbd}
 .ct-hero__adresse{z-index:500}
+
+/* =====================================================================
+   Mobile : animations au défilement réactivées, blocs plus compacts
+   ===================================================================== */
+@media (max-width:920px){
+  /* Kit éclaté : la scène reste fixe pendant que les couches s'écartent */
+  .kit{height:230vh;background:var(--nuit)}
+  .kit__scene{position:sticky;top:var(--header);height:calc(100svh - var(--header));min-height:520px;overflow:hidden;padding:0;display:block;width:calc(100% - 32px)}
+  .kit__titre{position:absolute;top:22px;left:0;right:0;max-width:none;opacity:calc(1 - var(--e,0) * 2.2);transform:translateY(calc(var(--e,0) * -30px))}
+  .kit__titre h2{font-size:clamp(1.9rem,8.5vw,2.6rem)}
+  .kit__titre .lead{font-size:.95rem;max-width:30ch}
+  .kit__stage{position:absolute;inset:0;display:block}
+  .kit__couche{position:absolute;left:30%;top:50%;width:var(--w,40%)!important;display:block;background:none;border:0;padding:0;border-radius:0;transform:translate(-50%,-50%) translateY(calc(var(--y0,0px) + (var(--y1,0px) - var(--y0,0px)) * var(--e,0)))!important}
+  .kit__couche>svg{max-width:none;margin:0;filter:drop-shadow(0 14px 18px rgba(0,0,0,.45))}
+  .kit__etiquette{position:absolute;top:50%;left:calc(100% + 18px)!important;right:auto!important;width:40vw;transform:translateY(-50%);opacity:calc((var(--e,0) - .6) * 3)!important;text-align:left!important;pointer-events:none}
+  .kit__etiquette.is-on{pointer-events:auto}
+  .kit__etiquette span{display:none}
+  .kit__etiquette b{font-size:.86rem}
+  .kit__etiquette a{font-size:.78rem}
+  .kit__etiquette::before,.kit__etiquette::after{display:block}
+  .kit__etiquette::before{left:-15px!important;right:auto!important;width:11px}
+  .kit__etiquette::after{left:-21px!important;right:auto!important;width:8px;height:8px;top:9px}
+  .kit__fin{position:absolute;left:50%;bottom:3%;width:max-content;max-width:94%;transform:translate(-50%,calc((1 - var(--fin,0)) * 30px));opacity:var(--fin,0);justify-content:center;margin:0}
+  .kit__fin .btn{min-height:44px;padding:0 16px;font-size:.92rem}
+
+  /* Gamme : défilement horizontal piloté par le scroll, cartes plus petites */
+  .gamme__collant{position:sticky;top:0;height:100svh;padding:calc(var(--header) + 12px) 0 20px;gap:20px}
+  .gamme__piste{overflow:visible;scroll-snap-type:none;padding:0 16px}
+  .gcarte{width:70vw;height:min(52svh,400px)}
+  .gcarte__txt{padding:2px 18px 20px}
+  .gcarte__txt b{font-size:1.25rem}
+  .gcarte__fleche{width:40px;height:40px;right:16px;bottom:18px}
+
+  /* Accès pro : plus compact */
+  .acces-pro{padding:24px 20px;gap:18px}
+  .acces-pro h2{font-size:clamp(1.6rem,7vw,2.1rem)}
+  .acces-pro--anime .etapes-pro{margin-top:16px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .acces-pro .etapes-pro li{padding:10px;font-size:.85rem}
+  .acces-pro .etapes-pro li span{display:none}
+  .acces-pro__form{padding:16px;gap:10px}
+  .acces-pro__form label{font-size:.9rem}
+  .acces-pro::after{width:220px;height:220px;right:-80px;bottom:-110px}
+
+  /* Kits prêts à poser : cartes en ligne, image à gauche */
+  .solutions{gap:10px}
+  .solution{flex-direction:row;align-items:stretch}
+  .solution__img{aspect-ratio:auto;width:112px;flex:none;border-bottom:0;border-right:1px solid var(--trait);padding:10px}
+  .solution__img>svg{width:56%}
+  .solution__corps{padding:14px 16px;gap:4px;align-content:center}
+  .solution h3{font-size:1.08rem}
+  .solution p{font-size:.85rem;line-height:1.4}
+  .solution__tag{font-size:.72rem;padding:3px 9px}
+
+  /* Avis : à faire glisser au doigt (fonctionne aussi avec « Réduire les animations ») */
+  .avis-defile{overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;mask-image:none;-webkit-mask-image:none;scrollbar-width:none;padding:0 16px;margin:0 -16px}
+  .avis-defile::-webkit-scrollbar{display:none}
+  .avis-defile__piste{animation:none!important;padding:6px 0 10px;gap:12px}
+  .avis-defile .avi{width:82vw;scroll-snap-align:center;padding:20px}
+  .avis-defile .avi[aria-hidden="true"]{display:none}
+}
+@media (max-width:920px) and (prefers-reduced-motion:reduce){
+  .kit{height:auto}
+  .kit__scene{position:relative;height:auto;min-height:0}
+}
+
+@media (max-width:920px){
+  /* deux pièces sur la même couche : étiquettes l'une au-dessus de l'autre */
+  .kit__couche:has(.kit__etiquette + .kit__etiquette) .kit__etiquette[data-cote-e="g"]{top:22%}
+  .kit__couche:has(.kit__etiquette + .kit__etiquette) .kit__etiquette[data-cote-e="d"]{top:78%}
+  .kit__etiquette a{display:none}
+}
