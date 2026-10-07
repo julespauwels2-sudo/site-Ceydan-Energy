@@ -14,7 +14,9 @@
 <link rel="icon" href="favicon.png" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preload" href="InterVariable.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="style.css?v=a860abbf">
+<link rel="stylesheet" href="style.css?v=5cf792cb">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 </head>
 <body class="page-contact">
 <a class="skip" href="#contenu">Aller au contenu</a>
@@ -60,9 +62,7 @@
       </div>
     </div>
     <div class="ct-hero__carte">
-      <div class="carte-consent" data-carte-google="https://www.google.com/maps?q=16.2562,-61.5781&z=15&output=embed">
-        <div class="carte-consent__in"><b>Plan d'accès</b><span>La carte est fournie par Google Maps, qui peut déposer des cookies. Elle ne se charge que si vous le demandez.</span><button class="btn btn--petit btn--soleil" type="button" data-afficher-carte>Afficher la carte</button></div>
-      </div>
+      <div id="carte-contact" class="carte-osm" aria-label="Plan d'accès au magasin Cedyan Energy"></div>
       <div class="ct-hero__adresse"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg><span><b>AC Moudong, Immeuble Point Plomberie</b><br>97122 Baie-Mahault</span><a class="btn btn--petit" data-maps href="#" target="_blank" rel="noopener">Itinéraire</a></div>
     </div>
   </div>
@@ -183,7 +183,7 @@
 <script src="icones.js?v=521c4090"></script>
 <script src="data.js?v=578196c3"></script>
 <script src="partenaires.js?v=3096e677"></script>
-<script src="app.js?v=b7820d1a"></script>
+<script src="app.js?v=cdbfe88a"></script>
 <script src="anim.js?v=d9afd884"></script>
 </body>
 </html>

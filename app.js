@@ -362,6 +362,7 @@
 
   // Les données (catalogue, partenaires, session pro) arrivent ici : tout ce qui précède marche déjà.
   await chargerDonnees();
+  { const l = devis.get(); const ok = l.filter((i) => i && i.id && trouver(i.id) && i.q > 0); if (ok.length !== l.length) devis.set(ok); else majDevis(); }
   document.dispatchEvent(new CustomEvent("cedyan:donnees"));
 
   /* ---------- Prime ---------- */
@@ -472,7 +473,9 @@
       const b = e.target.closest("button[data-cat]"); if (!b) return;
       cat = b.dataset.cat; if (rech) rech.value = "";
       history.replaceState(null, "", cat === "tout" ? location.pathname : "#" + cat); rendre();
-      if (innerWidth < 920) grille.scrollIntoView({ behavior: reduit ? "auto" : "smooth", block: "start" });
+      const zone = filtres.closest("section") || grille; const h = ($(".header") || {}).offsetHeight || 80;
+      const y = zone.getBoundingClientRect().top + scrollY - h - 12;
+      if (scrollY > y) scrollTo({ top: y, behavior: reduit ? "auto" : "smooth" });
     });
     rech && rech.addEventListener("input", rendre);
     addEventListener("hashchange", () => { cat = location.hash.slice(1) || "tout"; rendre(); });
@@ -677,7 +680,7 @@
       annuaire.innerHTML = l.length ? l.map((p, k) => `<article class="ann-fiche" data-k="${k}">
         ${p.exemple ? '<span class="avi__ex">Exemple</span>' : ""}
         <div class="ann-fiche__tete">
-        <div><h3>${esc(p.nom)}${p.lien_cedyan ? ' <span class="badge-lien" title="Cedyan Energy a un lien capitalistique avec cette entreprise">Société liée à Cedyan Energy</span>' : ""}</h3><p>${esc(p.commune)}${p.km != null ? ` <b class="ann-km">à ${p.km < 1 ? "moins d'1" : Math.round(p.km)} km</b>` : ""}</p></div></div>
+        <div><h3>${esc(p.nom)}</h3><p>${esc(p.commune)}${p.km != null ? ` <b class="ann-km">à ${p.km < 1 ? "moins d'1" : Math.round(p.km)} km</b>` : ""}</p></div></div>
         <div class="ann-fiche__quali">${p.rge ? '<span class="badge-rge">RGE QualiPV</span>' : '<span class="badge-non">Non RGE</span>'}${(p.specialites || []).map((t) => `<span>${esc(t)}</span>`).join("")}</div>
         <p class="ann-fiche__zone">Intervient en ${esc((p.zones || []).join(", "))}</p>
         <div class="ann-fiche__actions">${p.telephone ? `<a class="btn btn--ligne btn--petit" href="tel:${esc(p.telephone.replace(/\s/g, ""))}">Appeler</a>` : ""}<a class="btn btn--petit" href="contact.html?partenaire=${encodeURIComponent(p.nom)}">Demander un devis</a></div></article>`).join("")
@@ -733,6 +736,15 @@
     const c = $("#ct-msg").closest("form").querySelector(".consent span");
     if (c) c.innerHTML = "J'accepte que Cedyan Energy utilise ces informations pour traiter ma demande et les transmette à " + esc(partenaireQ) + " pour qu'il me recontacte. " + '<a href="politique-confidentialite.html#mise-en-relation" target="_blank">En savoir plus</a>';
   }
+
+  /* ---------- Carte du magasin (OpenStreetMap, sans cookie) ---------- */
+  const cc = $("#carte-contact");
+  if (cc && window.L) {
+    const pos = [16.2562, -61.5781];
+    const m = L.map(cc, { scrollWheelZoom: false, zoomControl: true }).setView(pos, 15);
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>', maxZoom: 19 }).addTo(m);
+    L.marker(pos, { icon: L.divIcon({ className: "pin pin--cedyan", html: "<span>Cedyan Energy</span>", iconSize: [110, 28], iconAnchor: [55, 28] }) }).addTo(m);
+  } else if (cc) cc.classList.add("sans-carte");
 
   /* ---------- Carte Google Maps : chargée seulement sur demande ---------- */
   $$("[data-afficher-carte]").forEach((b) => b.addEventListener("click", () => {

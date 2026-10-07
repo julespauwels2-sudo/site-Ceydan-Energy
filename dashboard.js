@@ -453,7 +453,7 @@
   $("#btn-test").addEventListener("click", async () => {
     const m = $("#test-msg"); m.textContent = "Envoi…";
     try { const j = await appelEquipe({ action: "test_alertes" });
-      m.innerHTML = `E-mail : ${j.email.ok ? "✓ envoyé" : "✗ " + esc(j.email.raison || j.email.detail || "échec")}<br>WhatsApp : ${j.whatsapp.ok ? "✓ envoyé" : "✗ " + esc(j.whatsapp.raison || j.whatsapp.detail || "échec")}`;
+      m.innerHTML = `E-mail : ${j.email.ok ? "✓ envoyé" : "✗ " + esc(j.email.raison || j.email.detail || "échec")}`;
     } catch (er) { m.textContent = er.message; }
   });
 
