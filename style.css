@@ -1716,3 +1716,32 @@ body.avec-saison{--decal:40px}
   .kit__couche:has(.kit__etiquette + .kit__etiquette) .kit__etiquette[data-cote-e="d"]{top:78%}
   .kit__etiquette a{display:none}
 }
+
+/* Kit éclaté mobile v2 : couches centrées, étiquettes en pastilles sous chaque couche */
+@media (max-width:920px){
+  .kit__couche{left:50%}
+  .kit__couche>svg{filter:none}
+  .kit__etiquette{top:calc(100% + 6px)!important;left:50%!important;right:auto!important;width:max-content;max-width:62vw;transform:translateX(-50%);padding:5px 11px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);text-align:center!important}
+  .kit__etiquette::before,.kit__etiquette::after{display:none!important}
+  .kit__etiquette b{font-size:.76rem;font-weight:700;line-height:1.2;white-space:nowrap}
+  .kit__etiquette b::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--soleil);margin-right:6px;vertical-align:middle;box-shadow:0 0 8px var(--soleil)}
+  .kit__couche:has(.kit__etiquette + .kit__etiquette) .kit__etiquette[data-cote-e="g"]{top:calc(100% + 6px)!important;left:auto!important;right:50%!important;transform:translateX(-3px)}
+  .kit__couche:has(.kit__etiquette + .kit__etiquette) .kit__etiquette[data-cote-e="d"]{top:calc(100% + 6px)!important;left:50%!important;transform:translateX(3px)}
+  .kit__halo{width:120vw}
+}
+
+@media (max-width:920px){
+  .kit--nuit .kit__couche{background:none!important;border:0!important}
+  .kit--nuit .kit__couche>svg{filter:none}
+  .kit__etiquette b{white-space:normal}
+  .kit__couche:has(.kit__etiquette + .kit__etiquette) .kit__etiquette{max-width:44vw}
+  .kit__fin{bottom:104px}
+}
+@media (max-width:920px){
+  .kit__etiquette b{white-space:nowrap}
+  .kit__couche:has(.kit__etiquette + .kit__etiquette) .kit__etiquette b{white-space:normal}
+  .kit__fin{top:22px;bottom:auto;transform:translate(-50%,calc((1 - var(--fin,0)) * -20px))}
+}
+
+.barre-mobile{transition:transform .35s var(--ease),opacity .35s}
+@media (max-width:920px){ body.kit-actif .barre-mobile{transform:translateY(140%);opacity:0;pointer-events:none} }

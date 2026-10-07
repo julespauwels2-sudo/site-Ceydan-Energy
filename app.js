@@ -766,11 +766,12 @@
       const H = $(".kit__stage", kit).clientHeight, W = $(".kit__stage", kit).clientWidth;
       const ratios = couches.map((c) => +c.dataset.ratio);
       const somme = ratios.reduce((a, b) => a + b, 0);
-      const gap = mobile ? 10 : 18, dispo = H * (mobile ? 0.74 : 0.8) - gap * (couches.length - 1);
-      const w = Math.min(W * (mobile ? 0.42 : 0.46), dispo / somme, 470);
+      // Mobile : couches centrées, avec la place d'une étiquette sous chacune
+      const gap = mobile ? 34 : 18, dispo = H * (mobile ? 0.62 : 0.8) - gap * (couches.length - 1);
+      const w = Math.min(W * (mobile ? 0.6 : 0.46), dispo / somme, 470);
       const hs = ratios.map((r) => r * w);
       const total = hs.reduce((a, b) => a + b, 0) + gap * (couches.length - 1);
-      let y = -total / 2 - H * 0.05; const y1 = [];
+      let y = -total / 2 + H * (mobile ? 0.0 : -0.05); const y1 = [];
       hs.forEach((h) => { y1.push(y + h / 2); y += h + gap; });
       // assemblé : couches serrées, qui se chevauchent
       const serre = hs.map((h) => h * 0.38); const tot0 = serre.reduce((a, b) => a + b, 0);
@@ -792,6 +793,8 @@
       scene.style.setProperty("--p", p.toFixed(4));
       scene.style.setProperty("--fin", f.toFixed(3));
       etiquettes.forEach((t) => t.classList.toggle("is-on", e > 0.75));
+      // Mobile : la barre du bas s'efface pendant l'animation pour laisser voir tout le kit
+      document.body.classList.toggle("kit-actif", innerWidth <= 920 && p > 0.02 && p < 0.97);
       fin.classList.toggle("is-on", f > 0.6);
     }
     addEventListener("scroll", () => { if (!raf) raf = requestAnimationFrame(tick); }, { passive: true });
