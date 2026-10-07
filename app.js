@@ -650,7 +650,7 @@
 
   /* ---------- Annuaire des installateurs (façon Qualit'EnR) ---------- */
   const COORDS = { "Les Abymes": [16.271, -61.504], "Anse-Bertrand": [16.472, -61.507], "Baie-Mahault": [16.267, -61.585], "Baillif": [16.020, -61.746], "Basse-Terre": [15.997, -61.726], "Bouillante": [16.131, -61.767], "Capesterre-Belle-Eau": [16.044, -61.564], "Capesterre-de-Marie-Galante": [15.896, -61.214], "Deshaies": [16.306, -61.794], "La Désirade": [16.305, -61.075], "Gourbeyre": [15.993, -61.692], "Le Gosier": [16.206, -61.493], "Goyave": [16.135, -61.574], "Grand-Bourg": [15.883, -61.315], "Lamentin": [16.268, -61.632], "Morne-à-l'Eau": [16.333, -61.457], "Le Moule": [16.333, -61.344], "Petit-Bourg": [16.192, -61.592], "Petit-Canal": [16.380, -61.486], "Pointe-à-Pitre": [16.241, -61.533], "Pointe-Noire": [16.233, -61.788], "Port-Louis": [16.418, -61.531], "Saint-Claude": [16.023, -61.701], "Saint-François": [16.252, -61.274], "Saint-Louis": [15.958, -61.316], "Sainte-Anne": [16.226, -61.380], "Sainte-Rose": [16.333, -61.697], "Terre-de-Bas": [15.854, -61.640], "Terre-de-Haut": [15.866, -61.583], "Trois-Rivières": [15.976, -61.645], "Vieux-Fort": [15.950, -61.705], "Vieux-Habitants": [16.059, -61.765], "Martinique": [14.64, -61.02], "Saint-Martin": [18.07, -63.05], "Saint-Barthélemy": [17.90, -62.83] };
-  const CEDYAN_GPS = [16.256, -61.578];
+  const CEDYAN_GPS = C.gps || [16.2409161, -61.5809498];
   const distKm = (a, b) => { const R = 6371, r = Math.PI / 180, dLa = (b[0] - a[0]) * r, dLo = (b[1] - a[1]) * r; const h = Math.sin(dLa / 2) ** 2 + Math.cos(a[0] * r) * Math.cos(b[0] * r) * Math.sin(dLo / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(h)); };
   const annuaire = $("#annuaire-liste");
   if (annuaire) {
@@ -740,8 +740,9 @@
   /* ---------- Carte du magasin (OpenStreetMap, sans cookie) ---------- */
   const cc = $("#carte-contact");
   if (cc && window.L) {
-    const pos = [16.2562, -61.5781];
-    const m = L.map(cc, { scrollWheelZoom: false, zoomControl: true }).setView(pos, 15);
+    const g = ((window.CEDYAN_REGLAGES || {}).avis_google || {}).position;
+    const pos = g && g.lat ? [g.lat, g.lng] : C.gps || [16.2409161, -61.5809498];
+    const m = L.map(cc, { scrollWheelZoom: false, zoomControl: true }).setView(pos, 16);
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>', maxZoom: 19 }).addTo(m);
     L.marker(pos, { icon: L.divIcon({ className: "pin pin--cedyan", html: "<span>Cedyan Energy</span>", iconSize: [110, 28], iconAnchor: [55, 28] }) }).addTo(m);
   } else if (cc) cc.classList.add("sans-carte");

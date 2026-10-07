@@ -12,7 +12,9 @@ window.CEDYAN_CONFIG = {
   // Jours : 1 = lundi … 5 = vendredi. Heures décimales (8.5 = 8h30). Sert au badge « Ouvert maintenant ».
   ouverture: { 1: [8.5, 16], 2: [8.5, 16], 3: [8.5, 16], 4: [8.5, 16], 5: [8.5, 13] },
   horairesDetail: [["Lundi au jeudi", "8h30 à 16h"], ["Vendredi", "8h30 à 13h"], ["Samedi et dimanche", "Fermé"]],
-  mapsLien: "https://www.google.com/maps/search/?api=1&query=Cedyan+Energy+Baie-Mahault",
+  mapsLien: "https://www.google.com/maps/search/?api=1&query=Cedyan+Energy&query_place_id=ChIJg5bP5Y1FE4wRJmGbkJy_E24",
+  // Position exacte du magasin (fiche Google de Cedyan Energy)
+  gps: [16.2409161, -61.5809498],
   facebook: "https://www.facebook.com/Cedyan-Energy-1477937619169786/",
   youtube: "https://www.youtube.com/channel/UCXPs2lO-xhEK2AEzHWEL8Zg",
 
