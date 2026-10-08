@@ -1753,3 +1753,43 @@ body.avec-saison{--decal:40px}
   .gamme__piste{will-change:transform;backface-visibility:hidden;-webkit-backface-visibility:hidden}
   .gcarte{transform:none!important;transition:opacity .8s var(--ease),translate .8s var(--ease)}
 }
+
+/* Repères de carte (annuaire et contact) */
+.pin-p,.pin-c{background:none;border:0}
+.pin2{display:block;filter:drop-shadow(0 6px 8px rgba(0,0,0,.35));transform-origin:50% 100%;transition:transform .2s var(--ease)}
+.pin-p:hover .pin2,.pin-p.is-on .pin2{transform:scale(1.22)}
+.pin-cedyan{position:relative;display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:999px;background:var(--soleil);color:var(--encre);font:800 .8rem/1 Inter,system-ui,sans-serif;white-space:nowrap;box-shadow:0 8px 18px -6px rgba(0,0,0,.45);border:2px solid #fff}
+.pin-cedyan::after{content:"";position:absolute;left:50%;bottom:-8px;width:12px;height:12px;background:var(--soleil);border-right:2px solid #fff;border-bottom:2px solid #fff;transform:translateX(-50%) rotate(45deg);border-bottom-right-radius:3px}
+.pin-cedyan svg{flex:none}
+.leaflet-popup-content{font:600 .9rem/1.4 Inter,system-ui,sans-serif}
+
+/* Kit mobile : bouton en bas, opacités sûres */
+@media (max-width:920px){
+  .kit__fin{top:auto;bottom:calc(26px + env(safe-area-inset-bottom,0px));transform:translate(-50%,0)}
+}
+
+/* Trouver un installateur : version mobile plus légère */
+@media (max-width:640px){
+  .ann-hero{padding-top:calc(var(--header) + var(--decal,0px) + 22px)}
+  .ann-hero h1{font-size:clamp(1.8rem,8vw,2.3rem);margin:8px 0 18px;max-width:none}
+  .recherche-pro{padding:0 14px 16px;border-radius:20px 20px 0 0}
+  .recherche-pro__onglets{margin:0 -14px 14px;padding:0 4px}
+  .recherche-pro__onglets button{flex:1;font-size:.84rem;padding:13px 6px 11px;white-space:nowrap}
+  .recherche-pro__panneau{gap:10px}
+  .recherche-pro__panneau .champ label{font-size:.85rem}
+  .recherche-pro__panneau .select,.recherche-pro__panneau .input{min-height:46px;font-size:1rem}
+  .recherche-pro__panneau .btn{min-height:48px}
+  .ann-res{padding-top:20px}
+  .ann-res__titre{font-size:1.2rem}
+  .ann-res__options{width:100%;justify-content:space-between;gap:10px}
+  .ann-transparence{font-size:.8rem;margin:0 0 12px}
+  .ann-carte{height:250px;border-radius:18px}
+  .ann-fiche{padding:16px;gap:10px}
+  .ann-fiche h3{font-size:1.02rem}
+  .ann-fiche__actions .btn{flex:1}
+  .trois-etapes{gap:10px}
+  .trois-etapes li{padding:18px;grid-template-columns:auto 1fr;column-gap:12px}
+  .trois-etapes li::before{grid-row:span 3;margin:0}
+  .ann-rejoindre{padding:22px}
+  .ann-rejoindre b{font-size:1.2rem}
+}

@@ -648,6 +648,11 @@
     b.replaceWith(f);
   }));
 
+  /* ---------- Repères de carte ---------- */
+  const ECLAIR = '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z" fill="currentColor"/></svg>';
+  const iconeCedyan = () => L.divIcon({ className: "pin-c", html: `<div class="pin-cedyan">${ECLAIR}<span>Cedyan Energy</span></div>`, iconSize: [138, 46], iconAnchor: [69, 46], popupAnchor: [0, -44] });
+  const iconePin = (n, rge) => { const coul = rge ? "#2b4b9b" : "#218034"; return L.divIcon({ className: "pin-p", html: `<svg class="pin2" width="34" height="44" viewBox="0 0 34 44" aria-hidden="true"><path d="M17 42.5S3 27 3 16a14 14 0 0 1 28 0c0 11-14 26.5-14 26.5z" fill="${coul}" stroke="#fff" stroke-width="2.5"/><circle cx="17" cy="16" r="9" fill="#fff"/><text x="17" y="20.3" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-size="11.5" font-weight="800" fill="${coul}">${n}</text></svg>`, iconSize: [34, 44], iconAnchor: [17, 43], popupAnchor: [0, -40] }); };
+
   /* ---------- Annuaire des installateurs (façon Qualit'EnR) ---------- */
   const COORDS = { "Les Abymes": [16.271, -61.504], "Anse-Bertrand": [16.472, -61.507], "Baie-Mahault": [16.267, -61.585], "Baillif": [16.020, -61.746], "Basse-Terre": [15.997, -61.726], "Bouillante": [16.131, -61.767], "Capesterre-Belle-Eau": [16.044, -61.564], "Capesterre-de-Marie-Galante": [15.896, -61.214], "Deshaies": [16.306, -61.794], "La Désirade": [16.305, -61.075], "Gourbeyre": [15.993, -61.692], "Le Gosier": [16.206, -61.493], "Goyave": [16.135, -61.574], "Grand-Bourg": [15.883, -61.315], "Lamentin": [16.268, -61.632], "Morne-à-l'Eau": [16.333, -61.457], "Le Moule": [16.333, -61.344], "Petit-Bourg": [16.192, -61.592], "Petit-Canal": [16.380, -61.486], "Pointe-à-Pitre": [16.241, -61.533], "Pointe-Noire": [16.233, -61.788], "Port-Louis": [16.418, -61.531], "Saint-Claude": [16.023, -61.701], "Saint-François": [16.252, -61.274], "Saint-Louis": [15.958, -61.316], "Sainte-Anne": [16.226, -61.380], "Sainte-Rose": [16.333, -61.697], "Terre-de-Bas": [15.854, -61.640], "Terre-de-Haut": [15.866, -61.583], "Trois-Rivières": [15.976, -61.645], "Vieux-Fort": [15.950, -61.705], "Vieux-Habitants": [16.059, -61.765], "Martinique": [14.64, -61.02], "Saint-Martin": [18.07, -63.05], "Saint-Barthélemy": [17.90, -62.83] };
   const CEDYAN_GPS = C.gps || [16.2409161, -61.5809498];
@@ -666,7 +671,7 @@
       carte = L.map("carte-annuaire", { scrollWheelZoom: false, zoomControl: true }).setView([16.17, -61.45], 10);
       L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>', maxZoom: 19 }).addTo(carte);
       calque = L.layerGroup().addTo(carte);
-      L.marker(CEDYAN_GPS, { icon: L.divIcon({ className: "pin pin--cedyan", html: "<span>Cedyan</span>", iconSize: [64, 28], iconAnchor: [32, 28] }) }).addTo(carte).bindPopup("<b>Cedyan Energy</b><br>Magasin et comptoir, Baie-Mahault");
+      L.marker(CEDYAN_GPS, { icon: iconeCedyan(), zIndexOffset: 500 }).addTo(carte).bindPopup("<b>Cedyan Energy</b><br>Magasin et comptoir, Baie-Mahault");
     } else $(".ann-carte") && $(".ann-carte").classList.add("sans-carte");
     const rendre = (centrer) => {
       const c = COORDS[inC.value] ? inC.value : ""; if (c) store.set("cedyan_commune", c);
@@ -689,7 +694,7 @@
       if (carte) {
         calque.clearLayers(); const pts = [];
         l.forEach((p, k) => {
-          const m = L.marker(p.gps, { icon: L.divIcon({ className: "pin" + (p.rge ? " pin--rge" : ""), html: `<span>${k + 1}</span>`, iconSize: [30, 30], iconAnchor: [15, 30] }) }).addTo(calque).bindPopup(`<b>${esc(p.nom)}</b><br>${esc(p.commune)}`);
+          const m = L.marker(p.gps, { icon: iconePin(k + 1, p.rge), riseOnHover: true }).addTo(calque).bindPopup(`<b>${esc(p.nom)}</b><br>${esc(p.commune)}`);
           pts.push(p.gps);
           const fiche = annuaire.querySelector(`[data-k="${k}"]`);
           if (fiche) { fiche.addEventListener("mouseenter", () => m.getElement() && m.getElement().classList.add("is-on")); fiche.addEventListener("mouseleave", () => m.getElement() && m.getElement().classList.remove("is-on")); fiche.addEventListener("click", (e) => { if (!e.target.closest("a")) { carte.flyTo(p.gps, 12, { duration: .8 }); m.openPopup(); } }); }
@@ -744,7 +749,7 @@
     const pos = g && g.lat ? [g.lat, g.lng] : C.gps || [16.2409161, -61.5809498];
     const m = L.map(cc, { scrollWheelZoom: false, zoomControl: true }).setView(pos, 16);
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>', maxZoom: 19 }).addTo(m);
-    L.marker(pos, { icon: L.divIcon({ className: "pin pin--cedyan", html: "<span>Cedyan Energy</span>", iconSize: [110, 28], iconAnchor: [55, 28] }) }).addTo(m);
+    L.marker(pos, { icon: iconeCedyan() }).addTo(m);
   } else if (cc) cc.classList.add("sans-carte");
 
   /* ---------- Carte Google Maps : chargée seulement sur demande ---------- */
@@ -771,7 +776,7 @@
       const w = Math.min(W * (mobile ? 0.6 : 0.46), dispo / somme, 470);
       const hs = ratios.map((r) => r * w);
       const total = hs.reduce((a, b) => a + b, 0) + gap * (couches.length - 1);
-      let y = -total / 2 + H * (mobile ? 0.0 : -0.05); const y1 = [];
+      let y = -total / 2 + H * (mobile ? (H < 620 ? -0.09 : -0.03) : -0.05); const y1 = [];
       hs.forEach((h) => { y1.push(y + h / 2); y += h + gap; });
       // assemblé : couches serrées, qui se chevauchent
       const serre = hs.map((h) => h * 0.38); const tot0 = serre.reduce((a, b) => a + b, 0);
@@ -783,23 +788,37 @@
     };
     const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
     const clamp = (v) => Math.max(0, Math.min(1, v));
-    let raf = 0;
-    function tick() {
-      raf = 0; if (!actif || !geo) return;
-      const p = clamp((scrollY - geo.top + innerHeight * 0.1) / (geo.h - innerHeight));
+    // Animation lissée image par image ; transformations posées directement sur chaque pièce
+    // (plus fluide sur iPhone que des variables CSS recalculées à chaque défilement).
+    let raf = 0, cible = 0, cur = -1, vueH = innerHeight;
+    const titre = $(".kit__titre", kit);
+    function appliquer(p) {
       const e = ease(clamp((p - 0.04) / 0.56));
       const f = clamp((p - 0.64) / 0.12);
       scene.style.setProperty("--e", e.toFixed(4));
-      scene.style.setProperty("--p", p.toFixed(4));
       scene.style.setProperty("--fin", f.toFixed(3));
-      etiquettes.forEach((t) => t.classList.toggle("is-on", e > 0.75));
-      // Mobile : la barre du bas s'efface pendant l'animation pour laisser voir tout le kit
-      document.body.classList.toggle("kit-actif", innerWidth <= 920 && p > 0.02 && p < 0.97);
+      couches.forEach((c) => {
+        const y0 = parseFloat(c.style.getPropertyValue("--y0")) || 0, y1 = parseFloat(c.style.getPropertyValue("--y1")) || 0;
+        c.style.setProperty("transform", `translate3d(-50%,-50%,0) translateY(${(y0 + (y1 - y0) * e).toFixed(1)}px)`, "important");
+      });
+      etiquettes.forEach((t) => { t.style.setProperty("opacity", clamp((e - 0.6) * 3).toFixed(3), "important"); t.classList.toggle("is-on", e > 0.75); });
+      if (titre) titre.style.opacity = clamp(1 - e * 2.2).toFixed(3);
+      fin.style.opacity = f.toFixed(3);
       fin.classList.toggle("is-on", f > 0.6);
+      document.body.classList.toggle("kit-actif", innerWidth <= 920 && p > 0.02 && p < 0.999);
+    }
+    function tick() {
+      raf = 0; if (!actif || !geo) return;
+      cible = clamp((scrollY - geo.top + vueH * 0.1) / (geo.h - vueH));
+      if (cur < 0) cur = cible;
+      cur += (cible - cur) * (innerWidth <= 920 ? 0.2 : 0.3);
+      if (Math.abs(cible - cur) < 0.0008) cur = cible;
+      appliquer(cur);
+      if (cur !== cible) raf = requestAnimationFrame(tick);
     }
     addEventListener("scroll", () => { if (!raf) raf = requestAnimationFrame(tick); }, { passive: true });
     let largeurKit = 0, hauteurKit = 0;
-    const remesurer = () => { if (innerWidth !== largeurKit || Math.abs(innerHeight - hauteurKit) > 150) { largeurKit = innerWidth; hauteurKit = innerHeight; mesurer(); } };
+    const remesurer = () => { if (innerWidth !== largeurKit || Math.abs(innerHeight - hauteurKit) > 150) { largeurKit = innerWidth; hauteurKit = innerHeight; vueH = innerHeight; mesurer(); } };
     addEventListener("resize", remesurer);
     addEventListener("load", mesurer);
     largeurKit = innerWidth; hauteurKit = innerHeight; mesurer();
