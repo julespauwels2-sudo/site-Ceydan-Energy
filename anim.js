@@ -69,18 +69,38 @@
   } else $$(".titre-anim, .gcarte, .solution").forEach((e) => e.classList.add("is-vu"));
 
   /* ---------- Vidéos de fond : lecture seulement quand visibles ---------- */
+  // Mode économie d'énergie de l'iPhone : Safari refuse la lecture automatique. Dans ce cas on affiche
+  // la photo de la vidéo, puis on relance la lecture au premier contact du doigt sur la page
+  // (Safari l'autorise alors), et à chaque contact suivant pour les vidéos encore bloquées.
   const videos = $$("video[data-autoplay]");
+  const enAttente = new Set();
+  const visible = (v) => { const r = v.getBoundingClientRect(); return r.bottom > -200 && r.top < innerHeight + 200; };
+  const lire = (v) => {
+    v.muted = true; v.playsInline = true;
+    if (v.preload === "none") { v.preload = "auto"; v.load(); }
+    const p = v.play();
+    if (p) p.then(() => { enAttente.delete(v); v.classList.add("is-on"); }).catch(() => { v.classList.add("is-on", "en-pause"); enAttente.add(v); armer(); });
+  };
+  let arme = false;
+  const debloquer = () => {
+    arme = false;
+    enAttente.forEach((v) => { if (visible(v)) { const p = v.play(); p && p.then(() => { enAttente.delete(v); v.classList.remove("en-pause"); }).catch(() => {}); } });
+    if (enAttente.size) armer();
+  };
+  function armer() {
+    if (arme) return; arme = true;
+    ["touchend", "click", "pointerup", "keydown"].forEach((ev) => document.addEventListener(ev, debloquer, { once: true, capture: true, passive: true }));
+  }
   if (!reduit && !eco && "IntersectionObserver" in window) {
     const vio = new IntersectionObserver((en) => en.forEach((x) => {
       const v = x.target;
       if (x.isIntersecting) {
-        if (v.preload === "none") { v.preload = "auto"; v.load(); }
-        const p = v.play(); p && p.catch(() => {});
-        v.addEventListener("playing", () => v.classList.add("is-on"), { once: true });
+        v.addEventListener("playing", () => { v.classList.add("is-on"); v.classList.remove("en-pause"); }, { once: true });
+        lire(v);
       } else v.pause();
     }), { rootMargin: "200px 0px" });
     videos.forEach((v) => vio.observe(v));
-  }
+  } else videos.forEach((v) => v.classList.add("is-on"));
 
   /* ---------- Hero : bande-démo de 3 vidéos en fondu enchaîné ---------- */
   const heroV = $(".hero-v");
@@ -94,8 +114,9 @@
       const v = clips[i]; if (!v) return;
       if (v.preload === "none") { v.preload = "auto"; v.load(); }
       try { v.currentTime = 0; } catch (e) {}
-      const p = v.play(); p && p.catch(() => {});
       v.addEventListener("playing", () => heroV.classList.add("video-ok"), { once: true });
+      v.muted = true; v.playsInline = true;
+      const p = v.play(); p && p.catch(() => { enAttente.add(v); armer(); });
     };
     const suivant = () => {
       const prec = clips[k]; k = (k + 1) % clips.length; lancer(k);

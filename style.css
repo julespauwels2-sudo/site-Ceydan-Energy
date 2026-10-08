@@ -1793,3 +1793,6 @@ body.avec-saison{--decal:40px}
   .ann-rejoindre{padding:22px}
   .ann-rejoindre b{font-size:1.2rem}
 }
+/* Les cartes Leaflet restent sous l'en-tête et la barre du bas (leurs calques ont un z-index de 400 à 1000) */
+.ann-carte,.ct-hero__carte,#carte-annuaire,#carte-contact{isolation:isolate}
+.ann-carte,.ct-hero__carte{z-index:0}
