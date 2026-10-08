@@ -798,9 +798,11 @@
       fin.classList.toggle("is-on", f > 0.6);
     }
     addEventListener("scroll", () => { if (!raf) raf = requestAnimationFrame(tick); }, { passive: true });
-    addEventListener("resize", mesurer);
+    let largeurKit = 0, hauteurKit = 0;
+    const remesurer = () => { if (innerWidth !== largeurKit || Math.abs(innerHeight - hauteurKit) > 150) { largeurKit = innerWidth; hauteurKit = innerHeight; mesurer(); } };
+    addEventListener("resize", remesurer);
     addEventListener("load", mesurer);
-    mesurer();
+    largeurKit = innerWidth; hauteurKit = innerHeight; mesurer();
   }
 
   /* ---------- Apparitions ---------- */

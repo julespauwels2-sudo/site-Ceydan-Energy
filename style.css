@@ -454,7 +454,6 @@ p{margin:0 0 1em}
   .kit__scene{position:relative;top:0;height:auto;min-height:0;overflow:visible;padding:56px 0;display:grid;gap:24px}
   .kit__titre{position:static;opacity:1;transform:none;max-width:none}
   .kit__stage{position:static;display:grid;gap:12px}
-  .kit__couche{position:relative;left:auto;top:auto;transform:none!important;width:100%!important;display:grid;gap:12px;background:#fff;border-radius:var(--r-l);padding:16px;border:1px solid var(--trait)}
   .kit__couche>svg{filter:none;max-width:320px;margin-inline:auto}
   .kit__etiquette{position:static;transform:none;width:auto;opacity:1!important;text-align:left!important;pointer-events:auto}
   .kit__etiquette::before,.kit__etiquette::after{display:none}
@@ -938,7 +937,6 @@ html.intro .hero-v__titre .l>span,html.intro .hero-v__sur,html.intro .hero-v__ba
   .gcarte{scroll-snap-align:start;width:76vw;height:430px}
   .cyclone-v__grid,.duo{grid-template-columns:1fr}
   .cyclone-v__illu{max-width:300px;order:-1}
-  .kit--nuit .kit__couche{background:#11291a;border-color:#1d3d27}
   .hero-v__progress{display:none}
   .hero-v__bas{flex-direction:column;align-items:stretch}
   .recherche-hero--verre{max-width:none;min-width:0}
@@ -1745,3 +1743,13 @@ body.avec-saison{--decal:40px}
 
 .barre-mobile{transition:transform .35s var(--ease),opacity .35s}
 @media (max-width:920px){ body.kit-actif .barre-mobile{transform:translateY(140%);opacity:0;pointer-events:none} }
+
+/* Mobile : rendu du kit sans artefact (pas de calques compositeurs superposés au halo) */
+@media (max-width:920px){
+  .kit__halo{display:none}
+  .kit--nuit .kit__scene{background:radial-gradient(ellipse 80% 55% at 50% 52%,rgba(251,187,16,.14),rgba(33,128,52,.08) 45%,transparent 75%)}
+  .kit__couche{will-change:auto;background:transparent!important;box-shadow:none!important;border:0!important;outline:0!important}
+  .kit__couche>svg{display:block;background:transparent!important;filter:none!important;-webkit-filter:none!important}
+  .gamme__piste{will-change:transform;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+  .gcarte{transform:none!important;transition:opacity .8s var(--ease),translate .8s var(--ease)}
+}

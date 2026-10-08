@@ -158,25 +158,39 @@
   }
 
   /* ---------- Gamme : défilement horizontal piloté par le scroll ---------- */
+  // Hauteur calculée une seule fois par largeur d'écran (la barre d'adresse mobile ne la fait plus sauter),
+  // et mouvement lissé image par image pour un rendu fluide au doigt.
   const gamme = $(".gamme"), piste = $(".gamme__piste");
   if (gamme && piste) {
-    let actif = false;
-    const mesurer = () => {
+    let actif = false, deb = 0, cible = 0, pos = 0, boucle = 0, largeur = 0, hautVue = innerHeight;
+    const appliquer = () => { piste.style.transform = `translate3d(${-pos.toFixed(1)}px,0,0)`; };
+    const anim = () => {
+      pos += (cible - pos) * 0.16;
+      if (Math.abs(cible - pos) < 0.4) pos = cible;
+      appliquer();
+      boucle = pos !== cible ? requestAnimationFrame(anim) : 0;
+    };
+    const calculerCible = () => {
+      if (!actif) return;
+      const r = gamme.getBoundingClientRect();
+      const course = gamme.offsetHeight - hautVue;
+      cible = clamp(-r.top / (course || 1)) * deb;
+      if (!boucle) boucle = requestAnimationFrame(anim);
+    };
+    const mesurer = (force) => {
+      if (!force && innerWidth === largeur) return; // simple apparition/disparition de la barre d'adresse : on ne touche à rien
+      largeur = innerWidth; hautVue = innerHeight;
       actif = !reduit;
       if (!actif) { gamme.style.height = ""; piste.style.transform = ""; return; }
-      const deb = piste.scrollWidth - innerWidth + (innerWidth <= 920 ? 32 : 80);
-      gamme.style.height = innerHeight + Math.max(0, deb) * 0.5 + "px";
-      gamme.dataset.deb = Math.max(0, deb);
-      maj();
+      piste.style.transform = "none";
+      deb = Math.max(0, piste.scrollWidth - innerWidth + (innerWidth <= 920 ? 32 : 80));
+      gamme.style.height = hautVue + deb * (innerWidth <= 920 ? 0.75 : 0.5) + "px";
+      calculerCible(); pos = cible; appliquer();
     };
-    const maj = () => {
-      if (!actif) return;
-      const r = gamme.getBoundingClientRect(); const deb = +gamme.dataset.deb;
-      const p = clamp(-r.top / (gamme.offsetHeight - innerHeight || 1));
-      piste.style.transform = `translate3d(${-p * deb}px,0,0)`;
-    };
-    addEventListener("scroll", () => requestAnimationFrame(maj), { passive: true });
-    addEventListener("resize", mesurer); addEventListener("load", mesurer); mesurer();
+    addEventListener("scroll", calculerCible, { passive: true });
+    addEventListener("resize", () => mesurer(false));
+    addEventListener("load", () => mesurer(true));
+    mesurer(true);
   }
 
   /* ---------- Bande vidéo : parallaxe ---------- */
