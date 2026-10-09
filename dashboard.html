@@ -78,7 +78,9 @@
       <div class="filtres">
         <input type="search" id="p-recherche" placeholder="Nom, référence, marque…">
         <select id="p-cat"><option value="">Toutes les catégories</option></select>
+        <select id="p-visible" aria-label="Visibilité"><option value="oui">Visibles sur le site</option><option value="non">Masqués (non publiés)</option><option value="">Tous les produits</option></select>
       </div>
+      <p class="aide" id="p-compte"></p>
       <p class="aide">Les modifications sont visibles sur le site immédiatement. Les prix ne sont montrés qu'aux pros validés (HT).</p>
       <div class="tableau"><table><thead><tr><th>Produit</th><th>Catégorie</th><th>Prix pro</th><th>Stock</th><th>Visible</th><th></th></tr></thead><tbody id="liste-produits"></tbody></table></div>
     </section>
@@ -144,6 +146,6 @@
 
 <script src="config.js?v=df426c7f"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="dashboard.js?v=dc5f860e"></script>
+<script src="dashboard.js?v=162d4438"></script>
 </body>
 </html>

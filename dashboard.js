@@ -200,8 +200,10 @@
     rendreProduits();
   }
   function rendreProduits() {
-    const q = $("#p-recherche").value.toLowerCase(), c = $("#p-cat").value;
-    const l = D.produits.filter((p) => (!c || p.cat === c) && (!q || `${p.nom} ${p.ref} ${p.marque}`.toLowerCase().includes(q)));
+    const q = $("#p-recherche").value.toLowerCase(), c = $("#p-cat").value, v = $("#p-visible").value;
+    const l = D.produits.filter((p) => (!c || p.cat === c) && (!v || (v === "oui" ? p.actif : !p.actif)) && (!q || `${p.nom} ${p.ref} ${p.marque} ${p.ref_dolibarr || ""}`.toLowerCase().includes(q)));
+    const nbV = D.produits.filter((p) => p.actif).length;
+    $("#p-compte").textContent = `${l.length} produit${l.length > 1 ? "s" : ""} affiché${l.length > 1 ? "s" : ""} · ${nbV} visibles sur le site, ${D.produits.length - nbV} masqués. Les produits masqués sont prêts : il suffit d'activer « Visible » (et d'ajouter une photo).`;
     $("#liste-produits").innerHTML = l.map((p) => `<tr data-id="${esc(p.id)}" class="${p.actif ? "" : "is-masque"}">
       <td class="produit-cel"><label class="vignette" title="Changer la photo">${p.img ? `<img src="${esc(p.img)}" alt="" loading="lazy" onerror="this.remove()">` : ""}<span class="vignette__plus" aria-hidden="true">+</span><input type="file" accept="image/*" class="sr" data-photo-rapide aria-label="Changer la photo de ${esc(p.nom)}"></label><span><b>${esc(p.nom)}</b><br><small>${esc(p.marque || "")} ${esc(p.ref || "")}</small></span></td>
       <td>${CATS[p.cat] || esc(p.cat)}</td>
@@ -210,7 +212,7 @@
       <td><label class="inter inter--petit"><input type="checkbox" data-champ="actif" ${p.actif ? "checked" : ""}><span></span></label></td>
       <td><button class="b b--petit" data-editer>Modifier</button></td></tr>`).join("") || `<tr><td colspan="6" class="vide">Aucun produit.</td></tr>`;
   }
-  ["#p-recherche", "#p-cat"].forEach((s) => $(s).addEventListener("input", rendreProduits));
+  ["#p-recherche", "#p-cat", "#p-visible"].forEach((s) => $(s).addEventListener("input", rendreProduits));
   $("#liste-produits").addEventListener("change", async (e) => {
     const tr = e.target.closest("tr[data-id]"); if (!tr) return; const p = D.produits.find((x) => x.id === tr.dataset.id);
     if (e.target.matches("[data-photo-rapide]")) {
