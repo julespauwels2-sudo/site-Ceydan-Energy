@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 <title>Dashboard | Cedyan Energy</title>
 <link rel="icon" href="favicon.png" type="image/png">
-<link rel="stylesheet" href="dash.css?v=0bfbce4d">
+<link rel="stylesheet" href="dash.css?v=b8e7399f">
 </head>
 <body>
 
@@ -74,7 +74,7 @@
 
     <!-- CATALOGUE -->
     <section class="vue" data-vue-p="catalogue">
-      <header class="vue__tete"><h1>Catalogue</h1><button class="b b--jaune" type="button" id="btn-nouveau-produit">Ajouter un produit</button></header>
+      <header class="vue__tete"><h1>Catalogue</h1><div class="vue__actions"><button class="b" type="button" id="btn-categories">Catégories</button><button class="b b--jaune" type="button" id="btn-nouveau-produit">Ajouter un produit</button></div></header>
       <div class="filtres">
         <input type="search" id="p-recherche" placeholder="Nom, référence, marque…">
         <select id="p-cat"><option value="">Toutes les catégories</option></select>
@@ -82,7 +82,14 @@
       </div>
       <p class="aide" id="p-compte"></p>
       <p class="aide">Les modifications sont visibles sur le site immédiatement. Les prix ne sont montrés qu'aux pros validés (HT).</p>
-      <div class="tableau"><table><thead><tr><th>Produit</th><th>Catégorie</th><th>Prix pro</th><th>Stock</th><th>Visible</th><th></th></tr></thead><tbody id="liste-produits"></tbody></table></div>
+      <div class="lot" id="p-lot" hidden><b id="p-lot-n"></b>
+        <button class="b b--petit" type="button" data-lot="afficher">Afficher sur le site</button>
+        <button class="b b--petit" type="button" data-lot="masquer">Masquer</button>
+        <select id="p-lot-cat" aria-label="Changer de catégorie"></select>
+        <button class="b b--petit b--danger" type="button" data-lot="supprimer" id="p-lot-suppr">Supprimer</button>
+        <button class="b b--petit" type="button" data-lot="annuler">Tout désélectionner</button>
+      </div>
+      <div class="tableau"><table class="table-produits"><thead><tr><th class="sel-cel"></th><th>Produit</th><th>Prix pro</th><th title="Annotation interne, jamais visible sur le site">Dispo interne 🔒</th><th title="Badge « En stock » affiché sur le site">Stock (site)</th><th>Visible</th><th></th></tr></thead><tbody id="liste-produits"></tbody></table></div>
     </section>
 
     <!-- INSTALLATEURS -->
@@ -146,6 +153,6 @@
 
 <script src="config.js?v=df426c7f"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="dashboard.js?v=162d4438"></script>
+<script src="dashboard.js?v=34386925"></script>
 </body>
 </html>

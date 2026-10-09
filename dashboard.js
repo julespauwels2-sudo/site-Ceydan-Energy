@@ -19,7 +19,7 @@
   const STATUTS = { nouveau: "Nouveau", en_cours: "En cours", devis_envoye: "Devis envoyé", gagne: "Gagné", perdu: "Perdu" };
   const TYPES = { devis: "Devis", questionnaire: "Questionnaire", "pack-cyclone": "Pack cyclone", contact: "Contact", "compte-pro": "Compte pro" };
   const PRIO = { haute: "Au plus vite", moyenne: "D'ici 3 mois", basse: "Se renseigne" };
-  const CATS = { kits: "Kits solaires", panneaux: "Panneaux", regulateurs: "Régulateurs", onduleurs: "Onduleurs", convertisseurs: "Convertisseurs", batteries: "Batteries", structures: "Fixations", cables: "Câbles", monitoring: "Monitoring", protections: "Protections" };
+  let CATS = { kits: "Kits solaires", panneaux: "Panneaux", regulateurs: "Régulateurs", onduleurs: "Onduleurs", convertisseurs: "Convertisseurs", batteries: "Batteries", structures: "Fixations", cables: "Câbles", monitoring: "Monitoring", protections: "Protections" };
   const COMMUNES = ["Les Abymes", "Anse-Bertrand", "Baie-Mahault", "Baillif", "Basse-Terre", "Bouillante", "Capesterre-Belle-Eau", "Capesterre-de-Marie-Galante", "Deshaies", "La Désirade", "Gourbeyre", "Le Gosier", "Goyave", "Grand-Bourg", "Lamentin", "Morne-à-l'Eau", "Le Moule", "Petit-Bourg", "Petit-Canal", "Pointe-à-Pitre", "Pointe-Noire", "Port-Louis", "Saint-Claude", "Saint-François", "Saint-Louis", "Sainte-Anne", "Sainte-Rose", "Terre-de-Bas", "Terre-de-Haut", "Trois-Rivières", "Vieux-Fort", "Vieux-Habitants", "Martinique", "Saint-Martin", "Saint-Barthélemy"];
   const ZONES = ["Grande-Terre", "Basse-Terre", "Marie-Galante", "Les Saintes", "La Désirade", "Martinique", "Saint-Martin", "Saint-Barthélemy"];
   const SPECS = ["Raccordé réseau", "Site isolé", "Batteries", "Pack cyclone"];
@@ -192,29 +192,64 @@
   /* =========================================================
      CATALOGUE
      ========================================================= */
-  $("#p-cat").insertAdjacentHTML("beforeend", Object.entries(CATS).map(([k, v]) => `<option value="${k}">${v}</option>`).join(""));
+  // Catégories : lues dans la base (modifiables), avec la liste d'origine en secours
+  D.cats = Object.entries(CATS).map(([id, nom], k) => ({ id, nom, ordre: k + 1 }));
+  const optionsCats = (sel) => D.cats.map((c) => `<option value="${esc(c.id)}" ${c.id === sel ? "selected" : ""}>${esc(c.nom)}</option>`).join("");
+  function majSelectCats() { const s = $("#p-cat"), v = s.value; s.innerHTML = '<option value="">Toutes les catégories</option>' + optionsCats(v); }
+  async function chargerCategories() {
+    const { data } = await sb.from("categories").select("*").order("ordre");
+    if (data && data.length) { D.cats = data; CATS = Object.fromEntries(data.map((c) => [c.id, c.nom])); }
+    majSelectCats();
+  }
+  const DISPO = { "": "—", stock: "En stock", commande: "Sur commande" };
+  D.prive = {}; D.sel = new Set(); D.replies = new Set();
   async function chargerProduits() {
-    const { data, error } = await sb.from("produits").select("*, tarifs(prix)").order("ordre");
-    if (error) return toast("Erreur : " + error.message);
-    D.produits = (data || []).map((p) => ({ ...p, prix: p.tarifs ? (Array.isArray(p.tarifs) ? (p.tarifs[0] || {}).prix : p.tarifs.prix) : null }));
+    const [r, rp] = await Promise.all([sb.from("produits").select("*, tarifs(prix)").order("ordre"), sb.from("produits_prive").select("*"), chargerCategories()]);
+    if (r.error) return toast("Erreur : " + r.error.message);
+    D.produits = (r.data || []).map((p) => ({ ...p, prix: p.tarifs ? (Array.isArray(p.tarifs) ? (p.tarifs[0] || {}).prix : p.tarifs.prix) : null }));
+    D.prive = Object.fromEntries((rp.data || []).map((x) => [x.produit_id, x]));
+    D.sel.forEach((id) => { if (!D.produits.some((p) => p.id === id)) D.sel.delete(id); });
     rendreProduits();
   }
-  function rendreProduits() {
-    const q = $("#p-recherche").value.toLowerCase(), c = $("#p-cat").value, v = $("#p-visible").value;
-    const l = D.produits.filter((p) => (!c || p.cat === c) && (!v || (v === "oui" ? p.actif : !p.actif)) && (!q || `${p.nom} ${p.ref} ${p.marque} ${p.ref_dolibarr || ""}`.toLowerCase().includes(q)));
-    const nbV = D.produits.filter((p) => p.actif).length;
-    $("#p-compte").textContent = `${l.length} produit${l.length > 1 ? "s" : ""} affiché${l.length > 1 ? "s" : ""} · ${nbV} visibles sur le site, ${D.produits.length - nbV} masqués. Les produits masqués sont prêts : il suffit d'activer « Visible » (et d'ajouter une photo).`;
-    $("#liste-produits").innerHTML = l.map((p) => `<tr data-id="${esc(p.id)}" class="${p.actif ? "" : "is-masque"}">
-      <td class="produit-cel"><label class="vignette" title="Changer la photo">${p.img ? `<img src="${esc(p.img)}" alt="" loading="lazy" onerror="this.remove()">` : ""}<span class="vignette__plus" aria-hidden="true">+</span><input type="file" accept="image/*" class="sr" data-photo-rapide aria-label="Changer la photo de ${esc(p.nom)}"></label><span><b>${esc(p.nom)}</b><br><small>${esc(p.marque || "")} ${esc(p.ref || "")}</small></span></td>
-      <td>${CATS[p.cat] || esc(p.cat)}</td>
+  const ligneProduit = (p) => { const pv = D.prive[p.id] || {}; return `<tr data-id="${esc(p.id)}" class="${p.actif ? "" : "is-masque"} ${D.sel.has(p.id) ? "is-sel" : ""}">
+      <td class="sel-cel"><input type="checkbox" data-sel ${D.sel.has(p.id) ? "checked" : ""} aria-label="Sélectionner ${esc(p.nom)}"></td>
+      <td class="produit-cel"><label class="vignette" title="Changer la photo">${p.img ? `<img src="${esc(p.img)}" alt="" loading="lazy" onerror="this.remove()">` : ""}<span class="vignette__plus" aria-hidden="true">+</span><input type="file" accept="image/*" class="sr" data-photo-rapide aria-label="Changer la photo de ${esc(p.nom)}"></label><span><b>${esc(p.nom)}</b><br><small>${esc(p.marque || "")} ${esc(p.ref || "")}</small>${pv.note ? `<br><small class="note-int" title="Note interne">✎ ${esc(pv.note)}</small>` : ""}</span></td>
       <td><input class="prix-in" type="number" min="0" step="0.01" value="${p.prix ?? ""}" placeholder="Sur devis" aria-label="Prix pro HT"></td>
+      <td><select class="dispo-in dispo--${pv.dispo || "vide"}" data-dispo aria-label="Disponibilité interne">${Object.entries(DISPO).map(([k, v]) => `<option value="${k}" ${(pv.dispo || "") === k ? "selected" : ""}>${v}</option>`).join("")}</select></td>
       <td><label class="inter inter--petit"><input type="checkbox" data-champ="stock" ${p.stock ? "checked" : ""}><span></span></label></td>
       <td><label class="inter inter--petit"><input type="checkbox" data-champ="actif" ${p.actif ? "checked" : ""}><span></span></label></td>
-      <td><button class="b b--petit" data-editer>Modifier</button></td></tr>`).join("") || `<tr><td colspan="6" class="vide">Aucun produit.</td></tr>`;
+      <td><button class="b b--petit" data-editer>Modifier</button></td></tr>`; };
+  function rendreProduits() {
+    const q = $("#p-recherche").value.toLowerCase(), c = $("#p-cat").value, v = $("#p-visible").value;
+    const l = D.produits.filter((p) => (!c || p.cat === c) && (!v || (v === "oui" ? p.actif : !p.actif)) && (!q || `${p.nom} ${p.ref} ${p.marque} ${p.ref_dolibarr || ""} ${(D.prive[p.id] || {}).note || ""}`.toLowerCase().includes(q)));
+    const nbV = D.produits.filter((p) => p.actif).length;
+    $("#p-compte").textContent = `${l.length} produit${l.length > 1 ? "s" : ""} affiché${l.length > 1 ? "s" : ""} · ${nbV} visibles sur le site, ${D.produits.length - nbV} masqués.`;
+    const groupes = D.cats.map((cat) => ({ cat, l: l.filter((p) => p.cat === cat.id) })).filter((g) => g.l.length);
+    const orphelins = l.filter((p) => !D.cats.some((x) => x.id === p.cat)); if (orphelins.length) groupes.push({ cat: { id: "_", nom: "Sans catégorie" }, l: orphelins });
+    const ferme = (id) => D.replies.has(id) && !q;
+    $("#liste-produits").innerHTML = groupes.map((g) => { const tous = g.l.every((p) => D.sel.has(p.id)); return `<tr class="groupe ${ferme(g.cat.id) ? "is-ferme" : ""}" data-groupe="${esc(g.cat.id)}"><td class="sel-cel"><input type="checkbox" data-sel-groupe ${tous ? "checked" : ""} aria-label="Tout sélectionner dans ${esc(g.cat.nom)}"></td><td colspan="6"><button type="button" class="groupe__btn" data-replier><span class="groupe__chev" aria-hidden="true">▾</span>${esc(g.cat.nom)} <span class="groupe__n">${g.l.length}</span></button></td></tr>${ferme(g.cat.id) ? "" : g.l.map(ligneProduit).join("")}`; }).join("") || `<tr><td colspan="7" class="vide">Aucun produit.</td></tr>`;
+    majSelection();
+  }
+  function majSelection() {
+    const n = D.sel.size, barre = $("#p-lot");
+    barre.hidden = !n; $("#p-lot-n").textContent = `${n} produit${n > 1 ? "s" : ""} sélectionné${n > 1 ? "s" : ""}`;
+    $("#p-lot-cat").innerHTML = '<option value="">Changer de catégorie…</option>' + optionsCats("");
+    $("#p-lot-suppr").hidden = moi.role !== "patron";
   }
   ["#p-recherche", "#p-cat", "#p-visible"].forEach((s) => $(s).addEventListener("input", rendreProduits));
   $("#liste-produits").addEventListener("change", async (e) => {
+    if (e.target.matches("[data-sel-groupe]")) {
+      const g = e.target.closest("tr").dataset.groupe, ids = $$(`#liste-produits tr[data-id]`).filter((tr) => (D.produits.find((p) => p.id === tr.dataset.id) || {}).cat === g || (g === "_" && !D.cats.some((c) => c.id === (D.produits.find((p) => p.id === tr.dataset.id) || {}).cat))).map((tr) => tr.dataset.id);
+      ids.forEach((id) => (e.target.checked ? D.sel.add(id) : D.sel.delete(id))); rendreProduits(); return;
+    }
     const tr = e.target.closest("tr[data-id]"); if (!tr) return; const p = D.produits.find((x) => x.id === tr.dataset.id);
+    if (e.target.matches("[data-sel]")) { e.target.checked ? D.sel.add(p.id) : D.sel.delete(p.id); tr.classList.toggle("is-sel", e.target.checked); majSelection(); return; }
+    if (e.target.matches("[data-dispo]")) {
+      const v = e.target.value || null, pv = D.prive[p.id] || {};
+      const { error } = await sb.from("produits_prive").upsert({ produit_id: p.id, dispo: v, note: pv.note || null, updated_at: new Date().toISOString(), updated_by: moi.email });
+      if (error) return toast("Erreur : " + error.message);
+      D.prive[p.id] = { ...pv, produit_id: p.id, dispo: v }; e.target.className = `dispo-in dispo--${v || "vide"}`; toast("Annotation enregistrée (interne)"); return;
+    }
     if (e.target.matches("[data-photo-rapide]")) {
       const f = e.target.files[0]; if (!f) return; const v = $(".vignette", tr); v.classList.add("is-envoi");
       try {
@@ -239,7 +274,7 @@
     <form id="form-produit" class="formulaire">
       <label class="champ">Nom affiché<input name="nom" required value="${esc(p.nom || "")}" placeholder="Batterie lithium 4,8 kWh"></label>
       <div class="ligne"><label class="champ">Marque<input name="marque" value="${esc(p.marque || "")}"></label><label class="champ">Référence<input name="ref" value="${esc(p.ref || "")}"></label></div>
-      <div class="ligne"><label class="champ">Catégorie<select name="cat">${Object.entries(CATS).map(([k, v]) => `<option value="${k}" ${k === p.cat ? "selected" : ""}>${v}</option>`).join("")}</select></label><label class="champ">Prix pro HT (€)<input name="prix" type="number" step="0.01" min="0" value="${p.prix ?? ""}" placeholder="Vide = sur devis"></label></div>
+      <div class="ligne"><label class="champ">Catégorie<select name="cat">${optionsCats(p.cat)}</select></label><label class="champ">Prix pro HT (€)<input name="prix" type="number" step="0.01" min="0" value="${p.prix ?? ""}" placeholder="Vide = sur devis"></label></div>
       <div class="champ">Photo
         <label class="photo-zone" id="photo-zone">
           <span class="photo-zone__apercu" id="photo-apercu">${p.img ? `<img src="${esc(p.img)}" alt="">` : ""}</span>
@@ -258,7 +293,11 @@
         <div class="ligne"><label class="champ">Type de kit<select name="kit_type">${[["isoles", "Site isolé"], ["reseau", "Raccordé réseau"], ["secours", "Pack Détresse Cyclone"]].map(([k, v]) => `<option value="${k}" ${(p.extra || {}).type === k ? "selected" : ""}>${v}</option>`).join("")}</select></label><label class="champ">Pour qui<input name="kit_pour" value="${esc((p.extra || {}).pour || "")}" placeholder="Maison secondaire, gîte…"></label></div>
         <label class="champ">Composition du kit<textarea name="kit_detail" rows="3" placeholder="6 panneaux 500 Wc, convertisseur Victron…">${esc((p.extra || {}).detail || "")}</textarea></label>
       </fieldset>
-      <div class="ligne"><label class="inter"><input type="checkbox" name="stock" ${p.stock !== false ? "checked" : ""}><span></span>En stock</label><label class="inter"><input type="checkbox" name="actif" ${p.actif !== false ? "checked" : ""}><span></span>Visible sur le site</label></div>
+      <fieldset class="champ interne"><legend>Interne <span class="aide-inline">(jamais affiché sur le site)</span></legend>
+        <div class="ligne"><label class="champ">Disponibilité réelle<select name="dispo">${Object.entries(DISPO).map(([k, v]) => `<option value="${k}" ${((D.prive[p.id] || {}).dispo || "") === k ? "selected" : ""}>${v}</option>`).join("")}</select></label></div>
+        <label class="champ">Note interne<textarea name="note" rows="2" placeholder="Délai fournisseur, emplacement en réserve, client intéressé…">${esc((D.prive[p.id] || {}).note || "")}</textarea></label>
+      </fieldset>
+      <div class="ligne"><label class="inter"><input type="checkbox" name="stock" ${p.stock !== false ? "checked" : ""}><span></span>Afficher « En stock » sur le site</label><label class="inter"><input type="checkbox" name="actif" ${p.actif !== false ? "checked" : ""}><span></span>Visible sur le site</label></div>
       <div class="actions"><button class="b b--jaune" type="submit">Enregistrer</button>${p.id && moi.role === "patron" ? '<button class="b b--danger" type="button" id="p-supprimer">Supprimer</button>' : ""}</div>
     </form>`;
   /* Photos : compressées dans le navigateur (WebP, 1200 px max) puis envoyées dans le stockage « produits ». */
@@ -321,6 +360,8 @@
       const prix = f.get("prix");
       const r2 = prix === "" ? await sb.from("tarifs").delete().eq("produit_id", id) : await sb.from("tarifs").upsert({ produit_id: id, prix: +prix });
       if (r2.error) return toast("Erreur prix : " + r2.error.message);
+      const r3 = await sb.from("produits_prive").upsert({ produit_id: id, dispo: f.get("dispo") || null, note: (f.get("note") || "").trim() || null, updated_at: new Date().toISOString(), updated_by: moi.email });
+      if (r3.error) return toast("Erreur annotation : " + r3.error.message);
       fermerPanneau(); await chargerProduits(); toast("Produit enregistré");
     });
     const s = $("#p-supprimer"); s && s.addEventListener("click", async () => {
@@ -330,7 +371,79 @@
       fermerPanneau(); await chargerProduits(); toast("Produit supprimé");
     });
   }
-  $("#liste-produits").addEventListener("click", (e) => { if (!e.target.closest("[data-editer]")) return; const tr = e.target.closest("tr[data-id]"); editerProduit(D.produits.find((x) => x.id === tr.dataset.id)); });
+  $("#liste-produits").addEventListener("click", (e) => {
+    const rp = e.target.closest("[data-replier]");
+    if (rp) { const g = rp.closest("tr").dataset.groupe; D.replies.has(g) ? D.replies.delete(g) : D.replies.add(g); rendreProduits(); return; }
+    if (!e.target.closest("[data-editer]")) return; const tr = e.target.closest("tr[data-id]"); editerProduit(D.produits.find((x) => x.id === tr.dataset.id)); });
+  async function actionLot(maj, message) {
+    const ids = [...D.sel]; if (!ids.length) return;
+    const { error } = await sb.from("produits").update({ ...maj, updated_at: new Date().toISOString() }).in("id", ids);
+    if (error) return toast("Erreur : " + error.message);
+    await chargerProduits(); toast(message);
+  }
+  $("#p-lot").addEventListener("click", async (e) => {
+    const b = e.target.closest("[data-lot]"); if (!b) return; const n = D.sel.size;
+    if (b.dataset.lot === "afficher") return actionLot({ actif: true }, `${n} produit(s) visibles sur le site`);
+    if (b.dataset.lot === "masquer") return actionLot({ actif: false }, `${n} produit(s) masqués`);
+    if (b.dataset.lot === "annuler") { D.sel.clear(); return rendreProduits(); }
+    if (b.dataset.lot === "supprimer") {
+      if (!confirm(`Supprimer définitivement ${n} produit(s) du catalogue ? Leurs prix et annotations seront aussi supprimés. (Pour les retirer du site sans les perdre, utilisez plutôt « Masquer ».)`)) return;
+      const ids = [...D.sel];
+      const { error } = await sb.from("produits").delete().in("id", ids);
+      if (error) return toast("Erreur : " + error.message);
+      D.sel.clear(); await chargerProduits(); toast(`${n} produit(s) supprimés`);
+    }
+  });
+  $("#p-lot-cat").addEventListener("change", (e) => { const c = e.target.value; if (!c) return; actionLot({ cat: c }, `${D.sel.size} produit(s) déplacés dans « ${CATS[c]} »`); });
+
+  /* ---------- Gestion des catégories ---------- */
+  function gererCategories() {
+    const nb = (id) => D.produits.filter((p) => p.cat === id).length;
+    ouvrirPanneau(`<h2 id="panneau-titre">Catégories</h2>
+      <p class="aide">Elles organisent le catalogue du site et ce tableau. Renommez-les, changez leur ordre, ajoutez-en ou supprimez-les.</p>
+      <ul class="cats-liste">${D.cats.map((c, k) => `<li data-cat-id="${esc(c.id)}">
+        <div class="cats-ordre"><button type="button" data-cat-monter ${k === 0 ? "disabled" : ""} aria-label="Monter">▲</button><button type="button" data-cat-descendre ${k === D.cats.length - 1 ? "disabled" : ""} aria-label="Descendre">▼</button></div>
+        <div class="cats-champs"><input class="input" data-cat-nom value="${esc(c.nom)}" aria-label="Nom de la catégorie"><input class="input input--petit" data-cat-desc value="${esc(c.description || "")}" placeholder="Phrase affichée en haut de la catégorie sur le site" aria-label="Description"></div>
+        <span class="tag" title="Produits dans cette catégorie">${nb(c.id)}</span>
+        ${c.id === "kits" ? '<span class="sous" title="Catégorie utilisée par la page Kits du site">fixe</span>' : `<button type="button" class="b b--petit b--danger" data-cat-suppr aria-label="Supprimer ${esc(c.nom)}">🗑</button>`}
+      </li>`).join("")}</ul>
+      <form id="form-cat" class="ligne cats-ajout"><input class="input" name="nom" required placeholder="Nouvelle catégorie (ex. Bornes de recharge)"><button class="b b--jaune" type="submit">Ajouter</button></form>`);
+    const liste = $(".cats-liste");
+    liste.addEventListener("change", async (e) => {
+      const li = e.target.closest("[data-cat-id]"); if (!li) return; const id = li.dataset.catId;
+      const maj = e.target.matches("[data-cat-nom]") ? { nom: e.target.value.trim() } : e.target.matches("[data-cat-desc]") ? { description: e.target.value.trim() || null } : null;
+      if (!maj || maj.nom === "") return toast("Le nom ne peut pas être vide");
+      const { error } = await sb.from("categories").update(maj).eq("id", id); if (error) return toast("Erreur : " + error.message);
+      await chargerCategories(); rendreProduits(); toast("Catégorie mise à jour");
+    });
+    liste.addEventListener("click", async (e) => {
+      const li = e.target.closest("[data-cat-id]"); if (!li) return; const id = li.dataset.catId; const k = D.cats.findIndex((c) => c.id === id);
+      if (e.target.closest("[data-cat-monter],[data-cat-descendre]")) {
+        const j = e.target.closest("[data-cat-monter]") ? k - 1 : k + 1; if (j < 0 || j >= D.cats.length) return;
+        const l = [...D.cats]; [l[k], l[j]] = [l[j], l[k]];
+        await Promise.all(l.map((c, i) => sb.from("categories").update({ ordre: i + 1 }).eq("id", c.id)));
+        await chargerCategories(); rendreProduits(); gererCategories(); return;
+      }
+      if (e.target.closest("[data-cat-suppr]")) {
+        const n = nb(id), c = D.cats[k];
+        if (n) {
+          const autres = D.cats.filter((x) => x.id !== id);
+          const choix = prompt(`« ${c.nom} » contient ${n} produit(s). Dans quelle catégorie les déplacer avant de la supprimer ?\n\n${autres.map((x, i) => `${i + 1}. ${x.nom}`).join("\n")}\n\nTapez le numéro :`);
+          const cible = autres[(+choix || 0) - 1]; if (!cible) return toast("Suppression annulée");
+          const { error } = await sb.from("produits").update({ cat: cible.id }).eq("cat", id); if (error) return toast("Erreur : " + error.message);
+        } else if (!confirm(`Supprimer la catégorie « ${c.nom} » ?`)) return;
+        const { error } = await sb.from("categories").delete().eq("id", id); if (error) return toast("Erreur : " + error.message);
+        await chargerProduits(); gererCategories(); toast("Catégorie supprimée");
+      }
+    });
+    $("#form-cat").addEventListener("submit", async (e) => {
+      e.preventDefault(); const nom = new FormData(e.target).get("nom").trim(); if (!nom) return;
+      let id = slug(nom) || "categorie"; while (D.cats.some((c) => c.id === id)) id += "-2";
+      const { error } = await sb.from("categories").insert({ id, nom, ordre: D.cats.length + 1 }); if (error) return toast("Erreur : " + error.message);
+      await chargerCategories(); rendreProduits(); gererCategories(); toast("Catégorie ajoutée");
+    });
+  }
+  $("#btn-categories").addEventListener("click", gererCategories);
   $("#btn-nouveau-produit").addEventListener("click", () => editerProduit({ cat: $("#p-cat").value || "batteries", stock: true, actif: true }));
 
   /* =========================================================

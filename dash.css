@@ -214,3 +214,33 @@ table.pros td{padding:10px 14px}
 .ordre button:disabled{opacity:.3;cursor:default}
 .ordre span{font-weight:900;font-size:.95rem}
 table.pros td:nth-child(4){white-space:nowrap}
+
+/* Catalogue : groupes par catégorie, sélection multiple, annotation interne */
+.vue__actions{display:flex;gap:8px;flex-wrap:wrap}
+.table-produits .sel-cel{width:38px;text-align:center}
+.table-produits .sel-cel input{width:18px;height:18px;accent-color:var(--vert);cursor:pointer}
+.table-produits tr.groupe td{background:var(--fond);border-top:2px solid var(--trait);padding:10px 14px;position:sticky;top:0;z-index:2}
+.groupe__btn{border:0;background:none;font:inherit;font-weight:800;font-size:1rem;cursor:pointer;display:inline-flex;align-items:center;gap:8px;color:var(--encre)}
+.groupe__chev{display:inline-block;transition:transform .2s}
+.groupe.is-ferme .groupe__chev{transform:rotate(-90deg)}
+.groupe__n{font-size:.78rem;font-weight:800;padding:2px 9px;border-radius:999px;background:#fff;border:1px solid var(--trait);color:var(--gris)}
+.table-produits tr.is-sel td{background:#fff8e1}
+.dispo-in{border:1.5px solid var(--trait);border-radius:999px;padding:5px 10px;font:inherit;font-size:.82rem;font-weight:700;background:#fff;cursor:pointer}
+.dispo--stock{background:#e5f4e7;border-color:#b9dfc0;color:var(--vert-f)}
+.dispo--commande{background:#fff4d6;border-color:#f3dc9a;color:#8a5a00}
+.note-int{color:#8a5a00}
+.lot{position:sticky;top:8px;z-index:5;display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 14px;margin:0 0 12px;border-radius:14px;background:var(--nuit);color:#fff;box-shadow:0 14px 30px -14px rgba(0,0,0,.5)}
+.lot b{margin-right:6px}
+.lot select{border-radius:999px;padding:6px 10px;border:0;font:inherit;font-size:.85rem}
+.interne{border:1.5px dashed #f3dc9a;border-radius:12px;padding:12px;background:#fffbea}
+.interne legend{font-weight:800;padding:0 6px}
+.cats-liste{list-style:none;padding:0;margin:14px 0;display:grid;gap:8px}
+.cats-liste li{display:grid;grid-template-columns:auto 1fr auto auto;gap:10px;align-items:center;padding:10px;border:1px solid var(--trait);border-radius:12px;background:#fff}
+.cats-ordre{display:grid;gap:2px}
+.cats-ordre button{width:28px;height:22px;border:1.5px solid var(--trait);border-radius:6px;background:#fff;cursor:pointer;font-size:.65rem}
+.cats-ordre button:disabled{opacity:.3;cursor:default}
+.cats-champs{display:grid;gap:6px}
+.input--petit{font-size:.82rem;padding:6px 10px}
+.cats-ajout{margin-top:6px}
+.cats-liste .input,.cats-ajout .input{width:100%;padding:9px 12px;border:1.5px solid var(--trait);border-radius:10px;font:inherit;background:#fff}
+.lot select{background:#fff;color:var(--encre);font-weight:700}

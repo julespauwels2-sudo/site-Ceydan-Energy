@@ -36,11 +36,14 @@
     const t = (p, ms) => Promise.race([p, new Promise((_, ko) => setTimeout(() => ko("délai"), ms))]);
     try {
       const ok = (p) => p.catch(() => null);
-      const [prods, parts, regl] = await t(Promise.all([
+      const [prods, parts, regl, cats] = await t(Promise.all([
         ok(rest("produits?select=id,cat,marque,nom,ref,img,stock,extra,description,caracteristiques,fiche_technique&actif=eq.true&order=ordre")),
         ok(rest("partenaires?select=nom,commune,zones,rge,specialites,telephone,email,siren,exemple,ordre,lien_cedyan&actif=eq.true&exemple=eq.false&order=ordre,created_at")),
         ok(rest("reglages?select=cle,valeur")),
+        ok(rest("categories?select=id,nom,description&order=ordre")),
       ]), 2500);
+      // Catégories gérées depuis le dashboard (description d'origine gardée si vide)
+      if (cats && cats.length) { const avant = Object.fromEntries((window.CATEGORIES || []).map((c) => [c.id, c.desc])); window.CATEGORIES = cats.map((c) => ({ id: c.id, nom: c.nom, desc: c.description || avant[c.id] || "" })); }
       if (prods && prods.length) {
         const fiche = (p) => ({ description: p.description || "", caracteristiques: p.caracteristiques || [], fiche: p.fiche_technique || "" });
         window.PRODUITS = prods.filter((p) => p.cat !== "kits").map((p) => ({ id: p.id, cat: p.cat, marque: p.marque, nom: p.nom, ref: p.ref, img: p.img, stock: p.stock, ...fiche(p) }));
@@ -450,7 +453,8 @@
     if (qUrl && rech) rech.value = qUrl;
     let cat = (location.hash || "").slice(1) || "tout";
     const tous = tousProduits();
-    const cats = [{ id: "tout", nom: "Tout le matériel" }].concat(window.CATEGORIES);
+    // Une catégorie sans produit visible n'apparaît pas dans les filtres
+    const cats = [{ id: "tout", nom: "Tout le matériel" }].concat(window.CATEGORIES.filter((c) => tous.some((p) => p.cat === c.id)));
     filtres.insertAdjacentHTML("beforeend", cats.map((c) => {
       const n = c.id === "tout" ? tous.length : tous.filter((p) => p.cat === c.id).length;
       return `<button type="button" data-cat="${c.id}" aria-pressed="false">${esc(c.nom)}<small>${n}</small></button>`;

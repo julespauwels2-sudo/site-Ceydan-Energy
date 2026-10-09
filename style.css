@@ -1796,3 +1796,25 @@ body.avec-saison{--decal:40px}
 /* Les cartes Leaflet restent sous l'en-tête et la barre du bas (leurs calques ont un z-index de 400 à 1000) */
 .ann-carte,.ct-hero__carte,#carte-annuaire,#carte-contact{isolation:isolate}
 .ann-carte,.ct-hero__carte{z-index:0}
+
+/* =====================================================================
+   Photos produits « détourées » : le fond blanc ou gris clair des photos
+   fournisseurs se fond dans la carte (multiplication + léger éclaircissement)
+   ===================================================================== */
+.produit__img>img,.gcarte__img img,.fiche__img>img,.sugg__img>img,.pile__carte img,.solution__img img,.devis-ligne img,.tiroir img{mix-blend-mode:multiply;filter:brightness(1.07) contrast(1.05)}
+.produit__img,.gcarte__img,.fiche__img,.sugg__img,.pile__carte{isolation:isolate}
+/* Carte sombre de la pile : la photo est posée sur une tuile blanche assumée */
+.pile__carte--4 img{mix-blend-mode:normal;filter:brightness(1.07) contrast(1.05);background:#fff;border-radius:18px;padding:10%;box-sizing:border-box;box-shadow:0 10px 24px -12px rgba(0,0,0,.6)}
+
+/* Gamme : le texte ne passe plus sous la flèche */
+.gcarte__txt{padding-right:84px}
+.gcarte__txt span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Pile de produits sur mobile : grille 2 × 2 sans chevauchement, noms entiers */
+@media (max-width:920px){
+  .pile{height:auto;max-width:none;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .pile__carte{position:relative;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;width:auto!important;translate:none!important;padding:16% 14% 26%;z-index:auto}
+  .pile__carte--1{rotate:-2deg}.pile__carte--2{rotate:2deg}.pile__carte--3{rotate:1.5deg}.pile__carte--4{rotate:-1.5deg}
+  .pile__carte figcaption{left:12px;right:12px;bottom:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .gcarte__txt{padding-right:66px}
+}
