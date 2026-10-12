@@ -82,16 +82,6 @@
   $$("[data-tel]").forEach((a) => { a.href = "tel:" + C.telephoneLien; if (!a.children.length && !a.dataset.garde) a.textContent = C.telephone; });
   $$("[data-mail]").forEach((a) => { a.href = "mailto:" + C.email; if (!a.children.length) a.textContent = C.email; });
   $$("[data-horaires]").forEach((e) => (e.textContent = C.horaires));
-  // Heure de la Guadeloupe et ouverture du magasin (lun-jeu 8h30-16h, ven 8h30-13h)
-  const heureLocale = () => {
-    const els = $$("[data-heure-locale]"); if (!els.length) return;
-    let p; try { p = Object.fromEntries(new Intl.DateTimeFormat("fr-FR", { timeZone: "America/Guadeloupe", weekday: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(new Date()).map((x) => [x.type, x.value])); } catch (e) { return; }
-    const j = { "lun.": 1, "mar.": 2, "mer.": 3, "jeu.": 4, "ven.": 5, "sam.": 6, "dim.": 0 }[p.weekday], m = +p.hour * 60 + +p.minute;
-    const fin = j >= 1 && j <= 4 ? 16 * 60 : j === 5 ? 13 * 60 : 0, ouvert = fin && m >= 8 * 60 + 30 && m < fin;
-    const txt = `Il est ${p.hour}h${p.minute} à Baie-Mahault · ${ouvert ? "le magasin est ouvert" : "le magasin est fermé"}`;
-    els.forEach((e) => { e.textContent = txt; e.hidden = false; e.classList.toggle("est-ouvert", !!ouvert); });
-  };
-  heureLocale(); setInterval(heureLocale, 30000);
   $$("[data-adresse]").forEach((e) => (e.textContent = C.adresse));
   $$("[data-maps]").forEach((a) => (a.href = C.mapsLien));
   $$("[data-wa]").forEach((a) => {
