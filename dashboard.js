@@ -443,6 +443,63 @@
       await chargerCategories(); rendreProduits(); gererCategories(); toast("Catégorie ajoutée");
     });
   }
+  /* ---------- Import de photos en masse ----------
+     Les fichiers sont reconnus par leur nom : référence fabricant (ex. BAT512110710.png),
+     référence affichée ou mots du nom du produit. Chaque correspondance reste modifiable. */
+  const normal = (t) => String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "");
+  const mots = (t) => String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").split(/[^a-z0-9]+/).filter((m) => m.length > 1);
+  function devinerProduit(nomFichier) {
+    const base = nomFichier.replace(/\.[a-z0-9]+$/i, ""), n = normal(base);
+    let meilleur = null, score = 0;
+    D.produits.forEach((p) => {
+      const cles = [p.ref_dolibarr, p.ref, p.id.replace(/^d-/, "")].map(normal).filter((c) => c.length >= 4);
+      let s = 0;
+      if (cles.some((c) => c === n)) s = 100;
+      else if (cles.some((c) => n.includes(c) || (n.length >= 6 && c.includes(n)))) s = 90;
+      else { const mf = mots(base), mp = new Set(mots(p.nom + " " + p.ref + " " + p.marque)); const com = mf.filter((m) => mp.has(m)).length; if (mf.length) s = Math.round((com / mf.length) * 70); }
+      if (s > score) { score = s; meilleur = p; }
+    });
+    return score >= 45 ? { p: meilleur, score } : { p: null, score };
+  }
+  function importerPhotos() {
+    const opts = (sel) => '<option value="">— Ignorer —</option>' + D.cats.map((c) => { const l = D.produits.filter((p) => p.cat === c.id); return l.length ? `<optgroup label="${esc(c.nom)}">${l.map((p) => `<option value="${esc(p.id)}" ${p.id === sel ? "selected" : ""}>${esc(p.nom)}${p.img ? " ✓" : ""}</option>`).join("")}</optgroup>` : ""; }).join("");
+    ouvrirPanneau(`<h2 id="panneau-titre">Importer des photos</h2>
+      <p class="aide">Glissez plusieurs images d'un coup. Chaque fichier est rattaché automatiquement au bon produit grâce à son nom (idéalement la référence fabricant, par exemple <code>BAT512110710.png</code>). Vérifiez, corrigez si besoin, puis envoyez : les photos sont allégées et hébergées sur votre espace.</p>
+      <label class="photo-zone" id="lot-zone"><span class="photo-zone__txt"><b>Choisir ou glisser des photos</b><small>JPG, PNG ou WebP, plusieurs à la fois. Les PNG détourés (fond transparent) donnent le meilleur rendu.</small></span><input type="file" id="lot-fichiers" accept="image/*" multiple class="sr"></label>
+      <label class="inter" style="margin:10px 0"><input type="checkbox" id="lot-remplacer"><span></span>Remplacer les photos déjà présentes</label>
+      <div id="lot-liste" class="lot-liste"></div>
+      <div class="actions"><button class="b b--jaune" type="button" id="lot-envoyer" disabled>Envoyer les photos</button><span class="aide" id="lot-etat"></span></div>`);
+    let fichiers = [];
+    const rendre = () => {
+      $("#lot-liste").innerHTML = fichiers.map((f, i) => `<div class="lot-ligne ${f.p ? "" : "is-vide"}" data-i="${i}"><img src="${f.url}" alt=""><div><b>${esc(f.file.name)}</b><small>${f.p ? (f.score >= 90 ? "Reconnu par la référence" : "Rapproché par le nom, à vérifier") : "Non reconnu, choisissez le produit"}</small></div><select data-lot-p>${opts(f.p ? f.p.id : "")}</select><span class="lot-statut">${f.etat || ""}</span></div>`).join("");
+      const n = fichiers.filter((f) => f.p).length; $("#lot-envoyer").disabled = !n; $("#lot-envoyer").textContent = n ? `Envoyer ${n} photo${n > 1 ? "s" : ""}` : "Envoyer les photos";
+    };
+    const ajouter = (liste) => { [...liste].filter((f) => /^image\//.test(f.type) || /\.(png|jpe?g|webp|avif)$/i.test(f.name)).forEach((file) => { const g = devinerProduit(file.name); fichiers.push({ file, url: URL.createObjectURL(file), p: g.p, score: g.score }); }); rendre(); };
+    const zone = $("#lot-zone");
+    $("#lot-fichiers").addEventListener("change", (e) => ajouter(e.target.files));
+    ["dragenter", "dragover"].forEach((ev) => zone.addEventListener(ev, (e) => { e.preventDefault(); zone.classList.add("is-survol"); }));
+    ["dragleave", "drop"].forEach((ev) => zone.addEventListener(ev, (e) => { e.preventDefault(); zone.classList.remove("is-survol"); }));
+    zone.addEventListener("drop", (e) => ajouter(e.dataTransfer.files));
+    $("#lot-liste").addEventListener("change", (e) => { if (!e.target.matches("[data-lot-p]")) return; const f = fichiers[+e.target.closest("[data-i]").dataset.i]; f.p = D.produits.find((p) => p.id === e.target.value) || null; f.score = 100; rendre(); });
+    $("#lot-envoyer").addEventListener("click", async (e) => {
+      const remplacer = $("#lot-remplacer").checked, aFaire = fichiers.filter((f) => f.p && !f.fait);
+      e.target.disabled = true; let ok = 0, saut = 0, ko = 0;
+      for (const [k, f] of aFaire.entries()) {
+        $("#lot-etat").textContent = `Envoi ${k + 1} / ${aFaire.length}…`;
+        if (f.p.img && !remplacer) { f.etat = "Déjà une photo, ignorée"; saut++; rendre(); continue; }
+        try {
+          const url = await envoyerPhoto(f.file, f.p.id);
+          const { error } = await sb.from("produits").update({ img: url, updated_at: new Date().toISOString() }).eq("id", f.p.id);
+          if (error) throw new Error(error.message);
+          f.p.img = url; f.fait = true; f.etat = "✓ Envoyée"; ok++;
+        } catch (er) { f.etat = "✗ " + er.message; ko++; }
+        rendre();
+      }
+      $("#lot-etat").textContent = `${ok} photo(s) ajoutée(s)${saut ? `, ${saut} ignorée(s) (déjà une photo)` : ""}${ko ? `, ${ko} en erreur` : ""}.`;
+      rendreProduits(); e.target.disabled = false;
+    });
+  }
+  $("#btn-photos").addEventListener("click", importerPhotos);
   $("#btn-categories").addEventListener("click", gererCategories);
   $("#btn-nouveau-produit").addEventListener("click", () => editerProduit({ cat: $("#p-cat").value || "batteries", stock: true, actif: true }));
 

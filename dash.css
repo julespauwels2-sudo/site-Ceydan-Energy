@@ -244,3 +244,12 @@ table.pros td:nth-child(4){white-space:nowrap}
 .cats-ajout{margin-top:6px}
 .cats-liste .input,.cats-ajout .input{width:100%;padding:9px 12px;border:1.5px solid var(--trait);border-radius:10px;font:inherit;background:#fff}
 .lot select{background:#fff;color:var(--encre);font-weight:700}
+
+.lot-liste{display:grid;gap:8px;margin:10px 0;max-height:50vh;overflow:auto}
+.lot-ligne{display:grid;grid-template-columns:56px 1fr minmax(180px,40%) auto;gap:10px;align-items:center;padding:8px;border:1px solid var(--trait);border-radius:12px;background:#fff}
+.lot-ligne.is-vide{border-color:#f3dc9a;background:#fffbea}
+.lot-ligne img{width:56px;height:56px;object-fit:contain;border-radius:8px;background:var(--fond)}
+.lot-ligne b{display:block;font-size:.85rem;word-break:break-all}
+.lot-ligne small{color:var(--gris);font-size:.78rem}
+.lot-ligne select{width:100%;padding:7px;border:1.5px solid var(--trait);border-radius:10px;font:inherit;font-size:.82rem}
+.lot-statut{font-size:.78rem;font-weight:700;white-space:nowrap}
