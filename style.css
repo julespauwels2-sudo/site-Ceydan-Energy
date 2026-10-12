@@ -1842,30 +1842,35 @@ body.avec-saison{--decal:40px}
 .packs{display:flex!important;flex-wrap:wrap;justify-content:center;gap:16px}
 .packs>*{flex:1 1 300px;max-width:400px}
 
-/* Ancrage local : « D'ici, pour ici » */
-.ici{overflow:hidden}
-.ici__tete{max-width:760px;margin-bottom:34px}
-.ici__sur{display:inline-flex;align-items:center;gap:8px;font-weight:800;font-size:.85rem;color:var(--vert);background:var(--menthe-pale,#eaf5ec);padding:7px 14px;border-radius:999px;margin:0 0 16px}
+/* Ancrage local : « D'ici, pour ici » (court, gros textes) */
+.ici{overflow:hidden;padding:clamp(44px,6vw,80px) 0 0}
+.ici__in{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(24px,4vw,60px);align-items:center}
+.ici__sur{display:inline-flex;align-items:center;gap:8px;font-weight:800;font-size:.82rem;color:var(--vert);background:var(--menthe-pale);padding:6px 13px;border-radius:999px;margin:0 0 14px}
 .ici__pastille{width:10px;height:10px;border-radius:50%;background:linear-gradient(135deg,var(--soleil) 50%,var(--vert) 50%);flex:none;display:inline-block}
-.ici__intro{color:var(--gris);font-size:1.08rem;line-height:1.6;margin-top:14px}
-.ici__grille{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
-.ici__point{display:grid;gap:8px;padding:22px;border-radius:var(--r-l,20px);background:var(--fond);border:1px solid var(--trait);border-top:4px solid var(--soleil)}
-.ici__point:nth-child(2n){border-top-color:var(--vert)}
-.ici__point b{font-size:1.08rem;letter-spacing:-.01em}
-.ici__point span{color:var(--gris);font-size:.93rem;line-height:1.55}
-.ici__heure{margin:22px 0 0;font-weight:700;font-size:.92rem;color:var(--gris);display:flex;align-items:center;gap:8px}
-.ici__heure::before,.footer__local [data-heure-locale]::before{content:"";width:8px;height:8px;border-radius:50%;background:#c9cfca;display:inline-block}
+.ici__titre{margin:0;font-weight:900;font-size:clamp(2.8rem,6.4vw,5.6rem);letter-spacing:-.05em;line-height:.92}
+.ici__titre span{color:var(--vert)}
+.ici__grille{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ici__grille li{display:grid;gap:4px;padding:clamp(16px,2vw,24px);border-radius:var(--r-l,20px);background:var(--fond);border-left:5px solid var(--soleil)}
+.ici__grille li:nth-child(2),.ici__grille li:nth-child(3){border-left-color:var(--vert)}
+.ici__grille b{font-weight:900;font-size:clamp(1.35rem,2.4vw,2rem);letter-spacing:-.035em;line-height:1.05}
+.ici__grille span{color:var(--gris);font-size:.88rem;font-weight:600}
+.ici__heure{margin:18px 0 0;font-weight:700;font-size:.88rem;color:var(--gris);display:flex;align-items:center;gap:8px}
+.ici__heure::before,.footer__local [data-heure-locale]::before{content:"";width:8px;height:8px;border-radius:50%;background:#c9cfca;display:inline-block;flex:none}
 .ici__heure.est-ouvert::before,.footer__local [data-heure-locale].est-ouvert::before{background:#22a447;box-shadow:0 0 0 4px rgba(34,164,71,.18)}
-.ici__lieux{margin-top:40px;border-block:1px solid var(--trait);padding:14px 0;overflow:hidden;-webkit-mask:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+.ici__lieux{margin-top:clamp(28px,4vw,44px);border-block:1px solid var(--trait);padding:12px 0;overflow:hidden;-webkit-mask:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
 .ici__piste{display:flex;width:max-content;animation:defile 60s linear infinite}
-.ici__piste span{font-weight:800;font-size:1.05rem;letter-spacing:-.01em;padding:0 22px;white-space:nowrap;color:var(--encre)}
+.ici__piste span{font-weight:800;font-size:1rem;padding:0 20px;white-space:nowrap;color:var(--encre)}
 .ici__piste span:nth-child(3n+1){color:var(--vert)}
-.ici__piste span::after{content:"·";margin-left:22px;color:var(--soleil)}
+.ici__piste span::after{content:"·";margin-left:20px;color:var(--soleil)}
 .footer__local{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin:26px 0 0;padding-top:20px;border-top:1px solid rgba(255,255,255,.12);font-size:.9rem;opacity:.9}
 .footer__local [data-heure-locale]{display:inline-flex;align-items:center;gap:7px;opacity:.85}
-@media (max-width:920px){.ici__grille{grid-template-columns:1fr 1fr}}
-@media (max-width:560px){.ici__grille{grid-template-columns:1fr}.ici__point{padding:18px}.ici__lieux{margin-top:28px}}
+@media (max-width:860px){.ici__in{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:400px){.ici__grille{gap:8px}.ici__grille li{padding:14px}.ici__grille span{font-size:.8rem}}
 @media (prefers-reduced-motion:reduce){.ici__piste{animation:none}}
+
+/* Section cyclones : packs toujours centrés, quel que soit leur nombre */
+.cyclones .packs-mini{display:flex!important;flex-wrap:wrap;justify-content:center;gap:12px}
+.cyclones .packs-mini>*{flex:1 1 200px;max-width:240px}
 
 /* Petits téléphones : rien ne dépasse de l'écran */
 @media (max-width:760px){

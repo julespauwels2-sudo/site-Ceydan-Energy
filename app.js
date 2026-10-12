@@ -512,7 +512,7 @@
     const type = { iso: "isoles", res: "reseau", sec: "secours" }[el.dataset.imgKit.split("-")[0]];
     const k = kitsListe().find((x) => x.id === el.dataset.imgKit && x.img) || ((window.KITS || {})[type] || []).find((x) => x.img) || kitsListe().find((x) => x.img && (x.type === type));
     if (!k || !k.img) return;
-    const im = new Image(); im.alt = ""; im.loading = "lazy"; im.decoding = "async";
+    const im = new Image(); im.alt = ""; im.decoding = "async"; // pas de « lazy » : une image hors page ne se chargerait jamais
     im.onload = () => { el.innerHTML = ""; el.appendChild(im); el.classList.add("a-photo"); };
     im.src = k.img;
   });
