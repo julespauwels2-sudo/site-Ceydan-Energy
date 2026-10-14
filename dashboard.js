@@ -25,16 +25,57 @@
   const SPECS = ["Raccordé réseau", "Site isolé", "Batteries", "Pack cyclone"];
   let moi = null, D = { demandes: [], pros: [], produits: [], partenaires: [], equipe: [] };
 
+  /* Rangement des produits : même règle que le catalogue du site (marque, type, puis capacité croissante) */
+  function cleProduit(nom) {
+    const mots = String(nom || "").split(/\s+/), k = mots.findIndex((m) => /\d/.test(m));
+    const famille = (k < 0 ? mots : mots.slice(0, k)).join(" ");
+    // dernière valeur avec unité (kWh, kW, kVA, VA, Wc, W, Ah, A) = puissance ou capacité du produit
+    const t = [...String(nom || "").matchAll(/(\d+(?:[.,]\d+)?)\s*(kWh|kW|kVA|VA|Wc|W|Ah|A)\b/g)].pop();
+    const cap = t ? parseFloat(t[1].replace(",", ".")) * (/^k/.test(t[2]) ? 1000 : 1) : null;
+    return { famille, cap };
+  }
+  function rangerProduits(liste) {
+    const ordreCat = Object.fromEntries((window.CATEGORIES || []).map((c, i) => [c.id, i]));
+    const col = new Intl.Collator("fr", { numeric: true, sensitivity: "base" });
+    const nombre = (s) => String(s || "").replace(/(\d+)k(\d)\b/gi, (m, x, y) => String(+x * 1000 + +y * 100)).replace(/(\d),(\d)/g, "$1.$2");
+    return [...(liste || [])].map((p) => ({ p, c: cleProduit(p.nom) })).sort((A, B) => {
+      const a = A.p, b = B.p;
+      return ((ordreCat[a.cat] ?? 99) - (ordreCat[b.cat] ?? 99)) ||
+        col.compare(a.marque || "", b.marque || "") ||
+        col.compare(A.c.famille, B.c.famille) ||
+        (A.c.cap != null && B.c.cap != null ? A.c.cap - B.c.cap : 0) ||
+        col.compare(nombre(a.nom), nombre(b.nom)) ||
+        col.compare(a.ref || "", b.ref || "");
+    }).map((x) => x.p);
+  }
   /* ---------- Connexion ---------- */
   const montrer = (id) => ["ecran-connexion", "ecran-refus", "app"].forEach((x) => ($("#" + x).hidden = x !== id));
   $("#form-login").addEventListener("submit", async (e) => {
     e.preventDefault(); const em = $("#login-email").value.trim(); const msg = $("#login-msg");
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) { msg.textContent = "Adresse e-mail invalide."; return; }
     msg.textContent = "Envoi…";
-    const { error } = await sb.auth.signInWithOtp({ email: em, options: { emailRedirectTo: location.origin + location.pathname } });
-    msg.textContent = error ? "Envoi impossible : " + error.message : "Lien envoyé. Ouvrez l'e-mail reçu sur " + em + " et cliquez dessus.";
+    // Aucun compte n'est créé depuis cette page, et la réponse est la même que l'adresse soit autorisée ou non :
+    // impossible de deviner qui a accès au dashboard.
+    const { error } = await sb.auth.signInWithOtp({ email: em.toLowerCase(), options: { shouldCreateUser: false, emailRedirectTo: location.origin + location.pathname } });
+    if (error && /rate|limit|security purposes/i.test(error.message)) { msg.textContent = "Trop de tentatives. Patientez une minute avant de réessayer."; return; }
+    msg.textContent = "Si cette adresse a accès au dashboard, un lien de connexion vient d'y être envoyé. Il est valable peu de temps.";
   });
   $$("[data-deconnexion]").forEach((b) => b.addEventListener("click", async () => { await sb.auth.signOut(); location.reload(); }));
+
+  /* Déconnexion automatique après 30 minutes sans activité (ordinateur laissé ouvert, téléphone prêté…) */
+  const INACTIVITE = 30 * 60 * 1000;
+  let derniereActivite = Date.now();
+  ["pointerdown", "keydown", "scroll", "touchstart"].forEach((ev) => addEventListener(ev, () => (derniereActivite = Date.now()), { passive: true }));
+  setInterval(async () => {
+    if (!moi || Date.now() - derniereActivite < INACTIVITE) return;
+    moi = null; try { await sb.auth.signOut(); } catch (e) {}
+    location.reload();
+  }, 30000);
+  // Au retour sur l'onglet après une longue absence, on vérifie tout de suite
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && moi && Date.now() - derniereActivite >= INACTIVITE) { sb.auth.signOut().finally(() => location.reload()); } });
+
+  // Images cassées des vignettes : retirées sans gestionnaire en ligne (compatible avec la politique de sécurité stricte)
+  addEventListener("error", (e) => { const t = e.target; if (t && t.tagName === "IMG" && t.closest(".vignette")) t.remove(); }, true);
 
   async function demarrer() {
     const { data: { session } } = await sb.auth.getSession();
@@ -213,7 +254,7 @@
   }
   const ligneProduit = (p) => { const pv = D.prive[p.id] || {}; return `<tr data-id="${esc(p.id)}" class="${p.actif ? "" : "is-masque"} ${D.sel.has(p.id) ? "is-sel" : ""}">
       <td class="sel-cel"><input type="checkbox" data-sel ${D.sel.has(p.id) ? "checked" : ""} aria-label="Sélectionner ${esc(p.nom)}"></td>
-      <td class="produit-cel"><label class="vignette" title="Changer la photo">${p.img ? `<img src="${esc(p.img)}" alt="" loading="lazy" onerror="this.remove()">` : ""}<span class="vignette__plus" aria-hidden="true">+</span><input type="file" accept="image/*" class="sr" data-photo-rapide aria-label="Changer la photo de ${esc(p.nom)}"></label><span><b>${esc(p.nom)}</b><br><small>${esc(p.marque || "")} ${esc(p.ref || "")}</small>${pv.note ? `<br><small class="note-int" title="Note interne">✎ ${esc(pv.note)}</small>` : ""}</span></td>
+      <td class="produit-cel"><label class="vignette" title="Changer la photo">${p.img ? `<img src="${esc(p.img)}" alt="" loading="lazy">` : ""}<span class="vignette__plus" aria-hidden="true">+</span><input type="file" accept="image/*" class="sr" data-photo-rapide aria-label="Changer la photo de ${esc(p.nom)}"></label><span><b>${esc(p.nom)}</b><br><small>${esc(p.marque || "")} ${esc(p.ref || "")}</small>${pv.note ? `<br><small class="note-int" title="Note interne">✎ ${esc(pv.note)}</small>` : ""}</span></td>
       <td><input class="prix-in" type="number" min="0" step="0.01" value="${p.prix ?? ""}" placeholder="Sur devis" aria-label="Prix pro HT"></td>
       <td><select class="dispo-in dispo--${pv.dispo || "vide"}" data-dispo aria-label="Disponibilité interne">${Object.entries(DISPO).map(([k, v]) => `<option value="${k}" ${(pv.dispo || "") === k ? "selected" : ""}>${v}</option>`).join("")}</select></td>
       <td><label class="inter inter--petit"><input type="checkbox" data-champ="stock" ${p.stock ? "checked" : ""}><span></span></label></td>
@@ -224,7 +265,8 @@
     const l = D.produits.filter((p) => (!c || p.cat === c) && (!v || (v === "oui" ? p.actif : !p.actif)) && (!q || `${p.nom} ${p.ref} ${p.marque} ${p.ref_dolibarr || ""} ${(D.prive[p.id] || {}).note || ""}`.toLowerCase().includes(q)));
     const nbV = D.produits.filter((p) => p.actif).length;
     $("#p-compte").textContent = `${l.length} produit${l.length > 1 ? "s" : ""} affiché${l.length > 1 ? "s" : ""} · ${nbV} visibles sur le site, ${D.produits.length - nbV} masqués.`;
-    const groupes = D.cats.map((cat) => ({ cat, l: l.filter((p) => p.cat === cat.id) })).filter((g) => g.l.length);
+    const range = (x) => rangerProduits(x);
+    const groupes = D.cats.map((cat) => ({ cat, l: cat.id === "kits" ? l.filter((p) => p.cat === cat.id) : range(l.filter((p) => p.cat === cat.id)) })).filter((g) => g.l.length);
     const orphelins = l.filter((p) => !D.cats.some((x) => x.id === p.cat)); if (orphelins.length) groupes.push({ cat: { id: "_", nom: "Sans catégorie" }, l: orphelins });
     const ferme = (id) => D.replies.has(id) && !q;
     $("#liste-produits").innerHTML = groupes.map((g) => { const tous = g.l.every((p) => D.sel.has(p.id)); return `<tr class="groupe ${ferme(g.cat.id) ? "is-ferme" : ""}" data-groupe="${esc(g.cat.id)}"><td class="sel-cel"><input type="checkbox" data-sel-groupe ${tous ? "checked" : ""} aria-label="Tout sélectionner dans ${esc(g.cat.nom)}"></td><td colspan="6"><button type="button" class="groupe__btn" data-replier><span class="groupe__chev" aria-hidden="true">▾</span>${esc(g.cat.nom)} <span class="groupe__n">${g.l.length}</span></button></td></tr>${ferme(g.cat.id) ? "" : g.l.map(ligneProduit).join("")}`; }).join("") || `<tr><td colspan="7" class="vide">Aucun produit.</td></tr>`;

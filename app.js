@@ -47,6 +47,7 @@
       if (prods && prods.length) {
         const fiche = (p) => ({ description: p.description || "", caracteristiques: p.caracteristiques || [], fiche: p.fiche_technique || "" });
         window.PRODUITS = prods.filter((p) => p.cat !== "kits").map((p) => ({ id: p.id, cat: p.cat, marque: p.marque, nom: p.nom, ref: p.ref, img: p.img, stock: p.stock, ...fiche(p) }));
+        window.PRODUITS = rangerProduits(window.PRODUITS);
         const K = { isoles: [], reseau: [], secours: [] };
         prods.filter((p) => p.cat === "kits").forEach((p) => { const x = p.extra || {}; const t = K[x.type] ? x.type : "isoles"; K[t].push({ id: p.id, gamme: x.gamme || undefined, nom: x.nomCourt || p.nom, stockage: x.stockage || p.ref || "", detail: x.detail || "", pour: x.pour || "", garde: x.garde || "", duree: x.duree || "", img: p.img, ...fiche(p) }); });
         window.KITS = K;
@@ -117,6 +118,31 @@
   /* ---------- Liste de devis ---------- */
   const devis = { get: () => store.get("cedyan_devis", []), set: (l) => { store.set("cedyan_devis", l); majDevis(); } };
   const kitsListe = () => [].concat(...Object.entries(window.KITS || {}).map(([t, l]) => l.map((k) => ({ ...k, cat: "kits", type: t, marque: k.gamme || (t === "isoles" ? "Kit isolé" : "Kit raccordé réseau"), nom: k.gamme ? k.gamme + " " + k.nom : k.nom, ref: k.stockage, stock: true }))));
+  /* Rangement du catalogue : catégorie, puis marque (A → Z), puis type de produit,
+     puis puissance/capacité croissante (les nombres sont comparés comme des nombres : 2,8 < 4,8 < 14 kWh) */
+  function cleProduit(nom) {
+    const mots = String(nom || "").split(/\s+/), k = mots.findIndex((m) => /\d/.test(m));
+    const famille = (k < 0 ? mots : mots.slice(0, k)).join(" ");
+    // dernière valeur avec unité (kWh, kW, kVA, VA, Wc, W, Ah, A) = puissance ou capacité du produit
+    const t = [...String(nom || "").matchAll(/(\d+(?:[.,]\d+)?)\s*(kWh|kW|kVA|VA|Wc|W|Ah|A)\b/g)].pop();
+    const cap = t ? parseFloat(t[1].replace(",", ".")) * (/^k/.test(t[2]) ? 1000 : 1) : null;
+    return { famille, cap };
+  }
+  function rangerProduits(liste) {
+    const ordreCat = Object.fromEntries((window.CATEGORIES || []).map((c, i) => [c.id, i]));
+    const col = new Intl.Collator("fr", { numeric: true, sensitivity: "base" });
+    const nombre = (s) => String(s || "").replace(/(\d+)k(\d)\b/gi, (m, x, y) => String(+x * 1000 + +y * 100)).replace(/(\d),(\d)/g, "$1.$2");
+    return [...(liste || [])].map((p) => ({ p, c: cleProduit(p.nom) })).sort((A, B) => {
+      const a = A.p, b = B.p;
+      return ((ordreCat[a.cat] ?? 99) - (ordreCat[b.cat] ?? 99)) ||
+        col.compare(a.marque || "", b.marque || "") ||
+        col.compare(A.c.famille, B.c.famille) ||
+        (A.c.cap != null && B.c.cap != null ? A.c.cap - B.c.cap : 0) ||
+        col.compare(nombre(a.nom), nombre(b.nom)) ||
+        col.compare(a.ref || "", b.ref || "");
+    }).map((x) => x.p);
+  }
+  window.rangerProduits = rangerProduits;
   const tousProduits = () => [].concat(kitsListe(), window.PRODUITS || []);
   const trouver = (id) => tousProduits().find((p) => p.id === id);
   function ajouterDevis(id, btn) {
@@ -365,6 +391,7 @@
 
   // Les données (catalogue, partenaires, session pro) arrivent ici : tout ce qui précède marche déjà.
   await chargerDonnees();
+  window.PRODUITS = rangerProduits(window.PRODUITS);
   // Fin du chargement : l'écran d'attente (affiché seulement si le chargement traîne) disparaît
   const finChargement = () => { const p = document.getElementById("pre"); if (p && !p.classList.contains("fini")) { p.classList.add("fini"); setTimeout(() => p.remove(), 500); } };
   requestAnimationFrame(finChargement);
