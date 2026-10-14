@@ -26,28 +26,31 @@
   let moi = null, D = { demandes: [], pros: [], produits: [], partenaires: [], equipe: [] };
 
   /* Rangement des produits : même règle que le catalogue du site (marque, type, puis capacité croissante) */
+  // Grandeur principale du produit : puissance (W, kW, VA, kVA, Wc), énergie (kWh), capacité (Ah), courant (A)
+  const CLASSES = { W: [0, 1], Wc: [0, 1], kW: [0, 1000], VA: [0, 1], kVA: [0, 1000], kWh: [1, 1000], Ah: [2, 1], A: [3, 1] };
   function cleProduit(nom) {
-    const mots = String(nom || "").split(/\s+/), k = mots.findIndex((m) => /\d/.test(m));
-    const famille = (k < 0 ? mots : mots.slice(0, k)).join(" ");
-    // dernière valeur avec unité (kWh, kW, kVA, VA, Wc, W, Ah, A) = puissance ou capacité du produit
-    const t = [...String(nom || "").matchAll(/(\d+(?:[.,]\d+)?)\s*(kWh|kW|kVA|VA|Wc|W|Ah|A)\b/g)].pop();
-    const cap = t ? parseFloat(t[1].replace(",", ".")) * (/^k/.test(t[2]) ? 1000 : 1) : null;
-    return { famille, cap };
+    const t = [...String(nom || "").matchAll(/(\d+(?:[.,]\d+)?)\s*(kWh|kW|kVA|VA|Wc|W|Ah|A)\b/g)];
+    // on retient la grandeur la plus « importante » citée (puissance avant énergie, avant capacité, avant courant)
+    let rang = 9, cap = null;
+    t.forEach((m) => { const [r, mult] = CLASSES[m[2]]; const v = parseFloat(m[1].replace(",", ".")) * mult; if (r < rang || (r === rang && v > cap)) { rang = r; cap = v; } });
+    return { rang, cap };
   }
   function rangerProduits(liste) {
     const ordreCat = Object.fromEntries((window.CATEGORIES || []).map((c, i) => [c.id, i]));
     const col = new Intl.Collator("fr", { numeric: true, sensitivity: "base" });
     const nombre = (s) => String(s || "").replace(/(\d+)k(\d)\b/gi, (m, x, y) => String(+x * 1000 + +y * 100)).replace(/(\d),(\d)/g, "$1.$2");
+    // Catégorie, puis marque, puis les produits principaux du plus petit au plus grand, puis les accessoires
     return [...(liste || [])].map((p) => ({ p, c: cleProduit(p.nom) })).sort((A, B) => {
       const a = A.p, b = B.p;
       return ((ordreCat[a.cat] ?? 99) - (ordreCat[b.cat] ?? 99)) ||
         col.compare(a.marque || "", b.marque || "") ||
-        col.compare(A.c.famille, B.c.famille) ||
+        (A.c.rang - B.c.rang) ||
         (A.c.cap != null && B.c.cap != null ? A.c.cap - B.c.cap : 0) ||
         col.compare(nombre(a.nom), nombre(b.nom)) ||
         col.compare(a.ref || "", b.ref || "");
     }).map((x) => x.p);
   }
+
   /* ---------- Connexion ---------- */
   const montrer = (id) => ["ecran-connexion", "ecran-refus", "app"].forEach((x) => ($("#" + x).hidden = x !== id));
   $("#form-login").addEventListener("submit", async (e) => {
