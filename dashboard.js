@@ -346,13 +346,54 @@
       <div class="actions"><button class="b b--jaune" type="submit">Enregistrer</button>${p.id && moi.role === "patron" ? '<button class="b b--danger" type="button" id="p-supprimer">Supprimer</button>' : ""}</div>
     </form>`;
   /* Photos : compressées dans le navigateur (WebP, 1200 px max) puis envoyées dans le stockage « produits ». */
+  // Recadre au plus près du produit (fond clair uni détecté dans les coins), avec une marge fixe :
+  // tous les produits ont ainsi la même taille dans les vignettes du site.
+  function rogner(cv) {
+    const W = cv.width, H = cv.height, ctx = cv.getContext("2d"), d = ctx.getImageData(0, 0, W, H).data;
+    const coins = [0, (W - 1) * 4, (H - 1) * W * 4, ((H - 1) * W + W - 1) * 4];
+    const fond = [0, 1, 2].map((k) => coins.reduce((s, i) => s + d[i + k], 0) / 4);
+    if (Math.min(...fond) < 200) return { cv, rogne: false };
+    let x0 = W, y0 = H, x1 = -1, y1 = -1;
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const i = (y * W + x) * 4; if (Math.abs(d[i] - fond[0]) + Math.abs(d[i + 1] - fond[1]) + Math.abs(d[i + 2] - fond[2]) > 18) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; } }
+    if (x1 < 0) return { cv, rogne: false };
+    const m = Math.round(Math.max(x1 - x0, y1 - y0) * 0.03);
+    x0 = Math.max(0, x0 - m); y0 = Math.max(0, y0 - m); x1 = Math.min(W - 1, x1 + m); y1 = Math.min(H - 1, y1 + m);
+    const w = x1 - x0 + 1, h = y1 - y0 + 1;
+    if (w * h > W * H * 0.9) return { cv, rogne: false };
+    const c2 = document.createElement("canvas"); c2.width = w; c2.height = h;
+    c2.getContext("2d").drawImage(cv, x0, y0, w, h, 0, 0, w, h);
+    return { cv: c2, rogne: true };
+  }
   async function compresser(fichier) {
     const img = await createImageBitmap(fichier);
     const max = 1200, r = Math.min(1, max / Math.max(img.width, img.height));
-    const cv = document.createElement("canvas"); cv.width = Math.round(img.width * r); cv.height = Math.round(img.height * r);
-    const ctx = cv.getContext("2d"); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, cv.width, cv.height); ctx.drawImage(img, 0, 0, cv.width, cv.height);
+    const cv0 = document.createElement("canvas"); cv0.width = Math.round(img.width * r); cv0.height = Math.round(img.height * r);
+    const ctx = cv0.getContext("2d"); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, cv0.width, cv0.height); ctx.drawImage(img, 0, 0, cv0.width, cv0.height);
+    const { cv, rogne } = rogner(cv0);
     const blob = await new Promise((ok) => cv.toBlob(ok, "image/webp", 0.86));
-    return blob && blob.type === "image/webp" ? { blob, ext: "webp" } : { blob: await new Promise((ok) => cv.toBlob(ok, "image/jpeg", 0.88)), ext: "jpg" };
+    return blob && blob.type === "image/webp" ? { blob, ext: "webp", rogne } : { blob: await new Promise((ok) => cv.toBlob(ok, "image/jpeg", 0.88)), ext: "jpg", rogne };
+  }
+  // Recadre en une fois les photos déjà en ligne (hébergées sur votre espace), kits exclus
+  async function recadrerTout(bouton) {
+    const base = sb.storage.from("produits").getPublicUrl("x").data.publicUrl.replace(/x$/, "");
+    const liste = D.produits.filter((p) => p.cat !== "kits" && p.img && p.img.startsWith(base) && !/\.png$/i.test(p.img));
+    if (!liste.length) return toast("Aucune photo à recadrer");
+    if (!confirm(`Recadrer ${liste.length} photo(s) au plus près du produit ? Les produits apparaîtront tous à la même taille sur le site.`)) return;
+    bouton.disabled = true; let n = 0, ok = 0;
+    for (const p of liste) {
+      n++; bouton.textContent = `Recadrage ${n}/${liste.length}…`;
+      try {
+        const r = await fetch(p.img, { cache: "no-store" }); if (!r.ok) continue;
+        const c = await compresser(await r.blob()); if (!c.rogne) continue;
+        const chemin = `${p.id}/${Date.now()}.${c.ext}`;
+        const up = await sb.storage.from("produits").upload(chemin, c.blob, { contentType: c.blob.type, cacheControl: "31536000" }); if (up.error) continue;
+        const url = sb.storage.from("produits").getPublicUrl(chemin).data.publicUrl;
+        const { error } = await sb.from("produits").update({ img: url, updated_at: new Date().toISOString() }).eq("id", p.id);
+        if (!error) { p.img = url; ok++; }
+      } catch (e) { /* photo ignorée */ }
+    }
+    bouton.disabled = false; bouton.textContent = "Recadrer les photos";
+    rendreProduits(); toast(`${ok} photo(s) recadrée(s)`);
   }
   async function envoyerPdf(fichier, idProduit) {
     if (!/pdf$/i.test(fichier.type) && !/\.pdf$/i.test(fichier.name)) throw new Error("La fiche technique doit être un PDF.");
@@ -545,6 +586,7 @@
     });
   }
   $("#btn-photos").addEventListener("click", importerPhotos);
+  $("#btn-recadrer").addEventListener("click", (e) => recadrerTout(e.currentTarget));
   $("#btn-categories").addEventListener("click", gererCategories);
   $("#btn-nouveau-produit").addEventListener("click", () => editerProduit({ cat: $("#p-cat").value || "batteries", stock: true, actif: true }));
 

@@ -531,7 +531,11 @@
   $$("[data-img-kit]").forEach((el) => {
     const type = { iso: "isoles", res: "reseau", sec: "secours" }[el.dataset.imgKit.split("-")[0]];
     const k = kitsListe().find((x) => x.id === el.dataset.imgKit && x.img) || ((window.KITS || {})[type] || []).find((x) => x.img) || kitsListe().find((x) => x.img && (x.type === type));
-    if (!k || !k.img) return;
+    // Aucun kit publié avec photo pour ce type : on montre un produit représentatif du catalogue
+    const repli = { reseau: (p) => p.cat === "onduleurs" && /hybride/i.test(p.nom), secours: (p) => p.cat === "batteries" && /lithium/i.test(p.nom), isoles: (p) => p.cat === "convertisseurs" };
+    const k2 = (!k || !k.img) && repli[type] ? (window.PRODUITS || []).find((p) => p.img && repli[type](p)) : null;
+    if ((!k || !k.img) && !k2) return;
+    if (k2) { const im2 = new Image(); im2.alt = ""; im2.decoding = "async"; im2.onload = () => { el.innerHTML = ""; el.appendChild(im2); el.classList.add("a-photo"); }; im2.src = k2.img; return; }
     const im = new Image(); im.alt = ""; im.decoding = "async"; // pas de « lazy » : une image hors page ne se chargerait jamais
     im.onload = () => { el.innerHTML = ""; el.appendChild(im); el.classList.add("a-photo"); };
     im.src = k.img;

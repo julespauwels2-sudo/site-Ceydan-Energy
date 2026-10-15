@@ -1892,4 +1892,6 @@ body.avec-saison{--decal:40px}
 
 /* Photos Victron (fond transparent) : ombre douce ; photos recadrées : produit plus grand dans la vignette */
 img[src*="/produits/fabricant/victron/"]{mix-blend-mode:normal!important;filter:drop-shadow(0 8px 12px rgba(16,40,24,.14)) drop-shadow(0 2px 3px rgba(16,40,24,.1))!important}
-.produit__img>img[src*="/produits/fabricant/"]{inset:12px;width:calc(100% - 24px);height:calc(100% - 24px)}
+
+/* Toutes les photos produits à la même échelle : même marge pour toutes les sources */
+.produit__img>img{inset:9%!important;width:82%!important;height:82%!important}
