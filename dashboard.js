@@ -245,7 +245,8 @@
     if (data && data.length) { D.cats = data; CATS = Object.fromEntries(data.map((c) => [c.id, c.nom])); }
     majSelectCats();
   }
-  const DISPO = { "": "—", stock: "En stock", commande: "Sur commande" };
+  const DISPO = { stock: "En stock", commande: "Sur commande" };
+  const dispoDe = (p) => (D.prive[p.id] || {}).dispo || (p.stock === false ? "commande" : "stock");
   D.prive = {}; D.sel = new Set(); D.replies = new Set();
   async function chargerProduits() {
     const [r, rp] = await Promise.all([sb.from("produits").select("*, tarifs(prix)").order("ordre"), sb.from("produits_prive").select("*"), chargerCategories()]);
@@ -259,8 +260,8 @@
       <td class="sel-cel"><input type="checkbox" data-sel ${D.sel.has(p.id) ? "checked" : ""} aria-label="Sélectionner ${esc(p.nom)}"></td>
       <td class="produit-cel"><label class="vignette" title="Changer la photo">${p.img ? `<img src="${esc(p.img)}" alt="" loading="lazy">` : ""}<span class="vignette__plus" aria-hidden="true">+</span><input type="file" accept="image/*" class="sr" data-photo-rapide aria-label="Changer la photo de ${esc(p.nom)}"></label><span><b>${esc(p.nom)}</b><br><small>${esc(p.marque || "")} ${esc(p.ref || "")}</small>${pv.note ? `<br><small class="note-int" title="Note interne">✎ ${esc(pv.note)}</small>` : ""}</span></td>
       <td><input class="prix-in" type="number" min="0" step="0.01" value="${p.prix ?? ""}" placeholder="Sur devis" aria-label="Prix pro HT"></td>
-      <td><select class="dispo-in dispo--${pv.dispo || "vide"}" data-dispo aria-label="Disponibilité interne">${Object.entries(DISPO).map(([k, v]) => `<option value="${k}" ${(pv.dispo || "") === k ? "selected" : ""}>${v}</option>`).join("")}</select></td>
-      <td><label class="inter inter--petit"><input type="checkbox" data-champ="stock" ${p.stock ? "checked" : ""}><span></span></label></td>
+      <td><select class="dispo-in dispo--${dispoDe(p)}" data-dispo aria-label="Disponibilité affichée sur le site">${Object.entries(DISPO).map(([k, v]) => `<option value="${k}" ${dispoDe(p) === k ? "selected" : ""}>${v}</option>`).join("")}</select></td>
+      
       <td><label class="inter inter--petit"><input type="checkbox" data-champ="actif" ${p.actif ? "checked" : ""}><span></span></label></td>
       <td><button class="b b--petit" data-editer>Modifier</button></td></tr>`; };
   function rendreProduits() {
@@ -272,7 +273,7 @@
     const groupes = D.cats.map((cat) => ({ cat, l: cat.id === "kits" ? l.filter((p) => p.cat === cat.id) : range(l.filter((p) => p.cat === cat.id)) })).filter((g) => g.l.length);
     const orphelins = l.filter((p) => !D.cats.some((x) => x.id === p.cat)); if (orphelins.length) groupes.push({ cat: { id: "_", nom: "Sans catégorie" }, l: orphelins });
     const ferme = (id) => D.replies.has(id) && !q;
-    $("#liste-produits").innerHTML = groupes.map((g) => { const tous = g.l.every((p) => D.sel.has(p.id)); return `<tr class="groupe ${ferme(g.cat.id) ? "is-ferme" : ""}" data-groupe="${esc(g.cat.id)}"><td class="sel-cel"><input type="checkbox" data-sel-groupe ${tous ? "checked" : ""} aria-label="Tout sélectionner dans ${esc(g.cat.nom)}"></td><td colspan="6"><button type="button" class="groupe__btn" data-replier><span class="groupe__chev" aria-hidden="true">▾</span>${esc(g.cat.nom)} <span class="groupe__n">${g.l.length}</span></button></td></tr>${ferme(g.cat.id) ? "" : g.l.map(ligneProduit).join("")}`; }).join("") || `<tr><td colspan="7" class="vide">Aucun produit.</td></tr>`;
+    $("#liste-produits").innerHTML = groupes.map((g) => { const tous = g.l.every((p) => D.sel.has(p.id)); return `<tr class="groupe ${ferme(g.cat.id) ? "is-ferme" : ""}" data-groupe="${esc(g.cat.id)}"><td class="sel-cel"><input type="checkbox" data-sel-groupe ${tous ? "checked" : ""} aria-label="Tout sélectionner dans ${esc(g.cat.nom)}"></td><td colspan="5"><button type="button" class="groupe__btn" data-replier><span class="groupe__chev" aria-hidden="true">▾</span>${esc(g.cat.nom)} <span class="groupe__n">${g.l.length}</span></button></td></tr>${ferme(g.cat.id) ? "" : g.l.map(ligneProduit).join("")}`; }).join("") || `<tr><td colspan="6" class="vide">Aucun produit.</td></tr>`;
     majSelection();
   }
   function majSelection() {
@@ -290,10 +291,13 @@
     const tr = e.target.closest("tr[data-id]"); if (!tr) return; const p = D.produits.find((x) => x.id === tr.dataset.id);
     if (e.target.matches("[data-sel]")) { e.target.checked ? D.sel.add(p.id) : D.sel.delete(p.id); tr.classList.toggle("is-sel", e.target.checked); majSelection(); return; }
     if (e.target.matches("[data-dispo]")) {
-      const v = e.target.value || null, pv = D.prive[p.id] || {};
-      const { error } = await sb.from("produits_prive").upsert({ produit_id: p.id, dispo: v, note: pv.note || null, updated_at: new Date().toISOString(), updated_by: moi.email });
-      if (error) return toast("Erreur : " + error.message);
-      D.prive[p.id] = { ...pv, produit_id: p.id, dispo: v }; e.target.className = `dispo-in dispo--${v || "vide"}`; toast("Annotation enregistrée (interne)"); return;
+      const v = e.target.value === "commande" ? "commande" : "stock", pv = D.prive[p.id] || {};
+      const r1 = await sb.from("produits").update({ stock: v === "stock", updated_at: new Date().toISOString() }).eq("id", p.id);
+      if (r1.error) return toast("Erreur : " + r1.error.message);
+      const r2 = await sb.from("produits_prive").upsert({ produit_id: p.id, dispo: v, note: pv.note || null, updated_at: new Date().toISOString(), updated_by: moi.email });
+      if (r2.error) return toast("Erreur : " + r2.error.message);
+      p.stock = v === "stock"; D.prive[p.id] = { ...pv, produit_id: p.id, dispo: v }; e.target.className = `dispo-in dispo--${v}`;
+      toast(v === "stock" ? "Affiché « En stock » sur le site" : "Affiché « Sur commande » sur le site"); return;
     }
     if (e.target.matches("[data-photo-rapide]")) {
       const f = e.target.files[0]; if (!f) return; const v = $(".vignette", tr); v.classList.add("is-envoi");
@@ -338,11 +342,11 @@
         <div class="ligne"><label class="champ">Type de kit<select name="kit_type">${[["isoles", "Site isolé"], ["reseau", "Raccordé réseau"], ["secours", "Pack Détresse Cyclone"]].map(([k, v]) => `<option value="${k}" ${(p.extra || {}).type === k ? "selected" : ""}>${v}</option>`).join("")}</select></label><label class="champ">Pour qui<input name="kit_pour" value="${esc((p.extra || {}).pour || "")}" placeholder="Maison secondaire, gîte…"></label></div>
         <label class="champ">Composition du kit<textarea name="kit_detail" rows="3" placeholder="6 panneaux 500 Wc, convertisseur Victron…">${esc((p.extra || {}).detail || "")}</textarea></label>
       </fieldset>
-      <fieldset class="champ interne"><legend>Interne <span class="aide-inline">(jamais affiché sur le site)</span></legend>
-        <div class="ligne"><label class="champ">Disponibilité réelle<select name="dispo">${Object.entries(DISPO).map(([k, v]) => `<option value="${k}" ${((D.prive[p.id] || {}).dispo || "") === k ? "selected" : ""}>${v}</option>`).join("")}</select></label></div>
-        <label class="champ">Note interne<textarea name="note" rows="2" placeholder="Délai fournisseur, emplacement en réserve, client intéressé…">${esc((D.prive[p.id] || {}).note || "")}</textarea></label>
+      <label class="champ">Disponibilité affichée sur le site<select name="dispo">${Object.entries(DISPO).map(([k, v]) => `<option value="${k}" ${dispoDe(p) === k ? "selected" : ""}>${v}</option>`).join("")}</select></label>
+      <fieldset class="champ interne"><legend>Note interne <span class="aide-inline">(jamais affichée sur le site)</span></legend>
+        <textarea name="note" rows="2" placeholder="Délai fournisseur, emplacement en réserve, client intéressé…">${esc((D.prive[p.id] || {}).note || "")}</textarea>
       </fieldset>
-      <div class="ligne"><label class="inter"><input type="checkbox" name="stock" ${p.stock !== false ? "checked" : ""}><span></span>Afficher « En stock » sur le site</label><label class="inter"><input type="checkbox" name="actif" ${p.actif !== false ? "checked" : ""}><span></span>Visible sur le site</label></div>
+      <div class="ligne"><label class="inter"><input type="checkbox" name="actif" ${p.actif !== false ? "checked" : ""}><span></span>Visible sur le site</label></div>
       <div class="actions"><button class="b b--jaune" type="submit">Enregistrer</button>${p.id && moi.role === "patron" ? '<button class="b b--danger" type="button" id="p-supprimer">Supprimer</button>' : ""}</div>
     </form>`;
   /* Photos : compressées dans le navigateur (WebP, 1200 px max) puis envoyées dans le stockage « produits ». */
@@ -435,7 +439,7 @@
         if (photo) img = await envoyerPhoto(photo, id);
         if (pdf) { btn.textContent = "Envoi du PDF…"; fiche = await envoyerPdf(pdf, id); }
       } catch (er) { btn.disabled = false; btn.textContent = "Enregistrer"; return toast(er.message); }
-      const ligne = { id, nom: f.get("nom"), marque: f.get("marque"), ref: f.get("ref"), cat: f.get("cat"), img, stock: !!f.get("stock"), actif: !!f.get("actif"),
+      const ligne = { id, nom: f.get("nom"), marque: f.get("marque"), ref: f.get("ref"), cat: f.get("cat"), img, stock: f.get("dispo") !== "commande", actif: !!f.get("actif"),
         description: f.get("description") || null, caracteristiques: texteVersCarac(f.get("caracteristiques")), fiche_technique: fiche, updated_at: new Date().toISOString() };
       if (ligne.cat === "kits") {
         const t = f.get("kit_type"); const ex = p.extra || {};
@@ -446,7 +450,7 @@
       const prix = f.get("prix");
       const r2 = prix === "" ? await sb.from("tarifs").delete().eq("produit_id", id) : await sb.from("tarifs").upsert({ produit_id: id, prix: +prix });
       if (r2.error) return toast("Erreur prix : " + r2.error.message);
-      const r3 = await sb.from("produits_prive").upsert({ produit_id: id, dispo: f.get("dispo") || null, note: (f.get("note") || "").trim() || null, updated_at: new Date().toISOString(), updated_by: moi.email });
+      const r3 = await sb.from("produits_prive").upsert({ produit_id: id, dispo: f.get("dispo") === "commande" ? "commande" : "stock", note: (f.get("note") || "").trim() || null, updated_at: new Date().toISOString(), updated_by: moi.email });
       if (r3.error) return toast("Erreur annotation : " + r3.error.message);
       fermerPanneau(); await chargerProduits(); toast("Produit enregistré");
     });
