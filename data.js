@@ -7,7 +7,7 @@
    - "img" : photo produit. Si elle ne charge pas, une illustration s'affiche.
    (Étape 2 : ces données passeront dans Supabase, modifiables depuis le dashboard.)
    ========================================================= */
-const IMG = (id, slug) => `https://cedyan-energy.net/${id}-home_default/${slug}.jpg`;
+const IMG = (id, slug) => `https://uotqqkhraqxtlssgavlm.supabase.co/storage/v1/object/public/produits/ancien-site/${id}-home_default/${slug}.jpg`;
 
 window.CATEGORIES = [
   { id: "kits", nom: "Kits solaires", desc: "Centrales isolées, kits raccordés réseau et Packs Détresse Cyclone, assemblés avec le matériel en stock." },

@@ -54,7 +54,7 @@ Fonctions : « demande » (publique, reçoit les formulaires) et « equipe » (r
 partenaires.js : une ligne par installateur. Les 3 fiches « Exemple » sont à supprimer.
 
 ## Photos produits
-Chargées depuis cedyan-energy.net. Si une image ne charge pas, une illustration de catégorie s'affiche.
+Hébergées dans le stockage Supabase (bucket « produits »). Si une image ne charge pas, une illustration de catégorie s'affiche.
 Si l'ancien site est coupé, rapatrier les photos et changer les URL dans data.js.
 
 ## Ajouter un produit
