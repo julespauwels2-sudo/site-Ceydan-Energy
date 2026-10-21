@@ -1013,8 +1013,9 @@
       });
       const sim = tousProduits().filter((x) => x.cat === p.cat && x.id !== p.id).slice(0, 4);
       $("#fiche-similaires").innerHTML = sim.length ? `<h2 class="t-l">Dans la même gamme</h2><div class="produits">${sim.map(carteProduit).join("")}</div>` : "";
-      let ld = $("#fiche-ld"); if (!ld) { ld = document.createElement("script"); ld.type = "application/ld+json"; ld.id = "fiche-ld"; document.head.appendChild(ld); }
-      ld.textContent = JSON.stringify({ "@context": "https://schema.org", "@type": "Product", name: p.nom, brand: p.marque ? { "@type": "Brand", name: p.marque } : undefined, sku: p.ref || undefined, image: p.img || undefined, description: texte, category: catNom });
+      // Pas de données « Product » pour Google : sans prix public (tarifs réservés aux pros),
+      // Google les considère incomplètes et envoie des alertes Search Console.
+      const ancienLd = $("#fiche-ld"); if (ancienLd) ancienLd.remove();
     };
     rendreFiche(); document.addEventListener("profil", rendreFiche);
   }
