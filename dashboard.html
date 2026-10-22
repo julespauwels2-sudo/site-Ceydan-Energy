@@ -41,6 +41,7 @@
     <img class="side__logo" src="logo-blanc.png" width="170" height="51" alt="Cedyan Energy">
     <nav class="side__nav" aria-label="Sections">
       <button type="button" data-vue="demandes" class="is-on">Demandes <b data-badge="demandes"></b></button>
+      <button type="button" data-vue="devis">Devis <b data-badge="devis"></b></button>
       <button type="button" data-vue="pros">Comptes pro <b data-badge="pros"></b></button>
       <button type="button" data-vue="catalogue">Catalogue</button>
       <button type="button" data-vue="partenaires">Installateurs</button>
@@ -58,7 +59,7 @@
       <div class="kpis" id="kpis-demandes"></div>
       <div class="filtres">
         <input type="search" id="f-recherche" placeholder="Nom, téléphone, commune…">
-        <select id="f-statut"><option value="actives">Nouvelles et en cours</option><option value="">Tous les statuts</option><option value="nouveau">Nouveau</option><option value="en_cours">En cours</option><option value="devis_envoye">Devis envoyé</option><option value="gagne">Gagné</option><option value="perdu">Perdu</option></select>
+        <select id="f-statut"><option value="actives">À traiter et en cours</option><option value="">Tous les statuts</option><option value="nouveau">Nouveau</option><option value="a_valider">Devis à valider</option><option value="attente_kbis">Attente Kbis</option><option value="en_cours">En cours</option><option value="devis_envoye">Devis envoyé</option><option value="gagne">Gagné</option><option value="perdu">Perdu</option><option value="expire">Expiré</option></select>
         <select id="f-type"><option value="">Tous les types</option><option value="devis">Devis</option><option value="questionnaire">Questionnaire</option><option value="pack-cyclone">Pack cyclone</option><option value="contact">Contact</option><option value="compte-pro">Compte pro</option></select>
         <select id="f-tri"><option value="priorite">Tri : pour quand</option><option value="date">Tri : plus récentes</option><option value="score">Tri : score</option></select>
       </div>
@@ -66,6 +67,12 @@
     </section>
 
     <!-- COMPTES PRO -->
+    <!-- DEVIS -->
+    <section class="vue" data-vue-p="devis">
+      <header class="vue__tete"><h1>Devis</h1><a class="b" href="devis.html" target="_blank" rel="noopener">Ouvrir en plein écran</a></header>
+      <iframe class="cadre-devis" id="cadre-devis" title="Devis à valider"></iframe>
+    </section>
+
     <section class="vue" data-vue-p="pros">
       <header class="vue__tete"><h1>Comptes pro</h1><button class="b" type="button" data-rafraichir>Actualiser</button></header>
       <div class="filtres filtres--pros"><div class="onglets" id="pros-onglets" role="group" aria-label="Filtrer les comptes"></div><input type="search" id="pros-recherche" placeholder="Entreprise, SIREN, nom, e-mail…"></div>

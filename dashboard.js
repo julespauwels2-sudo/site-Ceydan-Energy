@@ -16,7 +16,8 @@
   if (!C.supabase || !window.supabase) { document.body.innerHTML = "<p style='padding:40px'>Configuration Supabase manquante.</p>"; return; }
   const sb = window.supabase.createClient(C.supabase.url, C.supabase.anonKey);
 
-  const STATUTS = { nouveau: "Nouveau", en_cours: "En cours", devis_envoye: "Devis envoyé", gagne: "Gagné", perdu: "Perdu" };
+  const STATUTS = { nouveau: "Nouveau", a_valider: "Devis à valider", attente_kbis: "Attente Kbis", en_cours: "En cours", devis_envoye: "Devis envoyé", gagne: "Gagné", perdu: "Perdu", expire: "Expiré" };
+  const A_TRAITER = ["nouveau", "a_valider", "attente_kbis"];
   const TYPES = { devis: "Devis", questionnaire: "Questionnaire", "pack-cyclone": "Pack cyclone", contact: "Contact", "compte-pro": "Compte pro" };
   const PRIO = { haute: "Au plus vite", moyenne: "D'ici 3 mois", basse: "Se renseigne" };
   let CATS = { kits: "Kits solaires", panneaux: "Panneaux", regulateurs: "Régulateurs", onduleurs: "Onduleurs", convertisseurs: "Convertisseurs", batteries: "Batteries", structures: "Fixations", cables: "Câbles", monitoring: "Monitoring", protections: "Protections" };
@@ -88,7 +89,7 @@
     if (!m) { $("#refus-txt").textContent = `${email} n'a pas accès au dashboard. Demandez au patron de vous ajouter à l'équipe.`; return montrer("ecran-refus"); }
     moi = m; $("#moi-nom").textContent = m.nom || m.email;
     montrer("app"); await toutCharger();
-    setInterval(() => { if (!document.hidden) chargerDemandes(); }, 60000);
+    setInterval(() => { if (!document.hidden) { chargerDemandes(); badgeDevis(); } }, 60000);
   }
   sb.auth.onAuthStateChange((ev) => { if (ev === "SIGNED_IN" && !moi) demarrer(); });
 
@@ -99,10 +100,30 @@
     if (b.dataset.vue === "trafic") chargerTrafic();
     if (b.dataset.vue === "equipe") chargerEquipe();
     if (b.dataset.vue === "reglages") chargerReglages();
+    if (b.dataset.vue === "devis") chargerCadreDevis();
   }));
+
+  /* ---------- Devis (page devis.html affichée dans le tableau de bord) ---------- */
+  let cadreDevisCharge = false;
+  function chargerCadreDevis(id) {
+    const f = $("#cadre-devis");
+    if (id) { f.src = "devis.html?embed=1&d=" + encodeURIComponent(id); cadreDevisCharge = true; }
+    else if (!cadreDevisCharge) { f.src = "devis.html?embed=1"; cadreDevisCharge = true; }
+  }
+  function ouvrirDevis(id) {
+    const b = $('[data-vue="devis"]');
+    if (!b.classList.contains("is-on")) { cadreDevisCharge = true; b.click(); }
+    chargerCadreDevis(id);
+    if (!id && !$("#cadre-devis").src) $("#cadre-devis").src = "devis.html?embed=1";
+  }
+  async function badgeDevis() {
+    const { count } = await sb.from("devis").select("id", { count: "exact", head: true }).eq("statut", "brouillon");
+    $('[data-badge="devis"]').textContent = count || "";
+  }
+  addEventListener("message", (e) => { if (e.origin === location.origin && e.data?.type === "devis-maj") { badgeDevis(); chargerDemandes(); } });
   $$("[data-rafraichir]").forEach((b) => b.addEventListener("click", () => toutCharger().then(() => toast("À jour"))));
 
-  async function toutCharger() { await Promise.all([chargerDemandes(), chargerPros(), chargerProduits(), chargerPartenaires()]); }
+  async function toutCharger() { await Promise.all([chargerDemandes(), chargerPros(), chargerProduits(), chargerPartenaires(), badgeDevis()]); }
 
   /* ---------- Panneau ---------- */
   const panneau = $("#panneau");
@@ -122,7 +143,7 @@
   const ordrePrio = { haute: 0, moyenne: 1, basse: 2 };
   function rendreDemandes() {
     const l = D.demandes;
-    const nouv = l.filter((d) => d.statut === "nouveau");
+    const nouv = l.filter((d) => A_TRAITER.includes(d.statut));
     const urg = nouv.filter((d) => d.priorite === "haute");
     const debMois = new Date(); debMois.setDate(1); debMois.setHours(0, 0, 0, 0);
     const mois = l.filter((d) => new Date(d.created_at) >= debMois);
@@ -131,12 +152,12 @@
       .map(([t, n, s, c]) => `<div class="kpi ${c ? "kpi--" + c : ""}"><span>${t}</span><b>${n}</b><small>${s}</small></div>`).join("");
     $('[data-badge="demandes"]').textContent = nouv.length || "";
     const q = $("#f-recherche").value.toLowerCase(), st = $("#f-statut").value, ty = $("#f-type").value, tri = $("#f-tri").value;
-    let f = l.filter((d) => (st === "actives" ? ["nouveau", "en_cours"].includes(d.statut) : !st || d.statut === st) && (!ty || d.type === ty)
+    let f = l.filter((d) => (st === "actives" ? [...A_TRAITER, "en_cours"].includes(d.statut) : !st || d.statut === st) && (!ty || d.type === ty)
       && (!q || JSON.stringify(d.contact || {}).toLowerCase().includes(q) || (d.message || "").toLowerCase().includes(q)));
     f.sort(tri === "date" ? (a, b) => new Date(b.created_at) - new Date(a.created_at)
       : tri === "score" ? (a, b) => (b.score || 0) - (a.score || 0)
       : (a, b) => (ordrePrio[a.priorite] ?? 3) - (ordrePrio[b.priorite] ?? 3) || new Date(b.created_at) - new Date(a.created_at));
-    $("#liste-demandes").innerHTML = f.length ? f.map((d) => { const c = d.contact || {}; return `<tr data-id="${d.id}" class="${d.statut === "nouveau" ? "is-nouveau" : ""}">
+    $("#liste-demandes").innerHTML = f.length ? f.map((d) => { const c = d.contact || {}; return `<tr data-id="${d.id}" class="${A_TRAITER.includes(d.statut) ? "is-nouveau" : ""}">
       <td><span class="prio prio--${d.priorite || "basse"}">${PRIO[d.priorite] || "—"}</span></td>
       <td title="${date(d.created_at)}">${depuis(d.created_at)}</td>
       <td><b>${esc(c.nom || c.entreprise || "Sans nom")}</b><br><small>${esc(c.telephone || c.email || "")}</small></td>
@@ -159,6 +180,7 @@
       <h2 id="panneau-titre">${esc(c.nom || c.entreprise || "Demande")}</h2>
       <p class="sous">${TYPES[d.type] || d.type} · reçue le ${date(d.created_at)}${d.page ? " depuis " + esc(d.page) : ""}</p>
       <div class="actions">${c.telephone ? `<a class="b b--jaune" href="tel:${esc(c.telephone.replace(/\s/g, ""))}">Appeler</a><a class="b" href="https://wa.me/${telWa(c.telephone)}" target="_blank" rel="noopener">WhatsApp</a>` : ""}${c.email ? `<a class="b" href="mailto:${esc(c.email)}">E-mail</a>` : ""}</div>
+      <div class="actions" id="d-devis"></div>
       <label class="champ">Statut<select id="d-statut">${Object.entries(STATUTS).map(([k, v]) => `<option value="${k}" ${k === d.statut ? "selected" : ""}>${v}</option>`).join("")}</select></label>
       <table class="infos">${lignes}${reps}</table>
       ${panier}
@@ -166,6 +188,22 @@
       <label class="champ">Note interne<textarea id="d-note" rows="4" placeholder="Rappelé le…, devis n°…">${esc(d.note || "")}</textarea></label>
       <div class="actions"><button class="b b--jaune" id="d-enregistrer">Enregistrer</button>${moi.role === "patron" ? '<button class="b b--danger" id="d-supprimer">Supprimer</button>' : ""}</div>
       ${d.traite_par ? `<p class="sous">Dernière modification par ${esc(d.traite_par)}</p>` : ""}`);
+    // Lien vers le devis de cette demande (ou bouton pour le préparer)
+    (async () => {
+      const zone = $("#d-devis"); if (!zone) return;
+      const { data: dv } = await sb.from("devis").select("id,statut,total_ttc,numero").eq("demande_id", d.id).order("created_at", { ascending: false }).limit(1);
+      const x = dv && dv[0];
+      const montant = (n) => (Number(n) || 0).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
+      if (x) zone.innerHTML = `<button class="b b--vert" type="button" data-voir-devis="${x.id}">${x.statut === "brouillon" ? "Relire et valider le devis" : "Voir le devis " + esc(x.numero || "")} (${montant(x.total_ttc)})</button>`;
+      else if (d.type !== "compte-pro") zone.innerHTML = `<button class="b" type="button" data-preparer-devis>Préparer un devis pour cette demande</button>`;
+      zone.querySelector("[data-voir-devis]")?.addEventListener("click", (e) => { fermerPanneau(); ouvrirDevis(e.currentTarget.dataset.voirDevis); });
+      zone.querySelector("[data-preparer-devis]")?.addEventListener("click", async (e) => {
+        e.currentTarget.disabled = true; e.currentTarget.textContent = "Préparation du devis…";
+        const { data: r, error } = await sb.functions.invoke("devis", { body: { action: "generer", demande_id: d.id } });
+        if (error || !r?.devis_id) { toast("Devis non créé : " + (r?.ignore || r?.erreur || error?.message || "erreur")); e.currentTarget.disabled = false; return; }
+        fermerPanneau(); badgeDevis(); ouvrirDevis(r.devis_id);
+      });
+    })();
     $("#d-enregistrer").addEventListener("click", async () => {
       const maj = { statut: $("#d-statut").value, note: $("#d-note").value, traite_par: moi.email, updated_at: new Date().toISOString() };
       const { error } = await sb.from("demandes").update(maj).eq("id", d.id);

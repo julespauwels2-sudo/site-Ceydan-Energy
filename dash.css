@@ -86,6 +86,11 @@ td small{color:var(--gris)}
 .statut--gagne,.statut--valide{background:#e5f4e7;color:var(--vert-f)}
 .statut--perdu,.statut--refuse{background:#f1f1f1;color:#777}
 .statut--en_attente{background:#fff4d6;color:#8a5a00}
+.statut--a_valider{background:#fff4d6;color:#8a5a00}
+.statut--attente_kbis{background:#ffe9d6;color:#9a3412}
+.statut--expire{background:#f1f1f1;color:#777}
+.cadre-devis{display:block;width:100%;height:calc(100vh - 150px);min-height:520px;border:1px solid #d9e3da;border-radius:14px;background:#f4f6f1}
+#d-devis:empty{display:none}
 .score{display:inline-grid;place-items:center;width:38px;height:38px;border-radius:50%;font-weight:800;font-size:.85rem;background:conic-gradient(var(--vert) calc(var(--s) * 1%),var(--fond) 0)}
 .produit-cel{display:flex;gap:12px;align-items:center;min-width:260px}
 .produit-cel img{width:44px;height:44px;object-fit:contain;border-radius:8px;background:#fff;border:1px solid var(--trait)}
