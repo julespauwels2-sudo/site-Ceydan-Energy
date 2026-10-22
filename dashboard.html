@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 <title>Dashboard | Cedyan Energy</title>
 <link rel="icon" href="favicon.png" type="image/png">
-<link rel="stylesheet" href="dash.css?v=f4a2148a">
+<link rel="stylesheet" href="dash.css?v=03bfc518">
 </head>
 <body>
 
@@ -15,12 +15,15 @@
   <div class="connexion__carte">
     <img src="logo-cedyan.png" width="200" height="60" alt="Cedyan Energy">
     <h1>Dashboard</h1>
-    <p>Saisissez votre e-mail : vous recevez un lien de connexion.</p>
+    <p>Connectez-vous avec votre e-mail et votre mot de passe.</p>
     <form id="form-login" novalidate>
       <label class="sr" for="login-email">E-mail</label>
-      <input id="login-email" type="email" autocomplete="email" placeholder="prenom.nom@cedyanenergytrade.com" required>
-      <button class="b b--jaune" type="submit">Recevoir mon lien</button>
+      <input id="login-email" type="email" autocomplete="username" placeholder="prenom.nom@cedyanenergytrade.com" required>
+      <label class="sr" for="login-mdp">Mot de passe</label>
+      <input id="login-mdp" type="password" autocomplete="current-password" placeholder="Mot de passe">
+      <button class="b b--jaune" type="submit">Se connecter</button>
     </form>
+    <button class="lien-gris" type="button" id="login-lien">Première connexion ou mot de passe oublié ? Recevoir un lien par e-mail</button>
     <p class="msg" id="login-msg" role="status" aria-live="polite"></p>
   </div>
 </section>
@@ -49,7 +52,7 @@
       <button type="button" data-vue="equipe">Équipe</button>
       <button type="button" data-vue="reglages">Réglages</button>
     </nav>
-    <div class="side__moi"><span id="moi-nom"></span><button type="button" class="lien-clair" data-deconnexion>Se déconnecter</button></div>
+    <div class="side__moi"><span id="moi-nom"></span><button type="button" class="lien-clair" id="btn-mdp">Mon mot de passe</button><button type="button" class="lien-clair" data-deconnexion>Se déconnecter</button></div>
   </aside>
 
   <main class="main">
@@ -160,6 +163,19 @@
 
 <script src="config.js?v=df426c7f"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="dashboard.js?v=5a19f986"></script>
+<!-- Choisir ou changer son mot de passe -->
+<dialog class="dlg-mdp" id="dlg-mdp" aria-labelledby="dlg-mdp-titre">
+  <form id="form-mdp" novalidate>
+    <h2 id="dlg-mdp-titre">Choisir mon mot de passe</h2>
+    <p>Au moins 8 caractères. Ensuite, vous vous connecterez avec votre e-mail et ce mot de passe, sans lien à recevoir.</p>
+    <label class="sr" for="mdp1">Nouveau mot de passe</label>
+    <input id="mdp1" type="password" autocomplete="new-password" placeholder="Nouveau mot de passe">
+    <label class="sr" for="mdp2">Retapez le mot de passe</label>
+    <input id="mdp2" type="password" autocomplete="new-password" placeholder="Retapez-le">
+    <p class="msg" id="mdp-msg" role="status" aria-live="polite"></p>
+    <div class="dlg-actions"><button type="button" class="b" id="mdp-annuler">Plus tard</button><button type="submit" class="b b--vert" id="mdp-ok">Enregistrer</button></div>
+  </form>
+</dialog>
+<script src="dashboard.js?v=38774374"></script>
 </body>
 </html>

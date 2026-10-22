@@ -613,23 +613,58 @@
   }
   $$("[data-pro-sortir]").forEach((b) => b.addEventListener("click", async () => { try { sbClient && (await sbClient.auth.signOut()); } catch (e) {} localStorage.removeItem("cedyan_pro"); majProfil(); toast("Vous êtes déconnecté de l'espace pro"); setTimeout(() => location.reload(), 600); }));
 
-  /* ---------- Connexion pro (lien magique par e-mail) ---------- */
+  /* ---------- Connexion pro : e-mail + mot de passe (lien par e-mail pour la première fois ou en cas d'oubli) ---------- */
+  const clientSb = async () => { if (!sbClient) { await chargerScript(LIB_SB); sbClient = window.supabase.createClient(SB.url, SB.anonKey); } return sbClient; };
+  const emailOk = (em) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em);
   const fCo = $("#form-connexion");
   if (fCo) {
     const sortieCo = $("#connexion-etat");
+    const dire = (cls, txt) => { sortieCo.className = "verif " + cls; sortieCo.textContent = txt; };
     const cpt = window.cedyanCompte;
-    if (cpt && cpt.statut === "en_attente") { sortieCo.className = "verif is-wait"; sortieCo.textContent = "Connecté avec " + cpt.email + ". Votre compte est en cours de validation : vous recevrez un e-mail dès qu'il sera validé."; }
-    else if (cpt && cpt.statut === "refuse") { sortieCo.className = "verif is-ko"; sortieCo.textContent = "Votre demande n'a pas pu être validée. Appelez-nous au " + C.telephone + "."; }
-    else if (cpt && cpt.statut === "aucun") { sortieCo.className = "verif is-wait"; sortieCo.textContent = "Connecté avec " + cpt.email + ", mais aucune demande de compte pro n'est liée à cette adresse. Remplissez le formulaire ci-dessous."; }
+    if (cpt && cpt.statut === "en_attente") dire("is-wait", "Connecté avec " + cpt.email + ". Votre compte est en cours de validation : vous recevrez un e-mail dès qu'il sera validé.");
+    else if (cpt && cpt.statut === "refuse") dire("is-ko", "Votre demande n'a pas pu être validée. Appelez-nous au " + C.telephone + ".");
+    else if (cpt && cpt.statut === "aucun") dire("is-wait", "Connecté avec " + cpt.email + ", mais aucune demande de compte pro n'est liée à cette adresse. Remplissez le formulaire ci-dessous.");
     fCo.addEventListener("submit", async (e) => {
-      e.preventDefault(); const em = $("#co-email", fCo).value.trim();
-      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) { sortieCo.className = "verif is-ko"; sortieCo.textContent = "Saisissez une adresse e-mail valide."; return; }
+      e.preventDefault(); const em = $("#co-email", fCo).value.trim(), mdp = ($("#co-mdp", fCo) || {}).value || "";
+      if (!emailOk(em)) return dire("is-ko", "Saisissez une adresse e-mail valide.");
+      if (!mdp) return dire("is-ko", "Saisissez votre mot de passe. Première connexion ? Utilisez le lien juste en dessous.");
       try {
-        if (!sbClient) { await chargerScript(LIB_SB); sbClient = window.supabase.createClient(SB.url, SB.anonKey); }
-        const { error } = await sbClient.auth.signInWithOtp({ email: em, options: { emailRedirectTo: location.origin + "/pro.html" } });
+        const sb = await clientSb();
+        const { error } = await sb.auth.signInWithPassword({ email: em, password: mdp });
         if (error) throw error;
-        sortieCo.className = "verif is-ok"; sortieCo.textContent = "C'est envoyé. Ouvrez l'e-mail reçu sur " + em + " et cliquez sur le lien pour vous connecter.";
-      } catch (er) { sortieCo.className = "verif is-ko"; sortieCo.textContent = "Envoi impossible pour le moment. Réessayez dans quelques minutes."; }
+        dire("is-ok", "Connexion réussie, chargement de vos tarifs…"); setTimeout(() => location.reload(), 500);
+      } catch (er) { dire("is-ko", /rate|limit/i.test((er && er.message) || "") ? "Trop de tentatives. Patientez une minute avant de réessayer." : "E-mail ou mot de passe incorrect. Première connexion ou mot de passe oublié ? Recevez un lien par e-mail juste en dessous."); }
+    });
+    const lien = $("#co-lien");
+    if (lien) lien.addEventListener("click", async () => {
+      const em = $("#co-email", fCo).value.trim();
+      if (!emailOk(em)) { dire("is-ko", "Saisissez d'abord votre e-mail ci-dessus."); $("#co-email", fCo).focus(); return; }
+      try {
+        const sb = await clientSb();
+        const { error } = await sb.auth.signInWithOtp({ email: em, options: { emailRedirectTo: location.origin + "/pro.html" } });
+        if (error) throw error;
+        try { localStorage.setItem("cedyan_definir_mdp", "1"); } catch (x) {}
+        dire("is-ok", "C'est envoyé. Ouvrez l'e-mail reçu sur " + em + " et cliquez sur le lien : vous pourrez ensuite choisir votre mot de passe.");
+      } catch (er) { dire("is-ko", "Envoi impossible pour le moment. Réessayez dans quelques minutes."); }
+    });
+  }
+  /* ---------- Choisir ou changer son mot de passe (espace pro) ---------- */
+  const fMdp = $("#form-mdp-pro");
+  if (fMdp) {
+    const boite = $("#mdp-pro"), sortieMdp = $("#mdp-pro-etat");
+    const dire = (cls, txt) => { sortieMdp.className = "verif " + cls; sortieMdp.textContent = txt; };
+    $$("[data-pro-mdp]").forEach((b) => b.addEventListener("click", () => { boite.hidden = !boite.hidden; if (!boite.hidden) $("#pro-mdp1").focus(); }));
+    try { if (window.cedyanCompte && localStorage.getItem("cedyan_definir_mdp") === "1") { localStorage.removeItem("cedyan_definir_mdp"); boite.hidden = false; dire("is-wait", "Choisissez votre mot de passe : la prochaine fois, plus besoin de lien."); } } catch (x) {}
+    fMdp.addEventListener("submit", async (e) => {
+      e.preventDefault(); const a = $("#pro-mdp1").value, b = $("#pro-mdp2").value;
+      if (a.length < 8) return dire("is-ko", "Au moins 8 caractères.");
+      if (a !== b) return dire("is-ko", "Les deux mots de passe ne sont pas identiques.");
+      try {
+        const sb = await clientSb();
+        const { error } = await sb.auth.updateUser({ password: a });
+        if (error) throw error;
+        fMdp.reset(); dire("is-ok", "Mot de passe enregistré. La prochaine fois, connectez-vous avec votre e-mail et ce mot de passe.");
+      } catch (er) { dire("is-ko", /reauth|nonce|recent/i.test((er && er.message) || "") ? "Par sécurité, déconnectez-vous, reconnectez-vous avec un lien e-mail, puis recommencez." : "Enregistrement impossible pour le moment. Réessayez dans quelques minutes."); }
     });
   }
 

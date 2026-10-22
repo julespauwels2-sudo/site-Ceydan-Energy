@@ -31,6 +31,15 @@ a{color:var(--vert-f)}
 .connexion input{min-height:48px;padding:10px 14px;border:1.5px solid var(--trait);border-radius:12px}
 .connexion .b{min-height:48px}
 .msg{min-height:1.2em;color:var(--vert-f);font-weight:600;margin:0}
+.lien-gris{border:0;background:none;padding:0;color:var(--gris);text-decoration:underline;cursor:pointer;justify-self:start;text-align:left;font-size:.9rem}
+.side__moi{display:grid;gap:6px}
+.dlg-mdp{border:0;border-radius:24px;padding:0;width:min(92vw,420px);box-shadow:0 40px 80px -30px rgba(0,0,0,.6)}
+.dlg-mdp::backdrop{background:rgba(8,23,13,.6)}
+.dlg-mdp form{display:grid;gap:10px;padding:28px}
+.dlg-mdp h2{margin:0;font-size:1.4rem;font-weight:900;letter-spacing:-.02em}
+.dlg-mdp p{margin:0;color:var(--gris)}
+.dlg-mdp input{min-height:46px;padding:10px 14px;border:1.5px solid var(--trait);border-radius:12px}
+.dlg-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:6px}
 
 /* Structure */
 .app{display:grid;grid-template-columns:240px 1fr;min-height:100vh}

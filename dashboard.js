@@ -54,20 +54,49 @@
 
   /* ---------- Connexion ---------- */
   const montrer = (id) => ["ecran-connexion", "ecran-refus", "app"].forEach((x) => ($("#" + x).hidden = x !== id));
+  // Connexion par e-mail + mot de passe
   $("#form-login").addEventListener("submit", async (e) => {
-    e.preventDefault(); const em = $("#login-email").value.trim(); const msg = $("#login-msg");
+    e.preventDefault(); const em = $("#login-email").value.trim(), mdp = $("#login-mdp").value, msg = $("#login-msg");
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) { msg.textContent = "Adresse e-mail invalide."; return; }
+    if (!mdp) { msg.textContent = "Saisissez votre mot de passe. Première connexion ? Utilisez le lien juste en dessous."; return; }
+    msg.textContent = "Connexion…";
+    const { error } = await sb.auth.signInWithPassword({ email: em.toLowerCase(), password: mdp });
+    if (error) { msg.textContent = /rate|limit/i.test(error.message) ? "Trop de tentatives. Patientez une minute avant de réessayer." : "E-mail ou mot de passe incorrect. Pas encore de mot de passe, ou oublié ? Utilisez le lien juste en dessous."; return; }
+    msg.textContent = "";
+  });
+  // Première connexion ou mot de passe oublié : lien par e-mail, puis choix du mot de passe
+  $("#login-lien").addEventListener("click", async () => {
+    const em = $("#login-email").value.trim(); const msg = $("#login-msg");
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) { msg.textContent = "Saisissez d'abord votre e-mail ci-dessus."; $("#login-email").focus(); return; }
     msg.textContent = "Envoi…";
+    try { localStorage.setItem("cedyan_definir_mdp", "1"); } catch (e) {}
     // Aucun compte n'est créé depuis cette page, et la réponse est la même que l'adresse soit autorisée ou non :
     // impossible de deviner qui a accès au dashboard.
     const { error } = await sb.auth.signInWithOtp({ email: em.toLowerCase(), options: { shouldCreateUser: false, emailRedirectTo: location.origin + location.pathname } });
     if (error && /rate|limit|security purposes/i.test(error.message)) { msg.textContent = "Trop de tentatives. Patientez une minute avant de réessayer."; return; }
-    msg.textContent = "Si cette adresse a accès au dashboard, un lien de connexion vient d'y être envoyé. Il est valable peu de temps.";
+    msg.textContent = "Si cette adresse a accès au dashboard, un lien de connexion vient d'y être envoyé. Après connexion, vous pourrez choisir votre mot de passe.";
+  });
+
+  /* ---------- Mot de passe ---------- */
+  const dlgMdp = $("#dlg-mdp");
+  const ouvrirMdp = () => { $("#mdp-msg").textContent = ""; $("#form-mdp").reset(); dlgMdp.showModal(); $("#mdp1").focus(); };
+  $("#btn-mdp").addEventListener("click", ouvrirMdp);
+  $("#mdp-annuler").addEventListener("click", () => dlgMdp.close());
+  $("#form-mdp").addEventListener("submit", async (e) => {
+    e.preventDefault(); const a = $("#mdp1").value, b = $("#mdp2").value, msg = $("#mdp-msg");
+    if (a.length < 8) { msg.textContent = "Au moins 8 caractères."; return; }
+    if (a !== b) { msg.textContent = "Les deux mots de passe ne sont pas identiques."; return; }
+    $("#mdp-ok").disabled = true; msg.textContent = "Enregistrement…";
+    const { error } = await sb.auth.updateUser({ password: a });
+    $("#mdp-ok").disabled = false;
+    if (error) { msg.textContent = /reauth|nonce|recent/i.test(error.message) ? "Par sécurité, déconnectez-vous, reconnectez-vous avec un lien e-mail, puis recommencez." : "Enregistrement impossible : " + error.message; return; }
+    msg.textContent = "Mot de passe enregistré.";
+    setTimeout(() => dlgMdp.close(), 1200);
   });
   $$("[data-deconnexion]").forEach((b) => b.addEventListener("click", async () => { await sb.auth.signOut(); location.reload(); }));
 
-  /* Déconnexion automatique après 30 minutes sans activité (ordinateur laissé ouvert, téléphone prêté…) */
-  const INACTIVITE = 30 * 60 * 1000;
+  /* Déconnexion automatique après 12 heures sans activité (ordinateur laissé ouvert, téléphone prêté…) */
+  const INACTIVITE = 12 * 60 * 60 * 1000; // 12 h sans activité
   let derniereActivite = Date.now();
   ["pointerdown", "keydown", "scroll", "touchstart"].forEach((ev) => addEventListener(ev, () => (derniereActivite = Date.now()), { passive: true }));
   setInterval(async () => {
@@ -89,6 +118,7 @@
     if (!m) { $("#refus-txt").textContent = `${email} n'a pas accès au dashboard. Demandez au patron de vous ajouter à l'équipe.`; return montrer("ecran-refus"); }
     moi = m; $("#moi-nom").textContent = m.nom || m.email;
     montrer("app"); await toutCharger();
+    try { if (localStorage.getItem("cedyan_definir_mdp") === "1") { localStorage.removeItem("cedyan_definir_mdp"); ouvrirMdp(); } } catch (e) {}
     setInterval(() => { if (!document.hidden) { chargerDemandes(); badgeDevis(); } }, 60000);
   }
   sb.auth.onAuthStateChange((ev) => { if (ev === "SIGNED_IN" && !moi) demarrer(); });
