@@ -224,6 +224,16 @@ p{margin:0 0 1em}
 .champ .aide{font-size:.84rem;color:var(--gris);font-style:italic}
 .erreur{color:#b42318;font-size:.88rem;font-weight:600;margin:0}
 .grille-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+/* Choix « Vous êtes » du formulaire de devis */
+.choix-seg{border:0;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.choix-seg legend{font-weight:700;font-size:.94rem;margin-bottom:7px;padding:0}
+.choix-seg label{position:relative;display:block;cursor:pointer}
+.choix-seg input{position:absolute;opacity:0;pointer-events:none}
+.choix-seg span{display:flex;align-items:center;justify-content:center;min-height:48px;padding:10px 14px;border-radius:var(--r-m);border:1.5px solid var(--trait);background:#fff;font-weight:700;transition:border-color .2s,background .2s}
+.choix-seg input:checked+span{border-color:var(--vert);background:var(--menthe-pale);color:var(--vert-fonce)}
+.choix-seg input:focus-visible+span{box-shadow:0 0 0 4px rgba(33,128,52,.25)}
+.input-fichier{padding:10px 12px;min-height:auto;font-size:.92rem}
+[data-si-profil][hidden]{display:none}
 .consent{display:grid;grid-template-columns:22px 1fr;gap:10px;font-size:.86rem;color:var(--gris);align-items:start}
 .consent input{width:20px;height:20px;margin-top:2px;accent-color:var(--vert)}
 

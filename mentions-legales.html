@@ -14,7 +14,7 @@
 <link rel="icon" href="favicon.png" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preload" href="InterVariable.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="style.css?v=9a7a59f1">
+<link rel="stylesheet" href="style.css?v=5fce2f14">
 <link rel="canonical" href="https://www.cedyan-energy.net/mentions-legales">
 <meta property="og:url" content="https://www.cedyan-energy.net/mentions-legales">
 </head>
@@ -170,11 +170,19 @@
           <div class="champ"><label for="d-mail">E-mail</label><input class="input" id="d-mail" name="email" type="email" autocomplete="email"></div>
           <div class="champ"><label for="d-com">Commune</label><select class="select" id="d-com" name="commune" data-communes></select></div>
         </div>
+        <fieldset class="choix-seg">
+          <legend>Vous êtes</legend>
+          <label><input type="radio" name="profil" value="particulier" checked><span>Particulier</span></label>
+          <label><input type="radio" name="profil" value="pro"><span>Professionnel</span></label>
+        </fieldset>
+        <div class="champ" data-si-profil="particulier"><label for="d-pose">Qui va installer le matériel ?</label><select class="select" id="d-pose" name="installateur"><option value="ne_sait_pas">Je ne sais pas encore</option><option value="materiel_seul">J'ai déjà mon installateur</option><option value="pose_enr">Je veux que vous vous occupiez de la pose</option></select></div>
+        <div class="champ" data-si-profil="pro" hidden><label for="d-metier">Votre activité</label><select class="select" id="d-metier" name="metier"><option>Installateur photovoltaïque</option><option>Électricien</option><option>Revendeur</option><option>Bureau d'étude</option><option>Entreprise du bâtiment</option><option>Entreprise, commerce ou collectivité (pour ses propres besoins)</option><option>Autre professionnel</option></select><p class="aide" data-sans-compte>Pas encore de compte pro ? <a href="pro.html">Créez-le en 2 minutes</a> pour recevoir vos prix pros.</p></div>
         <div class="grille-2">
-          <div class="champ"><label for="d-profil">Vous êtes</label><select class="select" id="d-profil" name="profil"><option>Particulier</option><option>Installateur ou électricien</option><option>Entreprise ou collectivité</option><option>Revendeur</option></select></div>
+          <div class="champ"><label for="d-recup">Retrait ou livraison</label><select class="select" id="d-recup" name="recup"><option value="retrait">Retrait au magasin</option><option value="livraison">Livraison</option><option value="ne_sait_pas">À voir</option></select></div>
           <div class="champ"><label for="d-delai">Pour quand ?</label><select class="select" id="d-delai" name="delai" required><option value="">Choisir…</option><option>Au plus vite</option><option>D'ici 3 mois</option><option>Je me renseigne</option></select></div>
         </div>
         <div class="champ"><label for="d-msg">Votre projet <span class="info">(facultatif)</span></label><textarea class="textarea" id="d-msg" name="message" rows="3" placeholder="Puissance souhaitée, type de toiture, adresse du chantier…"></textarea></div>
+        <div class="champ"><label for="d-piece">Votre liste de matériel, une photo ou un PDF <span class="info">(facultatif)</span></label><input class="input input-fichier" id="d-piece" name="piece" type="file" accept="application/pdf,image/jpeg,image/png,image/webp,image/heic"><span class="aide">8 Mo maximum. Nous lisons votre liste et préparons le devis avec.</span></div>
         <div class="hp" aria-hidden="true"><label>Ne pas remplir<input type="text" name="site_web" tabindex="-1" autocomplete="off"></label></div>
         <label class="consent"><input type="checkbox" name="rgpd" required><span>J'accepte que Cedyan Energy utilise ces informations pour traiter ma demande et me recontacter. <a href="politique-confidentialite.html" target="_blank">En savoir plus</a></span></label>
         <p class="erreur" hidden>Vérifiez les champs entourés en rouge.</p>
@@ -188,7 +196,7 @@
 <script src="icones.js?v=521c4090"></script>
 <script src="data.js?v=07f0e3e3"></script>
 <script src="partenaires.js?v=3096e677"></script>
-<script src="app.js?v=eb3fd75d"></script>
+<script src="app.js?v=54bafc2b"></script>
 <script src="anim.js?v=1367104b"></script>
 </body>
 </html>

@@ -365,17 +365,38 @@ function rendre() {
       </div>
     </div>
     ${avertissements.map((a) => `<p class="avert">${a}</p>`).join("")}
-    ${demande.message || panier ? `<details class="origine" ${D.lignes.some((l) => l.a_verifier) ? "open" : ""}><summary>Demande d'origine</summary>${panier ? `<p><b>Panier :</b>\n${esc(panier)}</p>` : ""}${demande.message ? `<p><b>Message :</b>\n${esc(demande.message)}</p>` : ""}</details>` : ""}
+    ${demande.message || panier || (demande.pieces_jointes || []).length ? `<details class="origine" ${D.lignes.some((l) => l.a_verifier) || (demande.pieces_jointes || []).length ? "open" : ""}><summary>Demande d'origine</summary>${infosDemande(demande)}${panier ? `<p><b>Panier :</b>\n${esc(panier)}</p>` : ""}${demande.message ? `<p><b>Message :</b>\n${esc(demande.message)}</p>` : ""}${(demande.pieces_jointes || []).length ? `<p><b>Pièce jointe :</b> <span id="pieces">chargement…</span></p>` : ""}</details>` : ""}
   </section>
   <div class="cols" aria-hidden="true"><span>Produit</span><span>Quantité</span><span>Prix unitaire</span><span>Total</span><span></span></div>
   <div class="lignes" id="lignes">${D.lignes.map(ligneHtml).join("") || `<p class="vide">Aucune ligne. Ajoutez des produits ci-dessous.</p>`}</div>
   ${fige ? "" : `<div class="ajout"><input id="cherche" type="search" placeholder="Ajouter un produit : tapez un nom, une marque ou une référence" autocomplete="off" aria-label="Ajouter un produit"><button class="libre" id="libre">Ligne libre</button><div class="resultats" id="res" hidden></div></div>`}`;
   document.getElementById("retour").onclick = ecranListe;
   document.getElementById("editclient").onclick = editerClient;
+  afficherPieces(demande);
   app.querySelectorAll("[data-grille]").forEach((b) => (b.onclick = () => changerGrille(b.dataset.grille)));
   brancherLignes();
   if (!fige) brancherAjout();
   rendrePied();
+}
+
+// Infos utiles de la demande : pro ou particulier, qui pose, retrait ou livraison
+function infosDemande(d) {
+  const POSE = { materiel_seul: "a déjà son installateur", pose_enr: "veut aussi la pose (ENR Pose)", ne_sait_pas: "ne sait pas encore qui pose" };
+  const RECUP = { retrait: "retrait au magasin", livraison: "livraison", ne_sait_pas: "retrait ou livraison à voir" };
+  const c = d.contact || {};
+  const morceaux = [d.profil === "pro" ? "Professionnel" + (c.metier ? " (" + c.metier + ")" : "") : d.profil === "particulier" ? "Particulier" : null,
+    POSE[d.installateur], RECUP[d.livraison?.mode] ? RECUP[d.livraison.mode] + (d.livraison.mode === "livraison" && d.livraison.commune ? " à " + d.livraison.commune : "") : null].filter(Boolean);
+  return morceaux.length ? `<p><b>Client :</b> ${esc(morceaux.join(", "))}</p>` : "";
+}
+// Liens temporaires vers les pièces jointes (espace privé)
+async function afficherPieces(d) {
+  const zone = document.getElementById("pieces"); if (!zone) return;
+  const liens = [];
+  for (const chemin of d.pieces_jointes || []) {
+    const { data } = await sb.storage.from("demandes").createSignedUrl(chemin, 3600);
+    if (data?.signedUrl) liens.push(`<a href="${esc(data.signedUrl)}" target="_blank" rel="noopener">Ouvrir le fichier (${esc(chemin.split(".").pop().toUpperCase())})</a>`);
+  }
+  zone.innerHTML = liens.join(" · ") || "fichier introuvable";
 }
 
 function ligneHtml(l) {

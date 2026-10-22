@@ -210,14 +210,14 @@
     try { if (Object.keys(o).length) sessionStorage.setItem("cedyan_utm", JSON.stringify(o)); return JSON.parse(sessionStorage.getItem("cedyan_utm") || "{}"); } catch (e) { return o; }
   }
   utm();
-  async function envoyerLead(lead, fichier) {
+  async function envoyerLead(lead, fichier, champFichier = "kbis") {
     const payload = Object.assign({ date: new Date().toISOString(), page: location.pathname, profil: profil(), pro_verifie: pro(), utm: utm() }, lead);
     payload.pour_quand = payload.pour_quand || (payload.reponses && payload.reponses.delai) || "Non précisé";
     payload.priorite = payload.pour_quand === "Au plus vite" ? "haute" : payload.pour_quand === "D'ici 3 mois" ? "moyenne" : "basse";
     if (SB) {
       try {
         const opts = { method: "POST", headers: enTetesSB() };
-        if (fichier) { const fd = new FormData(); fd.append("payload", JSON.stringify(payload)); fd.append("kbis", fichier); opts.body = fd; }
+        if (fichier) { const fd = new FormData(); fd.append("payload", JSON.stringify(payload)); fd.append(champFichier, fichier); opts.body = fd; }
         else { opts.headers = { ...opts.headers, "Content-Type": "application/json" }; opts.body = JSON.stringify(payload); }
         const r = await fetch(SB.url + "/functions/v1/demande", opts);
         if (r.ok) return { ok: true, via: "supabase" };
@@ -265,14 +265,37 @@
 
   /* Formulaire du tiroir devis */
   const formDevis = $("#form-devis");
-  if (formDevis) formDevis.addEventListener("submit", async (e) => {
-    e.preventDefault(); if (!valider(formDevis)) return;
-    const d = lireForm(formDevis);
-    const panier = devis.get().map((i) => { const p = trouver(i.id); return { id: i.id, q: i.q, nom: p ? p.nom + (p.ref ? " (" + p.ref + ")" : "") : i.id }; });
-    await envoyerLead({ type: "devis", sujet: "demande de devis (" + panier.length + " produit" + (panier.length > 1 ? "s" : "") + ")", contact: { nom: d.nom, telephone: d.telephone, email: d.email, commune: d.commune, profil: d.profil }, pour_quand: d.delai, message: d.message, panier, score: scoreLead({ tel: d.telephone, panier, delai: d.delai, typeClient: d.profil === "Installateur ou électricien" ? "Professionnel du bâtiment" : "" }) });
-    devis.set([]); formDevis.reset();
-    $(".tiroir__liste").innerHTML = `<div class="vide"><p><b>Demande envoyée.</b></p><p>Un conseiller Cedyan vous rappelle ou vous écrit sous 24 h ouvrées avec votre devis.</p></div>`;
-  });
+  if (formDevis) {
+    // « Vous êtes » : particulier (qui pose ?) ou professionnel (quelle activité ?)
+    const majProfilDevis = () => {
+      const v = (formDevis.querySelector('input[name="profil"]:checked') || {}).value || "particulier";
+      $$("[data-si-profil]", formDevis).forEach((b) => (b.hidden = b.dataset.siProfil !== v));
+      const sansCompte = $("[data-sans-compte]", formDevis); if (sansCompte) sansCompte.hidden = !!pro();
+    };
+    $$('input[name="profil"]', formDevis).forEach((r) => r.addEventListener("change", majProfilDevis));
+    if (pro()) { const r = formDevis.querySelector('input[name="profil"][value="pro"]'); if (r) r.checked = true; }
+    majProfilDevis();
+    formDevis.addEventListener("submit", async (e) => {
+      e.preventDefault(); if (!valider(formDevis)) return;
+      const d = lireForm(formDevis);
+      const fichier = ($("#d-piece", formDevis) || {}).files ? $("#d-piece", formDevis).files[0] : null;
+      if (fichier && fichier.size > 8 * 1024 * 1024) { const er = $(".erreur", formDevis); if (er) { er.textContent = "Le fichier joint dépasse 8 Mo."; er.hidden = false; } return; }
+      const estPro = d.profil === "pro";
+      const panier = devis.get().map((i) => { const p = trouver(i.id); return { id: i.id, q: i.q, nom: p ? p.nom + (p.ref ? " (" + p.ref + ")" : "") : i.id }; });
+      const bouton = $('button[type="submit"]', formDevis); if (bouton) { bouton.disabled = true; bouton.textContent = "Envoi…"; }
+      await envoyerLead({
+        type: "devis", sujet: "demande de devis (" + panier.length + " produit" + (panier.length > 1 ? "s" : "") + ")",
+        profil: estPro ? "pro" : "particulier", installateur: estPro ? null : d.installateur,
+        livraison: { mode: d.recup, commune: d.commune },
+        contact: { nom: d.nom, telephone: d.telephone, email: d.email, commune: d.commune, profil: estPro ? "Professionnel" : "Particulier", metier: estPro ? d.metier : undefined },
+        pour_quand: d.delai, message: d.message, panier,
+        score: scoreLead({ tel: d.telephone, panier, delai: d.delai, typeClient: estPro ? "Professionnel du bâtiment" : "" }),
+      }, fichier || null, "piece");
+      if (bouton) { bouton.disabled = false; bouton.textContent = "Envoyer ma demande de devis"; }
+      devis.set([]); formDevis.reset(); majProfilDevis();
+      $(".tiroir__liste").innerHTML = `<div class="vide"><p><b>Demande envoyée.</b></p><p>Un conseiller Cedyan vous rappelle ou vous écrit sous 24 h ouvrées avec votre devis.</p></div>`;
+    });
+  }
 
   function scoreLead({ tel, panier = [], delai, besoin, typeClient, facture } = {}) {
     let s = 20;
