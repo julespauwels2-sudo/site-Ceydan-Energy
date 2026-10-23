@@ -28,7 +28,9 @@ main{max-width:640px;margin:-14px auto 0;padding:0 14px calc(40px + env(safe-are
 h2{margin:0 0 12px;font-size:1.2rem;font-weight:800;letter-spacing:-.01em}
 .q{margin:0 0 14px}
 .q p{margin:0 0 8px;font-weight:700}
-.choix{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}
+.choix{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.choix.trois{grid-template-columns:repeat(3,1fr)}
+.choix.trois span{font-size:.9rem;min-height:56px;line-height:1.2}
 .choix label{position:relative}
 .choix input{position:absolute;opacity:0}
 .choix span{display:flex;align-items:center;justify-content:center;min-height:50px;border-radius:14px;border:1.5px solid var(--trait);background:#fff;font-weight:700;text-align:center;padding:6px 10px;cursor:pointer}
@@ -37,11 +39,12 @@ h2{margin:0 0 12px;font-size:1.2rem;font-weight:800;letter-spacing:-.01em}
 .danger{background:#fdecea;color:#8c1d13;border-radius:16px;padding:14px 16px;font-weight:600;margin:4px 0 14px}
 label.champ{display:grid;gap:6px;font-weight:700;font-size:.95rem;margin-bottom:12px}
 label.champ small{font-weight:400;color:var(--gris)}
-input[type=text],input[type=tel],input[type=email],textarea{width:100%;min-height:52px;border:1.5px solid var(--trait);border-radius:14px;padding:12px 14px;background:#fff}
+input[type=text],input[type=tel],input[type=email],textarea{font-weight:400;font-size:17px;-webkit-appearance:none;appearance:none;width:100%;min-height:52px;border:1.5px solid var(--trait);border-radius:14px;padding:12px 14px;background:#fff}
 textarea{min-height:110px;resize:vertical}
 .grille{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .photos{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .photos img{width:72px;height:72px;object-fit:cover;border-radius:12px}
+.vignette{position:relative}.vignette button{position:absolute;top:-6px;right:-6px;width:26px;height:26px;border-radius:50%;border:0;background:#16241a;color:#fff;font-size:14px;cursor:pointer}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:54px;padding:0 24px;border-radius:999px;border:0;background:var(--teal);color:#fff;font-weight:800;font-size:1.02rem;cursor:pointer;width:100%;box-shadow:0 12px 24px -14px rgba(14,156,143,.8)}
 .btn.clair{background:#fff;color:var(--teal-f);box-shadow:inset 0 0 0 2px var(--teal)}
 .btn:disabled{opacity:.6;cursor:wait}
@@ -73,11 +76,11 @@ textarea{min-height:110px;resize:vertical}
       <div class="choix"><label><input type="radio" name="danger" value="oui"><span>Oui</span></label><label><input type="radio" name="danger" value="non" checked><span>Non</span></label></div></div>
     <p class="danger" id="alerte-danger" hidden>Par sécurité : si vous pouvez le faire sans risque, coupez le disjoncteur photovoltaïque (côté onduleur), ne touchez pas aux câbles et éloignez-vous de l'appareil. En cas de fumée ou de flammes, appelez le 18. Envoyez ensuite ce formulaire : nous vous rappelons en priorité.</p>
     <div class="q"><p>Depuis quand ?</p>
-      <div class="choix"><label><input type="radio" name="depuis" value="Aujourd'hui" checked><span>Aujourd'hui</span></label><label><input type="radio" name="depuis" value="Quelques jours"><span>Quelques jours</span></label><label><input type="radio" name="depuis" value="Plus d'une semaine"><span>Plus d'une semaine</span></label></div></div>
+      <div class="choix trois"><label><input type="radio" name="depuis" value="Aujourd'hui" checked><span>Aujourd'hui</span></label><label><input type="radio" name="depuis" value="Quelques jours"><span>Quelques jours</span></label><label><input type="radio" name="depuis" value="Plus d'une semaine"><span>Plus d'une semaine</span></label></div></div>
 
     <label class="champ">Que se passe-t-il ?<textarea id="desc" placeholder="Ex. : l'onduleur affiche « Erreur 2011 », la batterie ne charge plus depuis l'orage…" required></textarea></label>
     <div class="q"><p>Une photo aide beaucoup <small style="font-weight:400;color:var(--gris)">(écran de l'onduleur, code erreur, batterie…)</small></p>
-      <div class="photos"><label class="btn clair photo-btn">📷 Ajouter une photo<input type="file" id="photo" accept="image/*" capture="environment" multiple></label><span id="apercus" class="photos"></span></div></div>
+      <div class="photos"><label class="btn clair photo-btn" id="photo-btn">📷 Ajouter une photo<input type="file" id="photo" accept="image/*"></label><span id="apercus" class="photos"></span></div></div>
 
     <h2 style="margin-top:18px">Pour vous rappeler</h2>
     <div class="grille">
@@ -117,9 +120,31 @@ if (code) fetch(FN, { method: "POST", headers: { ...entetes, "Content-Type": "ap
   }).catch(() => {});
 
 document.querySelectorAll('input[name="danger"]').forEach((r) => r.addEventListener("change", () => ($("alerte-danger").hidden = document.querySelector('input[name="danger"]:checked').value !== "oui")));
-$("photo").addEventListener("change", () => {
-  photos = [...photos, ...$("photo").files].filter((f) => f.type.startsWith("image/")).slice(0, 3);
-  $("apercus").innerHTML = photos.map((f) => `<img alt="" src="${URL.createObjectURL(f)}">`).join("");
+// Photos : réduites sur le téléphone avant l'envoi (format JPEG, 1600 px) : les photos d'iPhone (HEIC, 4 à 12 Mo) passent sans souci
+function reduire(f) {
+  return new Promise((ok) => {
+    const img = new Image(), url = URL.createObjectURL(f);
+    img.onload = () => {
+      const k = Math.min(1, 1600 / Math.max(img.naturalWidth, img.naturalHeight));
+      const c = document.createElement("canvas"); c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
+      c.toBlob((b) => ok(b ? new File([b], "photo.jpg", { type: "image/jpeg" }) : null), "image/jpeg", 0.82);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); ok(null); };
+    img.src = url;
+  });
+}
+function dessinerPhotos() {
+  $("apercus").innerHTML = photos.map((f, i) => `<span class="vignette"><img alt="Photo ${i + 1}" src="${URL.createObjectURL(f)}"><button type="button" data-i="${i}" aria-label="Retirer la photo">✕</button></span>`).join("");
+  $("apercus").querySelectorAll("button").forEach((b) => (b.onclick = () => { photos.splice(+b.dataset.i, 1); dessinerPhotos(); }));
+  $("photo-btn").hidden = photos.length >= 3;
+}
+$("photo").addEventListener("change", async () => {
+  const f = $("photo").files[0]; $("photo").value = ""; if (!f) return;
+  $("msg").textContent = "";
+  const r = await reduire(f);
+  if (!r) { $("msg").textContent = "Cette photo n'a pas pu être lue. Essayez une capture d'écran ou une autre photo."; return; }
+  photos.push(r); dessinerPhotos();
 });
 const val = (n) => (document.querySelector(`input[name="${n}"]:checked`) || {}).value;
 
