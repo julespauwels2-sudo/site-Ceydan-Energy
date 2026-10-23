@@ -147,7 +147,8 @@
     if (!id && !$("#cadre-devis").src) $("#cadre-devis").src = "devis.html?embed=1";
   }
   async function badgeDevis() {
-    const { count } = await sb.from("devis").select("id", { count: "exact", head: true }).eq("statut", "brouillon");
+    // Devis à valider + clients à rappeler (relance J+14)
+    const { count } = await sb.from("devis").select("id", { count: "exact", head: true }).or("statut.eq.brouillon,and(statut.eq.envoye,a_appeler.eq.true)");
     $('[data-badge="devis"]').textContent = count || "";
   }
   addEventListener("message", (e) => { if (e.origin === location.origin && e.data?.type === "devis-maj") { badgeDevis(); chargerDemandes(); } });

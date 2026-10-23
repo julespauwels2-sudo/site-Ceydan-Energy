@@ -212,17 +212,19 @@ const libelleDe = (p) => [p.marque, p.nom].filter(Boolean).join(" ") + (p.ref ? 
 const prixSelon = (p, grille) => p ? (grille === "pro" ? p.prix : p.prix_public) : null;
 
 /* ---------- Liste ---------- */
+const relancesBadge = (d) => { const n = [d.relance1_le, d.relance2_le, d.relance_exp_le].filter(Boolean).length; return n ? `<span class="badge">Relancé ${n} fois</span>` : ""; };
 const STATUT_BADGE = { valide: `<span class="badge ok">Validé</span>`, envoye: `<span class="badge ok">Envoyé</span>`, accepte: `<span class="badge ok">✓ Accepté</span>`, refuse: `<span class="badge alerte">Refusé</span>`, expire: `<span class="badge">Expiré</span>` };
 async function ecranListe() {
   D = null; pied.hidden = true; history.replaceState(null, "", adresse(""));
   app.innerHTML = `<div class="tetliste"><h2>Devis</h2><button class="btn vert" id="nouveau">Faire un devis</button></div>
   <div class="puces" role="group" aria-label="Filtrer">
-    ${[["brouillon", "À valider"], ["valide", "Validés"], ["envoye", "Envoyés"], ["accepte", "Acceptés"], ["tous", "Tous"]].map(([k, l]) => `<button class="puce" data-f="${k}" aria-pressed="${filtre === k}">${l}</button>`).join("")}
+    ${[["brouillon", "À valider"], ["appeler", "À appeler"], ["valide", "Validés"], ["envoye", "Envoyés"], ["accepte", "Acceptés"], ["tous", "Tous"]].map(([k, l]) => `<button class="puce" data-f="${k}" aria-pressed="${filtre === k}">${l}</button>`).join("")}
   </div><div class="liste" id="liste"><p class="vide">Chargement…</p></div>`;
   app.querySelectorAll("[data-f]").forEach((b) => (b.onclick = () => { filtre = b.dataset.f; ecranListe(); }));
   document.getElementById("nouveau").onclick = ecranNouveau;
-  let q = sb.from("devis").select("id,created_at,statut,grille,total_ttc,source,numero,vu_le,demande:demandes(id,contact,statut,type),devis_lignes(a_verifier)").order("created_at", { ascending: false }).limit(200);
-  if (filtre !== "tous") q = q.eq("statut", filtre);
+  let q = sb.from("devis").select("id,created_at,statut,grille,total_ttc,source,numero,vu_le,a_appeler,relance1_le,relance2_le,relance_exp_le,demande:demandes(id,contact,statut,type),devis_lignes(a_verifier)").order("created_at", { ascending: false }).limit(200);
+  if (filtre === "appeler") q = q.eq("statut", "envoye").eq("a_appeler", true);
+  else if (filtre !== "tous") q = q.eq("statut", filtre);
   const { data, error } = await q;
   const liste = document.getElementById("liste");
   if (error) return (liste.innerHTML = `<p class="avert">Lecture impossible : ${esc(error.message)}</p>`);
@@ -234,7 +236,7 @@ async function ecranListe() {
       <span><b>${esc(c.entreprise || c.nom || c.telephone || "Client")}</b>${c.entreprise && c.nom ? ` <span class="meta">${esc(c.nom)}</span>` : ""}</span>
       <span class="tot">${euro(d.total_ttc)}</span>
       <span class="meta">${d.numero ? esc(d.numero) + " · " : ""}${dateFr(d.created_at)} · ${(d.devis_lignes || []).length} ligne(s) · ${d.source === "manuel" ? "fait par l'équipe" : "demande du site"}</span>
-      <span>${d.grille === "pro" ? `<span class="badge">Prix pros</span>` : `<span class="badge">Prix publics</span>`}${doutes ? `<span class="badge alerte">${doutes} à vérifier</span>` : ""}${d.demande?.statut === "attente_kbis" ? `<span class="badge alerte">Kbis à valider</span>` : ""}${STATUT_BADGE[d.statut] || ""}${d.statut === "envoye" && d.vu_le ? `<span class="badge">Vu par le client</span>` : ""}</span>
+      <span>${d.grille === "pro" ? `<span class="badge">Prix pros</span>` : `<span class="badge">Prix publics</span>`}${doutes ? `<span class="badge alerte">${doutes} à vérifier</span>` : ""}${d.demande?.statut === "attente_kbis" ? `<span class="badge alerte">Kbis à valider</span>` : ""}${STATUT_BADGE[d.statut] || ""}${d.statut === "envoye" && d.vu_le ? `<span class="badge">Vu par le client</span>` : ""}${d.statut === "envoye" ? relancesBadge(d) : ""}${d.statut === "envoye" && d.a_appeler ? `<span class="badge alerte">📞 À appeler</span>` : ""}</span>
     </button>`;
   }).join("");
   liste.querySelectorAll("[data-id]").forEach((b) => (b.onclick = () => ouvrir(b.dataset.id)));
@@ -553,15 +555,40 @@ function rendrePied() {
   document.getElementById("rouvrir")?.addEventListener("click", rouvrir);
   document.getElementById("pdf")?.addEventListener("click", telechargerPdf);
   document.getElementById("envoyer")?.addEventListener("click", envoyerAuClient);
+  document.getElementById("appel")?.addEventListener("click", async () => {
+    Object.assign(D.devis, { a_appeler: false, appel_fait_le: new Date().toISOString() });
+    await ecrire(sb.from("devis").update({ a_appeler: false, appel_fait_le: D.devis.appel_fait_le }).eq("id", D.devis.id)); rendre();
+  });
+  // Prolonger la validité : 15 jours de plus à partir d'aujourd'hui (ou de la date prévue si elle est plus tard)
+  document.getElementById("prolonger")?.addEventListener("click", async () => {
+    const base = new Date(Math.max(Date.now(), Date.parse(D.devis.valide_jusqu || 0) || 0));
+    const nouvelle = new Date(base.getTime() + 15 * 86400000).toISOString().slice(0, 10);
+    if (!confirm(`Prolonger ce devis jusqu'au ${dateFr(nouvelle)} ?`)) return;
+    const champs = { valide_jusqu: nouvelle, relance_exp_le: null, ...(D.devis.statut === "expire" ? { statut: "envoye" } : {}) };
+    Object.assign(D.devis, champs);
+    await ecrire(sb.from("devis").update(champs).eq("id", D.devis.id));
+    if (champs.statut) await sb.from("demandes").update({ statut: "devis_envoye" }).eq("id", D.demande.id);
+    rendre();
+  });
+  document.getElementById("stoprel")?.addEventListener("click", async () => {
+    D.devis.relances_stop = !D.devis.relances_stop;
+    await ecrire(sb.from("devis").update({ relances_stop: D.devis.relances_stop }).eq("id", D.devis.id)); rendre();
+  });
 }
 // Ce qu'on affiche une fois le devis validé, envoyé, accepté ou refusé
 function piedFige() {
   const d = D.devis, s = d.statut, txt = (t) => `<span class="meta" style="color:#fff">${t}</span>`;
   if (s === "valide") return txt(`Validé le ${dateFr(d.valide_le)}`) + `<button class="btn clair" id="rouvrir">Modifier</button><button class="btn jaune" id="envoyer">Envoyer au client</button>`;
-  if (s === "envoye") return txt(`Envoyé le ${dateFr(d.envoye_le)} à ${esc(d.envoye_a || "")}${d.vu_le ? `, vu le ${dateFr(d.vu_le)}` : ", pas encore ouvert"}`) + `<button class="btn clair" id="rouvrir">Modifier</button><button class="btn clair" id="envoyer">Renvoyer</button>`;
+  if (s === "envoye") {
+    const rel = [d.relance1_le && "1re relance le " + dateFr(d.relance1_le), d.relance2_le && "2e le " + dateFr(d.relance2_le), d.relance_exp_le && "rappel de fin le " + dateFr(d.relance_exp_le)].filter(Boolean).join(", ");
+    const suivi = d.relances_stop ? "Relances arrêtées." : rel ? "Relances : " + rel + "." : "Relances automatiques prévues à J+3 et J+7.";
+    return txt(`Envoyé le ${dateFr(d.envoye_le)} à ${esc(d.envoye_a || "")}${d.vu_le ? `, vu le ${dateFr(d.vu_le)}` : ", pas encore ouvert"}. ${suivi}`)
+      + (d.a_appeler ? `<button class="btn jaune" id="appel">📞 Appel fait</button>` : "")
+      + `<button class="btn clair" id="prolonger">Prolonger de 15 jours</button><button class="btn clair" id="stoprel">${d.relances_stop ? "Reprendre les relances" : "Arrêter les relances"}</button><button class="btn clair" id="rouvrir">Modifier</button><button class="btn clair" id="envoyer">Renvoyer</button>`;
+  }
   if (s === "accepte") return txt(`✓ Accepté le ${dateFr(d.accepte_le)}${d.accepte_nom ? " par " + esc(d.accepte_nom) : ""}`);
   if (s === "refuse") return txt(`Refusé le ${dateFr(d.refuse_le)}${d.refus_motif ? " : " + esc(d.refus_motif) : ""}`);
-  return txt("Devis expiré");
+  return txt(`Devis expiré le ${dateFr(d.valide_jusqu)}`) + `<button class="btn jaune" id="prolonger">Prolonger de 15 jours</button>`;
 }
 
 // Envoi au client : on fabrique le PDF ici, on le dépose dans l'espace privé, puis le serveur envoie l'e-mail
