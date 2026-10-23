@@ -128,7 +128,8 @@ details.origine p{margin:8px 0;white-space:pre-wrap;font-size:14px}
 <body>
 <header class="barre">
   <h1>Devis</h1>
-  <a href="dashboard.html">Tableau de bord</a>
+  <a href="/" id="lien-qg" hidden>← QG</a>
+  <a href="dashboard.html" id="lien-dash">Tableau de bord</a>
   <span class="esp"></span>
   <span class="etat" id="etat" hidden></span>
 </header>
@@ -146,6 +147,9 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const EMBED = new URLSearchParams(location.search).has("embed");
 if (EMBED) document.documentElement.classList.add("embed");
 const adresse = (q) => "?" + [EMBED ? "embed=1" : "", q].filter(Boolean).join("&");
+// Même fichier sur le site et sur le QG : sur le QG, on ajoute le retour au magasin et le tableau de bord pointe vers le site
+const SUR_QG = location.hostname.startsWith("qg.");
+if (SUR_QG) { document.getElementById("lien-qg").hidden = false; const ld = document.getElementById("lien-dash"); ld.href = "https://cedyan-energy.net/dashboard.html"; ld.target = "_blank"; ld.rel = "noopener"; }
 const prevenir = () => { if (EMBED && parent !== window) parent.postMessage({ type: "devis-maj" }, location.origin); };
 
 const app = document.getElementById("app"), pied = document.getElementById("pied"), etat = document.getElementById("etat");
@@ -347,7 +351,7 @@ function rendre() {
   const { devis, demande } = D, c = demande.contact || {}, fige = verrouille();
   const panier = Array.isArray(demande.panier) && demande.panier.length ? demande.panier.map((x) => `${x.q} × ${x.nom}`).join("\n") : "";
   const avertissements = [
-    D.compte?.statut === "en_attente" ? `Ce pro attend la validation de son Kbis. Validez son compte dans le <a href="dashboard.html" target="_top">tableau de bord</a>, onglet Comptes pro, pour pouvoir valider ce devis.` : null,
+    D.compte?.statut === "en_attente" ? `Ce pro attend la validation de son Kbis. Validez son compte dans le <a href="https://cedyan-energy.net/dashboard.html" target="_top">tableau de bord</a>, onglet Comptes pro, pour pouvoir valider ce devis.` : null,
     D.compte?.statut === "refuse" && devis.grille === "pro" ? `Le compte de ce pro a été refusé : passez le devis en prix publics.` : null,
     devis.note && !/Kbis/.test(devis.note) ? esc(devis.note) : null,
   ].filter(Boolean);
