@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Un souci avec votre installation ? · ENR Pose</title>
+<link rel="icon" href="favicon.png">
+<style>
+@font-face{font-family:"Inter";font-style:normal;font-weight:100 900;font-display:swap;src:url("InterVariable.woff2") format("woff2")}
+:root{--teal:#0E9C8F;--teal-f:#0b7a70;--nuit:#08170d;--soleil:#fbbb10;--encre:#16241a;--gris:#56665b;--trait:#dfe7e0;--fond:#f3f6f2;--rouge:#b42318;color-scheme:light}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;background:var(--fond);color:var(--encre);font:17px/1.55 Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+button,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--soleil);outline-offset:2px}
+.haut{position:relative;overflow:hidden;isolation:isolate;color:#fff;background:radial-gradient(ellipse at 80% 0%,#0f5c55,#062a27 75%);padding:calc(18px + env(safe-area-inset-top,0px)) 18px 30px}
+.haut::after{content:"";position:absolute;right:-110px;top:-150px;width:380px;height:380px;border-radius:50%;background:radial-gradient(circle,rgba(251,187,16,.35),rgba(251,187,16,0) 65%);z-index:-1}
+.in{max-width:640px;margin:0 auto}
+.marque{font-weight:900;letter-spacing:-.02em;font-size:1.15rem}.marque span{color:var(--soleil)}
+h1{margin:18px 0 6px;font-size:clamp(1.8rem,7vw,2.4rem);font-weight:900;letter-spacing:-.035em;line-height:1.05}
+.sous{margin:0;color:#cde9e5}
+main{max-width:640px;margin:-14px auto 0;padding:0 14px calc(40px + env(safe-area-inset-bottom,0px))}
+.carte{background:#fff;border-radius:22px;padding:20px;margin-bottom:14px;box-shadow:0 18px 40px -22px rgba(20,60,30,.35)}
+.inst{display:flex;gap:12px;align-items:center}
+.inst .ico{width:46px;height:46px;border-radius:14px;background:#e3f4f2;color:var(--teal-f);display:grid;place-items:center;font-size:22px;flex:none}
+.inst p{margin:0;font-size:.95rem;color:var(--gris)}
+h2{margin:0 0 12px;font-size:1.2rem;font-weight:800;letter-spacing:-.01em}
+.q{margin:0 0 14px}
+.q p{margin:0 0 8px;font-weight:700}
+.choix{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}
+.choix label{position:relative}
+.choix input{position:absolute;opacity:0}
+.choix span{display:flex;align-items:center;justify-content:center;min-height:50px;border-radius:14px;border:1.5px solid var(--trait);background:#fff;font-weight:700;text-align:center;padding:6px 10px;cursor:pointer}
+.choix input:checked+span{border-color:var(--teal);background:#e3f4f2;color:var(--teal-f)}
+.choix input:focus-visible+span{outline:3px solid var(--soleil)}
+.danger{background:#fdecea;color:#8c1d13;border-radius:16px;padding:14px 16px;font-weight:600;margin:4px 0 14px}
+label.champ{display:grid;gap:6px;font-weight:700;font-size:.95rem;margin-bottom:12px}
+label.champ small{font-weight:400;color:var(--gris)}
+input[type=text],input[type=tel],input[type=email],textarea{width:100%;min-height:52px;border:1.5px solid var(--trait);border-radius:14px;padding:12px 14px;background:#fff}
+textarea{min-height:110px;resize:vertical}
+.grille{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.photos{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.photos img{width:72px;height:72px;object-fit:cover;border-radius:12px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:54px;padding:0 24px;border-radius:999px;border:0;background:var(--teal);color:#fff;font-weight:800;font-size:1.02rem;cursor:pointer;width:100%;box-shadow:0 12px 24px -14px rgba(14,156,143,.8)}
+.btn.clair{background:#fff;color:var(--teal-f);box-shadow:inset 0 0 0 2px var(--teal)}
+.btn:disabled{opacity:.6;cursor:wait}
+.photo-btn{width:auto;min-height:46px}
+.photo-btn input{display:none}
+.msg{color:var(--rouge);font-weight:600;min-height:1.2em;margin:8px 0 0}
+.ok{text-align:center}
+.ok .rond{width:70px;height:70px;border-radius:50%;background:#e3f4f2;color:var(--teal-f);display:grid;place-items:center;font-size:34px;font-weight:900;margin:6px auto 10px}
+.ok .num{display:inline-block;background:var(--fond);border-radius:999px;padding:6px 14px;font-weight:800;margin:6px 0 12px}
+.hp{position:absolute;left:-9999px}
+.appel{text-align:center;color:var(--gris);font-size:.95rem}
+.appel a{color:var(--teal-f);font-weight:800}
+@media (max-width:480px){.grille{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="haut"><div class="in">
+  <div class="marque">ENR <span>Pose</span> · Cedyan Energy</div>
+  <h1>Un souci avec votre installation ?</h1>
+  <p class="sous">Décrivez-le en une minute : on s'en occupe.</p>
+</div></header>
+<main>
+  <section class="carte inst" id="inst" hidden><div class="ico" aria-hidden="true">☀️</div><div><b id="inst-titre">Votre installation</b><p id="inst-detail"></p></div></section>
+
+  <form class="carte" id="form" novalidate>
+    <div class="q"><p>Vous n'avez plus du tout de courant ou de production ?</p>
+      <div class="choix"><label><input type="radio" name="coupure" value="oui"><span>Oui, plus rien</span></label><label><input type="radio" name="coupure" value="non" checked><span>Non</span></label></div></div>
+    <div class="q"><p>Odeur de brûlé, chaleur anormale, fumée ou bruit inhabituel ?</p>
+      <div class="choix"><label><input type="radio" name="danger" value="oui"><span>Oui</span></label><label><input type="radio" name="danger" value="non" checked><span>Non</span></label></div></div>
+    <p class="danger" id="alerte-danger" hidden>Par sécurité : si vous pouvez le faire sans risque, coupez le disjoncteur photovoltaïque (côté onduleur), ne touchez pas aux câbles et éloignez-vous de l'appareil. En cas de fumée ou de flammes, appelez le 18. Envoyez ensuite ce formulaire : nous vous rappelons en priorité.</p>
+    <div class="q"><p>Depuis quand ?</p>
+      <div class="choix"><label><input type="radio" name="depuis" value="Aujourd'hui" checked><span>Aujourd'hui</span></label><label><input type="radio" name="depuis" value="Quelques jours"><span>Quelques jours</span></label><label><input type="radio" name="depuis" value="Plus d'une semaine"><span>Plus d'une semaine</span></label></div></div>
+
+    <label class="champ">Que se passe-t-il ?<textarea id="desc" placeholder="Ex. : l'onduleur affiche « Erreur 2011 », la batterie ne charge plus depuis l'orage…" required></textarea></label>
+    <div class="q"><p>Une photo aide beaucoup <small style="font-weight:400;color:var(--gris)">(écran de l'onduleur, code erreur, batterie…)</small></p>
+      <div class="photos"><label class="btn clair photo-btn">📷 Ajouter une photo<input type="file" id="photo" accept="image/*" capture="environment" multiple></label><span id="apercus" class="photos"></span></div></div>
+
+    <h2 style="margin-top:18px">Pour vous rappeler</h2>
+    <div class="grille">
+      <label class="champ">Votre nom<input type="text" id="nom" autocomplete="name"></label>
+      <label class="champ">Téléphone<input type="tel" id="tel" autocomplete="tel" required></label>
+    </div>
+    <div class="grille">
+      <label class="champ">E-mail <small>(pour recevoir la confirmation)</small><input type="email" id="email" autocomplete="email"></label>
+      <label class="champ" id="champ-commune">Commune<input type="text" id="commune" autocomplete="address-level2"></label>
+    </div>
+    <div class="hp" aria-hidden="true"><label>Ne pas remplir<input type="text" id="site_web" tabindex="-1" autocomplete="off"></label></div>
+    <button class="btn" type="submit" id="envoyer">Envoyer ma demande</button>
+    <p class="msg" id="msg" role="status" aria-live="polite"></p>
+  </form>
+
+  <section class="carte ok" id="merci" hidden></section>
+  <p class="appel">Besoin de parler à quelqu'un ? <a href="tel:+590590321520">0590 32 15 20</a></p>
+</main>
+<script>
+(() => {
+"use strict";
+const FN = "https://uotqqkhraqxtlssgavlm.supabase.co/functions/v1/sav";
+const CLE = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVvdHFxa2hyYXF4dGxzc2dhdmxtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyNDI1NTAsImV4cCI6MjEwNjgxODU1MH0.61NliFrPeWNilEmXPayAONTIVF49tmq3arjgdzSwPpM";
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const code = (new URLSearchParams(location.search).get("i") || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+const entetes = { apikey: CLE, Authorization: "Bearer " + CLE };
+let photos = [];
+
+// L'installation reliée au QR code (ce qui est posé, sans données personnelles)
+if (code) fetch(FN, { method: "POST", headers: { ...entetes, "Content-Type": "application/json" }, body: JSON.stringify({ action: "installation", code }) })
+  .then((r) => r.json()).then((i) => { if (!i.ok) return;
+    const mat = (i.materiel || []).map((m) => [m.type, m.marque, m.modele].filter(Boolean).join(" ")).join(", ");
+    $("inst").hidden = false; $("champ-commune").hidden = true;
+    $("inst-titre").textContent = "Votre installation" + (i.puissance_kwc ? ` de ${i.puissance_kwc} kWc` : "");
+    $("inst-detail").textContent = [mat, i.commune, i.annee ? "posée en " + i.annee : ""].filter(Boolean).join(" · ");
+  }).catch(() => {});
+
+document.querySelectorAll('input[name="danger"]').forEach((r) => r.addEventListener("change", () => ($("alerte-danger").hidden = document.querySelector('input[name="danger"]:checked').value !== "oui")));
+$("photo").addEventListener("change", () => {
+  photos = [...photos, ...$("photo").files].filter((f) => f.type.startsWith("image/")).slice(0, 3);
+  $("apercus").innerHTML = photos.map((f) => `<img alt="" src="${URL.createObjectURL(f)}">`).join("");
+});
+const val = (n) => (document.querySelector(`input[name="${n}"]:checked`) || {}).value;
+
+$("form").addEventListener("submit", async (e) => {
+  e.preventDefault(); const msg = $("msg"); msg.textContent = "";
+  const description = $("desc").value.trim(), telephone = $("tel").value.trim(), email = $("email").value.trim();
+  if (description.length < 5) { msg.textContent = "Décrivez le problème en quelques mots."; $("desc").focus(); return; }
+  if (telephone.replace(/\D/g, "").length < 9 && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { msg.textContent = "Indiquez votre téléphone pour qu'on vous rappelle."; $("tel").focus(); return; }
+  const b = $("envoyer"); b.disabled = true; b.textContent = "Envoi…";
+  const fd = new FormData();
+  fd.append("payload", JSON.stringify({ action: "signaler", code, description, telephone, email, nom: $("nom").value.trim(), commune: $("commune").value.trim(), site_web: $("site_web").value,
+    reponses: { coupure: val("coupure") === "oui", danger: val("danger") === "oui", depuis: val("depuis") } }));
+  photos.forEach((f) => fd.append("photo", f));
+  try {
+    const r = await fetch(FN, { method: "POST", headers: entetes, body: fd }); const j = await r.json();
+    if (!r.ok || !j.ok) throw new Error(j.erreur || "Envoi impossible");
+    $("form").hidden = true; $("inst").hidden = true;
+    $("merci").hidden = false;
+    $("merci").innerHTML = `<div class="rond" aria-hidden="true">✓</div><h2>Demande bien reçue</h2><span class="num">${esc(j.numero)}</span><p>${esc(j.delai)}</p>${j.conseil ? `<p class="${j.danger ? "danger" : ""}" style="text-align:left"><b>En attendant :</b> ${esc(j.conseil)}</p>` : ""}`;
+    scrollTo(0, 0);
+  } catch (er) { msg.textContent = er.message + " Vous pouvez aussi nous appeler au 0590 32 15 20."; b.disabled = false; b.textContent = "Envoyer ma demande"; }
+});
+})();
+</script>
+</body>
+</html>
