@@ -77,6 +77,23 @@
       ]
     },
     {
+      "source": "/accepter(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "no-referrer"
+        }
+      ]
+    },
+    {
       "source": "/(style\\.css|app\\.js|anim\\.js|icones\\.js|dashboard\\.js|dash\\.css)",
       "headers": [
         {

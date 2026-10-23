@@ -212,15 +212,16 @@ const libelleDe = (p) => [p.marque, p.nom].filter(Boolean).join(" ") + (p.ref ? 
 const prixSelon = (p, grille) => p ? (grille === "pro" ? p.prix : p.prix_public) : null;
 
 /* ---------- Liste ---------- */
+const STATUT_BADGE = { valide: `<span class="badge ok">Validé</span>`, envoye: `<span class="badge ok">Envoyé</span>`, accepte: `<span class="badge ok">✓ Accepté</span>`, refuse: `<span class="badge alerte">Refusé</span>`, expire: `<span class="badge">Expiré</span>` };
 async function ecranListe() {
   D = null; pied.hidden = true; history.replaceState(null, "", adresse(""));
   app.innerHTML = `<div class="tetliste"><h2>Devis</h2><button class="btn vert" id="nouveau">Faire un devis</button></div>
   <div class="puces" role="group" aria-label="Filtrer">
-    ${[["brouillon", "À valider"], ["valide", "Validés"], ["tous", "Tous"]].map(([k, l]) => `<button class="puce" data-f="${k}" aria-pressed="${filtre === k}">${l}</button>`).join("")}
+    ${[["brouillon", "À valider"], ["valide", "Validés"], ["envoye", "Envoyés"], ["accepte", "Acceptés"], ["tous", "Tous"]].map(([k, l]) => `<button class="puce" data-f="${k}" aria-pressed="${filtre === k}">${l}</button>`).join("")}
   </div><div class="liste" id="liste"><p class="vide">Chargement…</p></div>`;
   app.querySelectorAll("[data-f]").forEach((b) => (b.onclick = () => { filtre = b.dataset.f; ecranListe(); }));
   document.getElementById("nouveau").onclick = ecranNouveau;
-  let q = sb.from("devis").select("id,created_at,statut,grille,total_ttc,source,numero,demande:demandes(id,contact,statut,type),devis_lignes(a_verifier)").order("created_at", { ascending: false }).limit(200);
+  let q = sb.from("devis").select("id,created_at,statut,grille,total_ttc,source,numero,vu_le,demande:demandes(id,contact,statut,type),devis_lignes(a_verifier)").order("created_at", { ascending: false }).limit(200);
   if (filtre !== "tous") q = q.eq("statut", filtre);
   const { data, error } = await q;
   const liste = document.getElementById("liste");
@@ -233,7 +234,7 @@ async function ecranListe() {
       <span><b>${esc(c.entreprise || c.nom || c.telephone || "Client")}</b>${c.entreprise && c.nom ? ` <span class="meta">${esc(c.nom)}</span>` : ""}</span>
       <span class="tot">${euro(d.total_ttc)}</span>
       <span class="meta">${d.numero ? esc(d.numero) + " · " : ""}${dateFr(d.created_at)} · ${(d.devis_lignes || []).length} ligne(s) · ${d.source === "manuel" ? "fait par l'équipe" : "demande du site"}</span>
-      <span>${d.grille === "pro" ? `<span class="badge">Prix pros</span>` : `<span class="badge">Prix publics</span>`}${doutes ? `<span class="badge alerte">${doutes} à vérifier</span>` : ""}${d.demande?.statut === "attente_kbis" ? `<span class="badge alerte">Kbis à valider</span>` : ""}${d.statut === "valide" ? `<span class="badge ok">Validé</span>` : ""}</span>
+      <span>${d.grille === "pro" ? `<span class="badge">Prix pros</span>` : `<span class="badge">Prix publics</span>`}${doutes ? `<span class="badge alerte">${doutes} à vérifier</span>` : ""}${d.demande?.statut === "attente_kbis" ? `<span class="badge alerte">Kbis à valider</span>` : ""}${STATUT_BADGE[d.statut] || ""}${d.statut === "envoye" && d.vu_le ? `<span class="badge">Vu par le client</span>` : ""}</span>
     </button>`;
   }).join("");
   liste.querySelectorAll("[data-id]").forEach((b) => (b.onclick = () => ouvrir(b.dataset.id)));
@@ -544,14 +545,47 @@ function rendrePied() {
     <div class="total"><small>Total TTC</small>${euro(totalDevis())}</div>
     <span class="esp"></span>
     <button class="btn clair" id="pdf">${fige ? "Télécharger le PDF" : "Aperçu PDF"}</button>
-    ${fige ? `<span class="meta" style="color:#fff">Validé le ${dateFr(D.devis.valide_le)}${D.devis.valide_par ? " par " + esc(D.devis.valide_par) : ""}</span><button class="btn clair" id="rouvrir">Modifier à nouveau</button>`
-      : `<button class="btn clair" id="regen">Refaire le brouillon</button><button class="btn jaune" id="valider" ${bl.length ? "disabled" : ""}>Valider le devis</button>`}
+    ${fige ? piedFige() : `<button class="btn clair" id="regen">Refaire le brouillon</button><button class="btn jaune" id="valider" ${bl.length ? "disabled" : ""}>Valider le devis</button>`}
     ${!fige && bl.length ? `<div class="pourquoi">Avant de valider : ${esc(bl.join(", "))}.</div>` : ""}
   </div>`;
   document.getElementById("valider")?.addEventListener("click", valider);
   document.getElementById("regen")?.addEventListener("click", regenerer);
   document.getElementById("rouvrir")?.addEventListener("click", rouvrir);
   document.getElementById("pdf")?.addEventListener("click", telechargerPdf);
+  document.getElementById("envoyer")?.addEventListener("click", envoyerAuClient);
+}
+// Ce qu'on affiche une fois le devis validé, envoyé, accepté ou refusé
+function piedFige() {
+  const d = D.devis, s = d.statut, txt = (t) => `<span class="meta" style="color:#fff">${t}</span>`;
+  if (s === "valide") return txt(`Validé le ${dateFr(d.valide_le)}`) + `<button class="btn clair" id="rouvrir">Modifier</button><button class="btn jaune" id="envoyer">Envoyer au client</button>`;
+  if (s === "envoye") return txt(`Envoyé le ${dateFr(d.envoye_le)} à ${esc(d.envoye_a || "")}${d.vu_le ? `, vu le ${dateFr(d.vu_le)}` : ", pas encore ouvert"}`) + `<button class="btn clair" id="rouvrir">Modifier</button><button class="btn clair" id="envoyer">Renvoyer</button>`;
+  if (s === "accepte") return txt(`✓ Accepté le ${dateFr(d.accepte_le)}${d.accepte_nom ? " par " + esc(d.accepte_nom) : ""}`);
+  if (s === "refuse") return txt(`Refusé le ${dateFr(d.refuse_le)}${d.refus_motif ? " : " + esc(d.refus_motif) : ""}`);
+  return txt("Devis expiré");
+}
+
+// Envoi au client : on fabrique le PDF ici, on le dépose dans l'espace privé, puis le serveur envoie l'e-mail
+async function envoyerAuClient() {
+  const c = D.demande.contact || {};
+  let email = (c.email || "").trim();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+    email = (prompt("Ce client n'a pas d'e-mail. À quelle adresse envoyer le devis ?") || "").trim();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return afficherEtat("Adresse e-mail invalide", true);
+  } else if (!confirm(`Envoyer le devis ${D.devis.numero || ""} à ${email} ?`)) return;
+  const b = document.getElementById("envoyer"); if (b) { b.disabled = true; b.textContent = "Envoi…"; }
+  try {
+    afficherEtat("Préparation du PDF…");
+    const { octets } = await construirePdf();
+    const up = await sb.storage.from("devis").upload(`${D.devis.id}.pdf`, new Blob([octets], { type: "application/pdf" }), { upsert: true, contentType: "application/pdf" });
+    if (up.error) throw new Error("dépôt du PDF : " + up.error.message);
+    afficherEtat("Envoi de l'e-mail…");
+    const { data, error } = await sb.functions.invoke("devis", { body: { action: "envoyer", devis_id: D.devis.id, email } });
+    if (error || !data?.ok) throw new Error(data?.erreur || error?.message || "envoi impossible");
+    Object.assign(D.devis, { statut: "envoye", envoye_le: new Date().toISOString(), envoye_a: data.envoye_a });
+    if (!c.email) { D.demande.contact = { ...c, email }; await sb.from("demandes").update({ contact: D.demande.contact }).eq("id", D.demande.id); }
+    afficherEtat("Devis envoyé à " + data.envoye_a); prevenir();
+    rendre();
+  } catch (e) { afficherEtat("Erreur : " + (e.message || e), true); if (b) { b.disabled = false; b.textContent = "Envoyer au client"; } }
 }
 
 async function valider() {
@@ -565,6 +599,7 @@ async function valider() {
   rendre();
 }
 async function rouvrir() {
+  if (D.devis.statut === "envoye" && !confirm("Ce devis a déjà été envoyé au client. Le modifier ? Il faudra le revalider puis le renvoyer.")) return;
   D.devis.statut = "brouillon";
   await ecrire(sb.from("devis").update({ statut: "brouillon", valide_le: null, valide_par: null }).eq("id", D.devis.id));
   await sb.from("demandes").update({ statut: "a_valider" }).eq("id", D.demande.id);
@@ -598,7 +633,18 @@ const sur = (t) => String(t ?? "").replace(/[\u202F\u00A0]/g, " ").replace(/[^\x
 async function telechargerPdf() {
   const bouton = document.getElementById("pdf"); if (bouton) bouton.disabled = true;
   try {
-    afficherEtat("Création du PDF…");
+    const { octets, nom } = await construirePdf();
+    const url = URL.createObjectURL(new Blob([octets], { type: "application/pdf" }));
+    const a = document.createElement("a"); a.href = url; a.download = nom; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    afficherEtat("PDF prêt");
+    window.__dernierPdf = octets;
+  } catch (e) { afficherEtat("PDF impossible : " + (e.message || e), true); }
+  finally { if (bouton) bouton.disabled = false; }
+}
+
+async function construirePdf() {
+  {
     const { PDFDocument, StandardFonts, rgb, degrees } = await chargerPdfLib();
     const doc = await PDFDocument.create();
     const f = await doc.embedFont(StandardFonts.Helvetica), fb = await doc.embedFont(StandardFonts.HelveticaBold);
@@ -679,13 +725,8 @@ async function telechargerPdf() {
     const octets = await doc.save();
     const nomClient = (c.entreprise || c.nom || "client").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "");
     const nom = `${fige && devis.numero ? devis.numero : "Devis-brouillon"}-${nomClient}.pdf`;
-    const url = URL.createObjectURL(new Blob([octets], { type: "application/pdf" }));
-    const a = document.createElement("a"); a.href = url; a.download = nom; document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 4000);
-    afficherEtat("PDF prêt");
-    window.__dernierPdf = octets;
-  } catch (e) { afficherEtat("PDF impossible : " + (e.message || e), true); }
-  finally { if (bouton) bouton.disabled = false; }
+    return { octets, nom };
+  }
 }
 
 /* ---------- Démarrage ---------- */

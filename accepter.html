@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Votre devis · Cedyan Energy</title>
+<link rel="icon" href="favicon.ico">
+<style>
+@font-face{font-family:"Inter";font-style:normal;font-weight:100 900;font-display:swap;src:url("InterVariable.woff2") format("woff2")}
+:root{--vert:#218034;--vert-f:#14551f;--nuit:#08170d;--soleil:#fbbb10;--encre:#16241a;--gris:#56665b;--trait:#dfe7e0;--fond:#f3f6f2;--menthe:#e7f3e7;--rouge:#b42318;color-scheme:light}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{font:16px/1.55 Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--encre);background:var(--fond);-webkit-font-smoothing:antialiased}
+button,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--soleil);outline-offset:2px}
+.haut{background:var(--nuit);padding:calc(18px + env(safe-area-inset-top,0px)) 20px 18px}
+.haut .in,main{max-width:760px;margin:0 auto}
+.haut img{display:block;width:170px;height:auto}
+main{padding:28px 16px calc(48px + env(safe-area-inset-bottom,0px))}
+.carte{background:#fff;border:1px solid var(--trait);border-radius:22px;padding:24px;margin-bottom:16px}
+h1{margin:0 0 4px;font-size:clamp(1.6rem,4vw,2.1rem);font-weight:900;letter-spacing:-.03em;line-height:1.15}
+.sous{margin:0;color:var(--gris)}
+table{width:100%;border-collapse:collapse;margin-top:18px;font-size:.95rem}
+th{text-align:left;font-size:.8rem;color:var(--gris);font-weight:600;padding:0 0 8px;border-bottom:1.5px solid var(--trait)}
+td{padding:11px 0;border-bottom:1px solid var(--trait);vertical-align:top}
+th.n,td.n{text-align:right;white-space:nowrap;padding-left:12px;font-variant-numeric:tabular-nums}
+.total{display:flex;justify-content:space-between;align-items:baseline;margin-top:16px;padding:14px 16px;border-radius:14px;background:var(--soleil)}
+.total b{font-size:1.5rem;font-weight:900;font-variant-numeric:tabular-nums}
+.mention{margin:12px 0 0;font-size:.88rem;color:var(--gris)}
+.b{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:50px;padding:0 22px;border-radius:999px;border:1.5px solid var(--trait);background:#fff;font-weight:700;cursor:pointer;text-decoration:none;color:var(--encre)}
+.b--vert{background:var(--vert);border-color:var(--vert);color:#fff}
+.b:disabled{opacity:.55;cursor:wait}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+h2{margin:0 0 6px;font-size:1.25rem;font-weight:900;letter-spacing:-.02em}
+form{display:grid;gap:12px;margin-top:12px}
+label.champ{display:grid;gap:6px;font-weight:700;font-size:.94rem}
+input[type=text],textarea{width:100%;min-height:50px;padding:12px 14px;border:1.5px solid var(--trait);border-radius:14px;background:#fff}
+textarea{min-height:90px;resize:vertical}
+.case{display:grid;grid-template-columns:22px 1fr;gap:10px;font-size:.92rem;color:var(--gris);align-items:start}
+.case input{width:20px;height:20px;margin-top:2px;accent-color:var(--vert)}
+.msg{margin:0;font-weight:600;color:var(--rouge);min-height:1.2em}
+.lien{background:none;border:0;padding:0;color:var(--gris);text-decoration:underline;cursor:pointer;font-size:.92rem}
+.etat{display:grid;gap:8px;text-align:center;padding:34px 24px}
+.etat .ico{width:64px;height:64px;border-radius:50%;margin:0 auto 6px;display:grid;place-items:center;font-size:30px;font-weight:900}
+.etat.ok .ico{background:var(--menthe);color:var(--vert-f)}
+.etat.ko .ico{background:#fdecea;color:var(--rouge)}
+.etat p{margin:0;color:var(--gris)}
+.chargement{color:var(--gris);text-align:center;padding:40px 0}
+@media (max-width:560px){.carte{padding:18px;border-radius:18px}.actions .b{width:100%}}
+</style>
+</head>
+<body>
+<header class="haut"><div class="in"><img src="logo-cedyan.png" alt="Cedyan Energy" width="170" height="51"></div></header>
+<main id="app"><p class="chargement">Chargement de votre devis…</p></main>
+<script>
+(() => {
+"use strict";
+const URL_FN = "https://uotqqkhraqxtlssgavlm.supabase.co/functions/v1/devis-public";
+const CLE = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVvdHFxa2hyYXF4dGxzc2dhdmxtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyNDI1NTAsImV4cCI6MjEwNjgxODU1MH0.61NliFrPeWNilEmXPayAONTIVF49tmq3arjgdzSwPpM";
+const app = document.getElementById("app");
+const jeton = new URLSearchParams(location.search).get("t") || "";
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const euro = (n) => (Number(n) || 0).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
+const dateFr = (d) => d ? new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) : "";
+const appel = async (corps) => {
+  const r = await fetch(URL_FN, { method: "POST", headers: { "Content-Type": "application/json", apikey: CLE, Authorization: "Bearer " + CLE }, body: JSON.stringify({ jeton, ...corps }) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.erreur || "Une erreur est survenue. Appelez-nous au 0590 32 15 20.");
+  return j;
+};
+const etat = (classe, ico, titre, texte) => { app.innerHTML = `<section class="carte etat ${classe}"><div class="ico" aria-hidden="true">${ico}</div><h1>${titre}</h1>${texte}</section>`; };
+
+let D = null;
+function afficher() {
+  const titre = "Devis " + esc(D.numero || "");
+  const tableau = `<table><thead><tr><th>Désignation</th><th class="n">Qté</th><th class="n">Total TTC</th></tr></thead><tbody>${D.lignes.map((l) => {
+    const t = (Number(l.prix) || 0) * (Number(l.quantite) || 0) * (1 - (Number(l.remise) || 0) / 100);
+    return `<tr><td>${esc(l.libelle)}${l.remise > 0 ? ` <small>(remise ${l.remise} %)</small>` : ""}</td><td class="n">${esc(l.quantite)}</td><td class="n">${euro(t)}</td></tr>`;
+  }).join("")}</tbody></table>
+  <div class="total"><span>Total TTC</span><b>${euro(D.total)}</b></div>`;
+  const pdf = D.pdf ? `<a class="b" href="${esc(D.pdf)}" target="_blank" rel="noopener">Télécharger le PDF</a>` : "";
+  const entete = `<section class="carte"><h1>${titre}</h1><p class="sous">${D.client ? "Pour " + esc(D.client) + ". " : ""}Valable jusqu'au ${dateFr(D.valide_jusqu)}.</p>${tableau}<p class="mention">Prix exprimés TTC.</p><div class="actions">${pdf}</div></section>`;
+  if (D.statut === "accepte") return (app.innerHTML = `<section class="carte etat ok"><div class="ico" aria-hidden="true">✓</div><h1>Devis accepté</h1><p>Accepté le ${dateFr(D.accepte_le)}${D.accepte_nom ? " par " + esc(D.accepte_nom) : ""}. Merci pour votre confiance !</p><p>Nous vous recontactons très vite pour la suite.</p></section>` + entete);
+  if (D.statut === "refuse") return (app.innerHTML = `<section class="carte etat ko"><div class="ico" aria-hidden="true">✕</div><h1>Vous n'avez pas donné suite</h1><p>Si vous changez d'avis, appelez-nous au 0590 32 15 20.</p></section>` + entete);
+  if (D.statut === "expire") return (app.innerHTML = `<section class="carte etat ko"><div class="ico" aria-hidden="true">!</div><h1>Ce devis a expiré</h1><p>Les prix et le stock ont pu changer. Appelez-nous au 0590 32 15 20 ou répondez à notre e-mail : nous vous envoyons un devis à jour.</p></section>` + entete);
+  app.innerHTML = entete + `<section class="carte">
+    <h2>Accepter ce devis</h2>
+    <p class="sous">Il suffit d'indiquer votre nom. Nous vous recontactons ensuite pour l'acompte, le retrait ou la livraison.</p>
+    <form id="faccepte" novalidate>
+      <label class="champ">Votre nom<input type="text" id="nom" autocomplete="name" required></label>
+      <label class="case"><input type="checkbox" id="lu"><span>J'ai lu ce devis et je l'accepte tel quel.</span></label>
+      <p class="msg" id="msg" role="status" aria-live="polite"></p>
+      <div class="actions"><button class="b b--vert" type="submit" id="ok">Accepter le devis</button></div>
+    </form>
+    <p style="margin:18px 0 0"><button class="lien" type="button" id="non">Je ne souhaite pas donner suite</button></p>
+    <form id="frefus" hidden novalidate>
+      <label class="champ">Pouvez-vous nous dire pourquoi ? <span style="font-weight:400;color:var(--gris)">(facultatif)</span><textarea id="motif" placeholder="Prix, délai, projet reporté…"></textarea></label>
+      <div class="actions"><button class="b" type="submit">Confirmer</button></div>
+    </form>
+  </section>`;
+  document.getElementById("faccepte").onsubmit = async (e) => {
+    e.preventDefault();
+    const nom = document.getElementById("nom").value.trim(), msg = document.getElementById("msg");
+    if (nom.length < 2) { msg.textContent = "Indiquez votre nom."; document.getElementById("nom").focus(); return; }
+    if (!document.getElementById("lu").checked) { msg.textContent = "Cochez la case pour confirmer."; return; }
+    const b = document.getElementById("ok"); b.disabled = true; b.textContent = "Envoi…";
+    try { await appel({ action: "accepter", nom }); D.statut = "accepte"; D.accepte_le = new Date().toISOString(); D.accepte_nom = nom; afficher(); scrollTo(0, 0); }
+    catch (er) { msg.textContent = er.message; b.disabled = false; b.textContent = "Accepter le devis"; }
+  };
+  document.getElementById("non").onclick = () => { const f = document.getElementById("frefus"); f.hidden = !f.hidden; if (!f.hidden) document.getElementById("motif").focus(); };
+  document.getElementById("frefus").onsubmit = async (e) => {
+    e.preventDefault();
+    try { await appel({ action: "refuser", motif: document.getElementById("motif").value }); D.statut = "refuse"; afficher(); scrollTo(0, 0); }
+    catch (er) { alert(er.message); }
+  };
+}
+
+(async () => {
+  if (!jeton) return etat("ko", "!", "Lien incomplet", `<p>Ouvrez le lien depuis l'e-mail que nous vous avons envoyé, ou appelez-nous au 0590 32 15 20.</p>`);
+  try { D = await appel({ action: "voir" }); afficher(); }
+  catch (e) { etat("ko", "!", "Devis introuvable", `<p>${esc(e.message)}</p>`); }
+})();
+})();
+</script>
+</body>
+</html>
