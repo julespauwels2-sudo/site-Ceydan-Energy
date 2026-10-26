@@ -111,7 +111,33 @@
     $$("[data-si-part]").forEach((e) => (e.hidden = voitPrix()));
     $$("[data-pro-nom]").forEach((e) => (e.textContent = pro() ? pro().nom : ""));
     $$("[data-pro-libelle]").forEach((e) => (e.textContent = pro() ? "Mon espace pro" : "Débloquer mes tarifs pro"));
+    protegerTarifs();
     document.dispatchEvent(new CustomEvent("profil"));
+  }
+
+  /* ---------- Protection des tarifs pro ----------
+     Impossible d'interdire techniquement une capture d'écran sur le web (ni la photo d'un écran).
+     On la rend dissuasive et traçable : filigrane au nom du compte, prix flous quand la fenêtre
+     perd le focus (outil de capture), prix masqués à l'impression, copie du texte des prix bloquée. */
+  function protegerTarifs() {
+    const p = pro(), b = document.body;
+    b.classList.toggle("mode-pro", !!p);
+    let f = document.getElementById("filigrane-pro");
+    if (!p) { if (f) f.remove(); return; }
+    if (!f) { f = document.createElement("div"); f.id = "filigrane-pro"; f.setAttribute("aria-hidden", "true"); b.appendChild(f); }
+    const jour = new Date().toLocaleDateString("fr-FR");
+    const texte = `${p.nom || ""} · ${p.email || ""} · ${jour} · tarif confidentiel`.replace(/[<>&"']/g, "");
+    const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='620' height='240'><text x='10' y='130' transform='rotate(-20 310 120)' font-family='Arial' font-size='13' fill='rgba(20,60,30,0.10)'>${texte}</text></svg>`;
+    f.style.backgroundImage = `url("data:image/svg+xml;utf8,${encodeURIComponent(svg)}")`;
+    if (!protegerTarifs.pret) {
+      protegerTarifs.pret = true;
+      const flou = (on) => document.body.classList.toggle("prix-flous", on && !!pro());
+      addEventListener("blur", () => flou(true));
+      addEventListener("focus", () => flou(false));
+      document.addEventListener("visibilitychange", () => flou(document.visibilityState !== "visible"));
+      document.addEventListener("copy", (e) => { const s = String(getSelection() || ""); if (pro() && /€/.test(s)) { e.preventDefault(); toast("Les tarifs pro ne peuvent pas être copiés."); } });
+      addEventListener("keyup", (e) => { if (e.key === "PrintScreen" && pro()) { try { navigator.clipboard.writeText(""); } catch (x) {} toast("Les tarifs pro sont confidentiels."); } });
+    }
   }
   const profil = () => (pro() ? "pro" : "particulier");
 
@@ -677,17 +703,18 @@
     const boite = $("#mdp-pro"), sortieMdp = $("#mdp-pro-etat");
     const dire = (cls, txt) => { sortieMdp.className = "verif " + cls; sortieMdp.textContent = txt; };
     $$("[data-pro-mdp]").forEach((b) => b.addEventListener("click", () => { boite.hidden = !boite.hidden; if (!boite.hidden) $("#pro-mdp1").focus(); }));
+    try { if (/[?&]bienvenue=1/.test(location.search)) { localStorage.setItem("cedyan_definir_mdp", "1"); history.replaceState(null, "", location.pathname + location.hash); } } catch (x) {}
     try { if (window.cedyanCompte && localStorage.getItem("cedyan_definir_mdp") === "1") { localStorage.removeItem("cedyan_definir_mdp"); boite.hidden = false; dire("is-wait", "Choisissez votre mot de passe : la prochaine fois, plus besoin de lien."); } } catch (x) {}
     fMdp.addEventListener("submit", async (e) => {
       e.preventDefault(); const a = $("#pro-mdp1").value, b = $("#pro-mdp2").value;
-      if (a.length < 8) return dire("is-ko", "Au moins 8 caractères.");
+      if (a.length < 12 || !/[a-z]/.test(a) || !/[A-Z]/.test(a) || !/\d/.test(a) || !/[^A-Za-z0-9]/.test(a)) return dire("is-ko", "Au moins 12 caractères, avec une minuscule, une majuscule, un chiffre et un symbole.");
       if (a !== b) return dire("is-ko", "Les deux mots de passe ne sont pas identiques.");
       try {
         const sb = await clientSb();
         const { error } = await sb.auth.updateUser({ password: a });
         if (error) throw error;
         fMdp.reset(); dire("is-ok", "Mot de passe enregistré. La prochaine fois, connectez-vous avec votre e-mail et ce mot de passe.");
-      } catch (er) { dire("is-ko", /reauth|nonce|recent/i.test((er && er.message) || "") ? "Par sécurité, déconnectez-vous, reconnectez-vous avec un lien e-mail, puis recommencez." : "Enregistrement impossible pour le moment. Réessayez dans quelques minutes."); }
+      } catch (er) { const m = (er && er.message) || ""; dire("is-ko", /reauth|nonce|recent/i.test(m) ? "Par sécurité, déconnectez-vous, reconnectez-vous avec un lien e-mail, puis recommencez." : /weak|pwned|leak|characters|length/i.test(m) ? "Mot de passe trop faible : au moins 12 caractères, avec une minuscule, une majuscule, un chiffre et un symbole." : "Enregistrement impossible pour le moment. Réessayez dans quelques minutes."); }
     });
   }
 
