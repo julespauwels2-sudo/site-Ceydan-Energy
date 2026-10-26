@@ -1906,11 +1906,5 @@ img[src*="/produits/fabricant/victron/"]{mix-blend-mode:normal!important;filter:
 /* Toutes les photos produits à la même échelle : même marge pour toutes les sources */
 .produit__img>img{inset:9%!important;width:82%!important;height:82%!important}
 
-/* Protection des tarifs pro : filigrane au nom du compte, prix non sélectionnables, flous hors focus, masqués à l'impression */
-#filigrane-pro{position:fixed;inset:0;z-index:180;pointer-events:none;background-repeat:repeat}
-.mode-pro .prix,.mode-pro .prix *{-webkit-user-select:none;user-select:none}
-.mode-pro.prix-flous .prix{filter:blur(7px);transition:filter .1s}
-@media print{
-  .mode-pro .prix,.mode-pro [data-si-pro]{display:none!important}
-  body.mode-pro::before{content:"Impression des tarifs professionnels désactivée.";display:block;padding:20px;font:700 16px Arial}
-}
+/* Tarifs pro légèrement floutés quand la fenêtre perd le focus */
+.mode-pro.prix-flous .prix{filter:blur(4px);transition:filter .1s}

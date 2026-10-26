@@ -125,30 +125,19 @@
     document.dispatchEvent(new CustomEvent("profil"));
   }
 
-  /* ---------- Protection des tarifs pro ----------
-     Impossible d'interdire techniquement une capture d'écran sur le web (ni la photo d'un écran).
-     On la rend dissuasive et traçable : filigrane au nom du compte, prix flous quand la fenêtre
-     perd le focus (outil de capture), prix masqués à l'impression, copie du texte des prix bloquée. */
+  /* ---------- Tarifs pro : légèrement floutés quand la fenêtre perd le focus (outil de capture) ---------- */
   function protegerTarifs() {
-    const p = pro(), b = document.body;
-    b.classList.toggle("mode-pro", !!p);
-    let f = document.getElementById("filigrane-pro");
-    if (!p) { if (f) f.remove(); return; }
-    if (!f) { f = document.createElement("div"); f.id = "filigrane-pro"; f.setAttribute("aria-hidden", "true"); b.appendChild(f); }
-    const jour = new Date().toLocaleDateString("fr-FR");
-    const texte = `${p.nom || ""} · ${p.email || ""} · ${jour} · tarif confidentiel`.replace(/[<>&"']/g, "");
-    const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='620' height='240'><text x='10' y='130' transform='rotate(-20 310 120)' font-family='Arial' font-size='13' fill='rgba(20,60,30,0.10)'>${texte}</text></svg>`;
-    f.style.backgroundImage = `url("data:image/svg+xml;utf8,${encodeURIComponent(svg)}")`;
+    const p = pro();
+    document.body.classList.toggle("mode-pro", !!p);
     if (!protegerTarifs.pret) {
       protegerTarifs.pret = true;
       const flou = (on) => document.body.classList.toggle("prix-flous", on && !!pro());
       addEventListener("blur", () => flou(true));
       addEventListener("focus", () => flou(false));
       document.addEventListener("visibilitychange", () => flou(document.visibilityState !== "visible"));
-      document.addEventListener("copy", (e) => { const s = String(getSelection() || ""); if (pro() && /€/.test(s)) { e.preventDefault(); toast("Les tarifs pro ne peuvent pas être copiés."); } });
-      addEventListener("keyup", (e) => { if (e.key === "PrintScreen" && pro()) { try { navigator.clipboard.writeText(""); } catch (x) {} toast("Les tarifs pro sont confidentiels."); } });
     }
   }
+
   const profil = () => (pro() ? "pro" : "particulier");
 
   /* ---------- Liste de devis ---------- */
