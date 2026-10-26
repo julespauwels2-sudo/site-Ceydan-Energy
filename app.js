@@ -61,9 +61,19 @@
       sbClient = window.supabase.createClient(SB.url, SB.anonKey);
       const { data: { session } } = await sbClient.auth.getSession();
       if (!session) { store.set("cedyan_pro", null); return; }
-      const { data: comptes } = await sbClient.from("comptes_pro").select("statut, entreprise, siren, created_at").order("created_at", { ascending: false }).limit(1);
+      // Toujours filtrer sur l'e-mail de la personne connectée : un membre de l'équipe a le droit de lire
+      // toutes les demandes, et sans ce filtre il « devenait » le dernier client inscrit.
+      const monEmail = String(session.user.email || "").toLowerCase();
+      const { data: equipe } = await sbClient.from("staff").select("email").eq("email", monEmail).limit(1);
+      if (equipe && equipe.length) {
+        window.cedyanCompte = { statut: "equipe", email: monEmail };
+        const { data: tar } = await sbClient.from("tarifs").select("produit_id, prix");
+        store.set("cedyan_pro", { nom: "Équipe Cedyan (aperçu)", email: monEmail, tarifs: Object.fromEntries((tar || []).map((x) => [x.produit_id, +x.prix])), date: Date.now() });
+        return;
+      }
+      const { data: comptes } = await sbClient.from("comptes_pro").select("statut, entreprise, siren, created_at").eq("email", monEmail).order("created_at", { ascending: false }).limit(1);
       const c = (comptes || [])[0] || null;
-      window.cedyanCompte = c ? { ...c, email: session.user.email } : { statut: "aucun", email: session.user.email };
+      window.cedyanCompte = c ? { ...c, email: monEmail } : { statut: "aucun", email: monEmail };
       if (c && c.statut === "valide") {
         const { data: tar } = await sbClient.from("tarifs").select("produit_id, prix");
         store.set("cedyan_pro", { nom: c.entreprise || session.user.email, email: session.user.email, tarifs: Object.fromEntries((tar || []).map((x) => [x.produit_id, +x.prix])), date: Date.now() });
@@ -670,7 +680,8 @@
     const sortieCo = $("#connexion-etat");
     const dire = (cls, txt) => { sortieCo.className = "verif " + cls; sortieCo.textContent = txt; };
     const cpt = window.cedyanCompte;
-    if (cpt && cpt.statut === "en_attente") dire("is-wait", "Connecté avec " + cpt.email + ". Votre compte est en cours de validation : vous recevrez un e-mail dès qu'il sera validé.");
+    if (cpt && cpt.statut === "equipe") dire("is-ok", "Connecté avec " + cpt.email + " (équipe Cedyan) : vous voyez les tarifs pro en aperçu.");
+    else if (cpt && cpt.statut === "en_attente") dire("is-wait", "Connecté avec " + cpt.email + ". Votre compte est en cours de validation : vous recevrez un e-mail dès qu'il sera validé.");
     else if (cpt && cpt.statut === "refuse") dire("is-ko", "Votre demande n'a pas pu être validée. Appelez-nous au " + C.telephone + ".");
     else if (cpt && cpt.statut === "aucun") dire("is-wait", "Connecté avec " + cpt.email + ", mais aucune demande de compte pro n'est liée à cette adresse. Remplissez le formulaire ci-dessous.");
     fCo.addEventListener("submit", async (e) => {
