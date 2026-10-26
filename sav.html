@@ -11,37 +11,45 @@
 :root{--teal:#0E9C8F;--teal-f:#0b7a70;--nuit:#08170d;--soleil:#fbbb10;--encre:#16241a;--gris:#56665b;--trait:#dfe7e0;--fond:#f3f6f2;--rouge:#b42318;color-scheme:light}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-html,body{margin:0;background:var(--fond);color:var(--encre);font:17px/1.55 Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html,body{margin:0;overflow-x:hidden;background:var(--fond);color:var(--encre);font:17px/1.55 Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased}
 button,input,textarea{font:inherit;color:inherit}
 :focus-visible{outline:3px solid var(--soleil);outline-offset:2px}
-.haut{position:relative;overflow:hidden;isolation:isolate;color:#fff;background:radial-gradient(ellipse at 80% 0%,#0f5c55,#062a27 75%);padding:calc(18px + env(safe-area-inset-top,0px)) 18px 30px}
+.haut{position:relative;overflow:hidden;isolation:isolate;color:#fff;background:radial-gradient(ellipse at 80% 0%,#0f5c55,#062a27 75%);padding:calc(14px + env(safe-area-inset-top,0px)) 16px 22px}
+.haut__ligne{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.appel-haut{display:inline-flex;align-items:center;gap:6px;flex:none;background:#fff;color:#0b7a70;font-weight:800;font-size:.95rem;text-decoration:none;border-radius:999px;padding:9px 14px;min-height:44px}
 .haut::after{content:"";position:absolute;right:-110px;top:-150px;width:380px;height:380px;border-radius:50%;background:radial-gradient(circle,rgba(251,187,16,.35),rgba(251,187,16,0) 65%);z-index:-1}
 .in{max-width:640px;margin:0 auto}
 .marque{font-weight:900;letter-spacing:-.02em;font-size:1.15rem}.marque span{color:var(--soleil)}
-h1{margin:18px 0 6px;font-size:clamp(1.8rem,7vw,2.4rem);font-weight:900;letter-spacing:-.035em;line-height:1.05}
+h1{margin:16px 0 6px;font-size:clamp(1.55rem,7.2vw,2.4rem);font-weight:900;letter-spacing:-.035em;line-height:1.05}
 .sous{margin:0;color:#cde9e5}
-main{max-width:640px;margin:-14px auto 0;padding:0 14px calc(40px + env(safe-area-inset-bottom,0px))}
-.carte{background:#fff;border-radius:22px;padding:20px;margin-bottom:14px;box-shadow:0 18px 40px -22px rgba(20,60,30,.35)}
+main{max-width:640px;margin:14px auto 0;padding:0 12px calc(40px + env(safe-area-inset-bottom,0px))}
+.carte{background:#fff;border-radius:20px;padding:18px 16px;margin-bottom:12px;box-shadow:0 18px 40px -22px rgba(20,60,30,.35);min-width:0}
 .inst{display:flex;gap:12px;align-items:center}
 .inst .ico{width:46px;height:46px;border-radius:14px;background:#e3f4f2;color:var(--teal-f);display:grid;place-items:center;font-size:22px;flex:none}
-.inst p{margin:0;font-size:.95rem;color:var(--gris)}
+.inst p{margin:0;font-size:.95rem;color:var(--gris);overflow-wrap:anywhere}
+.inst>div{min-width:0}
 h2{margin:0 0 12px;font-size:1.2rem;font-weight:800;letter-spacing:-.01em}
 .q{margin:0 0 14px}
 .q p{margin:0 0 8px;font-weight:700}
-.choix{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.choix.trois{grid-template-columns:repeat(3,1fr)}
-.choix.trois span{font-size:.9rem;min-height:56px;line-height:1.2}
+.choix{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.choix.trois{grid-template-columns:repeat(3,minmax(0,1fr))}
+.choix.trois span{font-size:.88rem;min-height:56px;line-height:1.2;padding:6px 4px}
+.choix label{min-width:0}
+.choix span{overflow-wrap:break-word}
+@media (max-width:439px){.choix.trois{grid-template-columns:1fr}.choix.trois span{min-height:48px;font-size:1rem}}
 .choix label{position:relative}
 .choix input{position:absolute;opacity:0}
 .choix span{display:flex;align-items:center;justify-content:center;min-height:50px;border-radius:14px;border:1.5px solid var(--trait);background:#fff;font-weight:700;text-align:center;padding:6px 10px;cursor:pointer}
 .choix input:checked+span{border-color:var(--teal);background:#e3f4f2;color:var(--teal-f)}
 .choix input:focus-visible+span{outline:3px solid var(--soleil)}
 .danger{background:#fdecea;color:#8c1d13;border-radius:16px;padding:14px 16px;font-weight:600;margin:4px 0 14px}
-label.champ{display:grid;gap:6px;font-weight:700;font-size:.95rem;margin-bottom:12px}
+label.champ{display:grid;gap:6px;font-weight:700;font-size:.95rem;margin-bottom:12px;min-width:0}
 label.champ small{font-weight:400;color:var(--gris)}
 input[type=text],input[type=tel],input[type=email],textarea{font-weight:400;font-size:17px;-webkit-appearance:none;appearance:none;width:100%;min-height:52px;border:1.5px solid var(--trait);border-radius:14px;padding:12px 14px;background:#fff}
 textarea{min-height:110px;resize:vertical}
-.grille{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grille{display:grid;grid-template-columns:1fr;gap:0}
+@media (min-width:540px){.grille{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}}
 .photos{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .photos img{width:72px;height:72px;object-fit:cover;border-radius:12px}
 .vignette{position:relative}.vignette button{position:absolute;top:-6px;right:-6px;width:26px;height:26px;border-radius:50%;border:0;background:#16241a;color:#fff;font-size:14px;cursor:pointer}
@@ -57,19 +65,21 @@ textarea{min-height:110px;resize:vertical}
 .hp{position:absolute;left:-9999px}
 .appel{text-align:center;color:var(--gris);font-size:.95rem}
 .appel a{color:var(--teal-f);font-weight:800}
-@media (max-width:480px){.grille{grid-template-columns:1fr}}
+.etape{display:flex;align-items:center;gap:10px;margin:0 0 12px;font-size:1.1rem;font-weight:800}
+.etape b{width:28px;height:28px;border-radius:50%;background:#e3f4f2;color:#0b7a70;display:grid;place-items:center;font-size:.9rem;flex:none}
 </style>
 </head>
 <body>
 <header class="haut"><div class="in">
-  <div class="marque">ENR <span>Pose</span> · Cedyan Energy</div>
+  <div class="haut__ligne"><div class="marque">ENR <span>Pose</span></div><a class="appel-haut" href="tel:+590590321520">📞 Appeler</a></div>
   <h1>Un souci avec votre installation ?</h1>
   <p class="sous">Décrivez-le en une minute : on s'en occupe.</p>
 </div></header>
 <main>
   <section class="carte inst" id="inst" hidden><div class="ico" aria-hidden="true">☀️</div><div><b id="inst-titre">Votre installation</b><p id="inst-detail"></p></div></section>
 
-  <form class="carte" id="form" novalidate>
+  <form id="form" novalidate>
+   <section class="carte"><h2 class="etape"><b>1</b>Ce qui se passe</h2>
     <div class="q"><p>Vous n'avez plus du tout de courant ou de production ?</p>
       <div class="choix"><label><input type="radio" name="coupure" value="oui"><span>Oui, plus rien</span></label><label><input type="radio" name="coupure" value="non" checked><span>Non</span></label></div></div>
     <div class="q"><p>Odeur de brûlé, chaleur anormale, fumée ou bruit inhabituel ?</p>
@@ -79,10 +89,13 @@ textarea{min-height:110px;resize:vertical}
       <div class="choix trois"><label><input type="radio" name="depuis" value="Aujourd'hui" checked><span>Aujourd'hui</span></label><label><input type="radio" name="depuis" value="Quelques jours"><span>Quelques jours</span></label><label><input type="radio" name="depuis" value="Plus d'une semaine"><span>Plus d'une semaine</span></label></div></div>
 
     <label class="champ">Que se passe-t-il ?<textarea id="desc" placeholder="Ex. : l'onduleur affiche « Erreur 2011 », la batterie ne charge plus depuis l'orage…" required></textarea></label>
-    <div class="q"><p>Une photo aide beaucoup <small style="font-weight:400;color:var(--gris)">(écran de l'onduleur, code erreur, batterie…)</small></p>
+   </section>
+   <section class="carte"><h2 class="etape"><b>2</b>Une photo <small style="font-weight:400;color:var(--gris);font-size:.85rem">(facultatif)</small></h2>
+    <div class="q"><p style="font-weight:400;color:var(--gris)">Elle aide beaucoup <small style="font-weight:400;color:var(--gris)">(écran de l'onduleur, code erreur, batterie…)</small></p>
       <div class="photos"><label class="btn clair photo-btn" id="photo-btn">📷 Ajouter une photo<input type="file" id="photo" accept="image/*"></label><span id="apercus" class="photos"></span></div></div>
 
-    <h2 style="margin-top:18px">Pour vous rappeler</h2>
+   </section>
+   <section class="carte"><h2 class="etape"><b>3</b>Pour vous rappeler</h2>
     <div class="grille">
       <label class="champ">Votre nom<input type="text" id="nom" autocomplete="name"></label>
       <label class="champ">Téléphone<input type="tel" id="tel" autocomplete="tel" required></label>
@@ -94,6 +107,7 @@ textarea{min-height:110px;resize:vertical}
     <div class="hp" aria-hidden="true"><label>Ne pas remplir<input type="text" id="site_web" tabindex="-1" autocomplete="off"></label></div>
     <button class="btn" type="submit" id="envoyer">Envoyer ma demande</button>
     <p class="msg" id="msg" role="status" aria-live="polite"></p>
+   </section>
   </form>
 
   <section class="carte ok" id="merci" hidden></section>

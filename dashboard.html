@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 <title>Dashboard | Cedyan Energy</title>
 <link rel="icon" href="favicon.png" type="image/png">
-<link rel="stylesheet" href="dash.css?v=03bfc518">
+<link rel="stylesheet" href="dash.css?v=456c4b8b">
 </head>
 <body>
 
@@ -110,13 +110,19 @@
 
     <!-- TRAFIC -->
     <section class="vue" data-vue-p="trafic">
-      <header class="vue__tete"><h1>Trafic</h1><select id="t-periode"><option value="7">7 derniers jours</option><option value="30" selected>30 derniers jours</option><option value="90">90 derniers jours</option></select></header>
+      <header class="vue__tete"><h1>Trafic</h1><select id="t-periode" aria-label="Période"><option value="j0">Aujourd'hui</option><option value="j1">Hier</option><option value="7">7 derniers jours</option><option value="30" selected>30 derniers jours</option><option value="90">90 derniers jours</option><option value="mois">Ce mois-ci</option><option value="moisprec">Le mois dernier</option></select></header>
+      <p class="aide" id="t-compare"></p>
       <div class="kpis" id="kpis-trafic"></div>
-      <div class="bloc"><h2>Visites par jour</h2><div id="graphe"></div></div>
+      <div class="bloc"><h2>Visiteurs et demandes par jour</h2><div id="graphe"></div></div>
       <div class="deux">
-        <div class="bloc"><h2>Pages les plus vues</h2><ol class="classement" id="top-pages"></ol></div>
-        <div class="bloc"><h2>D'où viennent les visiteurs</h2><ol class="classement" id="top-sources"></ol></div>
+        <div class="bloc"><h2>D'où viennent les visiteurs</h2><ol class="classement barres" id="t-canaux"></ol><h3 class="sous-titre">Sites et campagnes en détail</h3><ol class="classement" id="top-sources"></ol></div>
+        <div class="bloc"><h2>Sur quel appareil</h2><ol class="classement barres" id="t-appareils"></ol><h3 class="sous-titre">À quelle heure (heure de Guadeloupe)</h3><div id="t-heures"></div><h3 class="sous-titre">Quel jour</h3><div id="t-jours"></div></div>
       </div>
+      <div class="deux">
+        <div class="bloc"><h2>Pages les plus vues</h2><table class="tab-trafic"><thead><tr><th>Page</th><th>Vues</th><th>Visiteurs</th></tr></thead><tbody id="top-pages"></tbody></table></div>
+        <div class="bloc"><h2>Pages d'arrivée</h2><p class="aide">La première page vue. Le « rebond », ce sont les visiteurs repartis sans voir une 2e page.</p><table class="tab-trafic"><thead><tr><th>Page</th><th>Arrivées</th><th>Rebond</th></tr></thead><tbody id="t-entrees"></tbody></table></div>
+      </div>
+      <div class="bloc"><h2>Derniers parcours</h2><p class="aide">Les 15 dernières visites, page par page. Une étoile ★ signale une visite qui a envoyé une demande.</p><ol class="parcours" id="t-parcours"></ol></div>
     </section>
 
     <!-- ÉQUIPE -->
@@ -176,6 +182,6 @@
     <div class="dlg-actions"><button type="button" class="b" id="mdp-annuler">Plus tard</button><button type="submit" class="b b--vert" id="mdp-ok">Enregistrer</button></div>
   </form>
 </dialog>
-<script src="dashboard.js?v=3d3eb96f"></script>
+<script src="dashboard.js?v=275ec61a"></script>
 </body>
 </html>

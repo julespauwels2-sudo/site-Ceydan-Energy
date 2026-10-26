@@ -721,31 +721,83 @@
      TRAFIC
      ========================================================= */
   async function chargerTrafic() {
-    const jours = +$("#t-periode").value; const deb = new Date(Date.now() - jours * 864e5).toISOString();
+    // Les dates sont comptées à l'heure de la Guadeloupe (UTC-4, sans heure d'été)
+    const TZH = 4 * 3600e3, local = (d) => new Date(new Date(d).getTime() - TZH);
+    const jourL = (d) => local(d).toISOString().slice(0, 10);
+    const minuitUTC = (jour) => new Date(jour + "T04:00:00Z");
+    const auj = jourL(new Date()), p = $("#t-periode").value;
+    let deb, fin = new Date(minuitUTC(auj).getTime() + 864e5);
+    if (p === "j0") deb = minuitUTC(auj);
+    else if (p === "j1") { fin = minuitUTC(auj); deb = new Date(fin.getTime() - 864e5); }
+    else if (p === "mois") deb = minuitUTC(auj.slice(0, 8) + "01");
+    else if (p === "moisprec") { fin = minuitUTC(auj.slice(0, 8) + "01"); const d = local(new Date(fin.getTime() - 864e5)); deb = minuitUTC(d.toISOString().slice(0, 8) + "01"); }
+    else deb = new Date(fin.getTime() - +p * 864e5);
+    const duree = fin - deb, debPrec = new Date(deb.getTime() - duree);
     const [{ data: v }, { data: d }] = await Promise.all([
-      sb.from("visites").select("created_at, page, ref, source, session, mobile").gte("created_at", deb).order("created_at").limit(20000),
-      sb.from("demandes").select("created_at").gte("created_at", deb),
+      sb.from("visites").select("created_at, page, ref, source, session, mobile").gte("created_at", debPrec.toISOString()).lt("created_at", fin.toISOString()).order("created_at").limit(50000),
+      sb.from("demandes").select("created_at, utm, page").gte("created_at", debPrec.toISOString()).lt("created_at", fin.toISOString()),
     ]);
-    const vis = v || [], dem = d || [];
-    const sessions = new Set(vis.map((x) => x.session)).size;
-    const mob = vis.length ? Math.round((vis.filter((x) => x.mobile).length / vis.length) * 100) : 0;
-    $("#kpis-trafic").innerHTML = [["Pages vues", vis.length, ""], ["Visiteurs", sessions, "sessions uniques"], ["Demandes", dem.length, "reçues sur la période"], ["Transformation", sessions ? (Math.round((dem.length / sessions) * 1000) / 10).toLocaleString("fr-FR") + " %" : "—", "demandes / visiteurs", "vert"], ["Sur mobile", mob + " %", "des pages vues"]]
-      .map(([t, n, s, c]) => `<div class="kpi ${c ? "kpi--" + c : ""}"><span>${t}</span><b>${n}</b><small>${s}</small></div>`).join("");
-    // graphe
-    const parJour = {}; for (let i = jours - 1; i >= 0; i--) { const k = new Date(Date.now() - i * 864e5).toISOString().slice(0, 10); parJour[k] = { v: 0, d: 0 }; }
-    vis.forEach((x) => { const k = x.created_at.slice(0, 10); if (parJour[k]) parJour[k].v++; });
-    dem.forEach((x) => { const k = x.created_at.slice(0, 10); if (parJour[k]) parJour[k].d++; });
-    const ks = Object.keys(parJour), max = Math.max(1, ...ks.map((k) => parJour[k].v));
-    const W = 900, H = 220, bw = W / ks.length;
-    $("#graphe").innerHTML = `<svg viewBox="0 0 ${W} ${H + 24}" class="graphe" role="img" aria-label="Visites par jour">${ks.map((k, i) => { const h = (parJour[k].v / max) * H; return `<g><rect x="${i * bw + 2}" y="${H - h}" width="${Math.max(2, bw - 4)}" height="${h}" rx="3" class="barre"><title>${k} : ${parJour[k].v} vues, ${parJour[k].d} demandes</title></rect>${parJour[k].d ? `<circle cx="${i * bw + bw / 2}" cy="${H - h - 8}" r="4" class="point-dem"/>` : ""}</g>`; }).join("")}
-      <text x="0" y="${H + 18}" class="axe">${ks[0].slice(5).split("-").reverse().join("/")}</text><text x="${W}" y="${H + 18}" text-anchor="end" class="axe">${ks[ks.length - 1].slice(5).split("-").reverse().join("/")}</text></svg><p class="aide">Barres : pages vues. Points jaunes : jours avec au moins une demande.</p>`;
-    const top = (arr, n = 8) => Object.entries(arr.reduce((o, x) => ((o[x] = (o[x] || 0) + 1), o), {})).sort((a, b) => b[1] - a[1]).slice(0, n);
-    const noms = { "/": "Accueil", "/index": "Accueil", "/catalogue": "Catalogue", "/pack-cyclone": "Pack cyclone", "/pro": "Espace pro", "/installateurs": "Installateurs", "/contact": "Contact", "/qui-sommes-nous": "Qui sommes-nous", "/kits": "Kits solaires" };
-    const pages = top(vis.map((x) => noms[x.page] || x.page));
-    $("#top-pages").innerHTML = pages.map(([p, n]) => `<li><span>${esc(p)}</span><b>${n}</b></li>`).join("") || "<li class='vide'>Pas encore de données.</li>";
-    const srcs = top(vis.filter((x) => x.ref || x.source).map((x) => x.source ? "Campagne : " + x.source : x.ref.replace(/^www\./, "").replace(/^l\.facebook\.com|^m\.facebook\.com/, "facebook.com")));
-    const direct = vis.filter((x) => !x.ref && !x.source).length;
-    $("#top-sources").innerHTML = (direct ? `<li><span>Accès direct</span><b>${direct}</b></li>` : "") + srcs.map(([p, n]) => `<li><span>${esc(p)}</span><b>${n}</b></li>`).join("") || "<li class='vide'>Pas encore de données.</li>";
+    const dans = (x) => new Date(x.created_at) >= deb;
+    const visT = v || [], demT = d || [], vis = visT.filter(dans), visP = visT.filter((x) => !dans(x)), dem = demT.filter(dans), demP = demT.filter((x) => !dans(x));
+    // Sessions : pages vues dans l'ordre, pour les rebonds, les pages d'arrivée et les parcours
+    const sessionsDe = (l) => { const m = new Map(); l.forEach((x) => { if (!m.has(x.session)) m.set(x.session, []); m.get(x.session).push(x); }); return m; };
+    const S = sessionsDe(vis), SP = sessionsDe(visP);
+    const rebond = (m) => m.size ? Math.round([...m.values()].filter((l) => l.length === 1).length / m.size * 100) : 0;
+    const tend = (a, b) => b ? Math.round((a - b) / b * 100) : null;
+    const t = (a, b, inverse) => { const x = tend(a, b); if (x === null) return ""; const bon = inverse ? x <= 0 : x >= 0; return `<span class="tend ${bon ? "mont" : "desc"}">${x > 0 ? "↗ +" : x < 0 ? "↘ " : "= "}${x} %</span>`; };
+    const pct = (a, b) => b ? (Math.round(a / b * 1000) / 10).toLocaleString("fr-FR") + " %" : "—";
+    const mob = vis.length ? Math.round(vis.filter((x) => x.mobile).length / vis.length * 100) : 0;
+    $("#t-compare").textContent = `Du ${local(deb).toLocaleDateString("fr-FR")} au ${local(new Date(fin.getTime() - 1)).toLocaleDateString("fr-FR")}. Les flèches comparent à la période précédente de même durée.`;
+    $("#kpis-trafic").innerHTML = [
+      ["Visiteurs", S.size, "visites distinctes", t(S.size, SP.size)],
+      ["Pages vues", vis.length, `${S.size ? (Math.round(vis.length / S.size * 10) / 10).toLocaleString("fr-FR") : 0} page(s) par visite`, t(vis.length, visP.length)],
+      ["Rebond", rebond(S) + " %", "repartis après 1 seule page", t(rebond(S), rebond(SP), true)],
+      ["Demandes", dem.length, "devis, contacts, comptes pro…", t(dem.length, demP.length)],
+      ["Transformation", pct(dem.length, S.size), "demandes / visiteurs", t(S.size ? dem.length / S.size : 0, SP.size ? demP.length / SP.size : 0), "vert"],
+      ["Sur mobile", mob + " %", "des pages vues", ""],
+    ].map(([n, val, s2, tr, c]) => `<div class="kpi ${c ? "kpi--" + c : ""}"><span>${n}</span><b>${val}</b><small>${s2}</small>${tr}</div>`).join("");
+    // Graphe par jour (visiteurs + demandes)
+    const parJour = {}; for (let x = new Date(deb); x < fin; x = new Date(x.getTime() + 864e5)) parJour[jourL(x)] = { s: new Set(), d: 0 };
+    vis.forEach((x) => parJour[jourL(x.created_at)]?.s.add(x.session)); dem.forEach((x) => { const o = parJour[jourL(x.created_at)]; if (o) o.d++; });
+    const ks = Object.keys(parJour), max = Math.max(1, ...ks.map((k) => parJour[k].s.size)), W = 900, H = 200, bw = W / Math.max(1, ks.length);
+    const fmt = (k) => k.slice(5).split("-").reverse().join("/");
+    $("#graphe").innerHTML = ks.length <= 1 ? `<p class="aide">Sur une seule journée : ${S.size} visiteur(s), ${dem.length} demande(s). Regardez le détail par heure ci-dessous.</p>` :
+      `<svg viewBox="0 0 ${W} ${H + 26}" class="graphe" role="img" aria-label="Visiteurs par jour">${[.25, .5, .75, 1].map((f) => `<line x1="0" x2="${W}" y1="${H - f * H}" y2="${H - f * H}" stroke="#e3ebe4"/><text x="2" y="${H - f * H - 3}" class="axe">${Math.round(f * max)}</text>`).join("")}
+      ${ks.map((k, i) => { const n = parJour[k].s.size, h = n / max * H; return `<g><rect x="${i * bw + 2}" y="${H - h}" width="${Math.max(2, bw - 4)}" height="${h}" rx="3" class="barre"><title>${fmt(k)} : ${n} visiteur(s), ${parJour[k].d} demande(s)</title></rect>${parJour[k].d ? `<circle cx="${i * bw + bw / 2}" cy="${H - h - 9}" r="5" class="point-dem"><title>${parJour[k].d} demande(s)</title></circle>` : ""}</g>`; }).join("")}
+      <text x="0" y="${H + 20}" class="axe">${fmt(ks[0])}</text><text x="${W}" y="${H + 20}" text-anchor="end" class="axe">${fmt(ks[ks.length - 1])}</text></svg><p class="aide">Barres : visiteurs par jour (survolez une barre pour le détail). Points jaunes : jours avec des demandes.</p>`;
+    // Canaux d'arrivée (par visite, d'après la 1re page)
+    const canal = (x) => { const r = (x.ref || "").toLowerCase();
+      if (x.source) return "Campagnes (liens suivis)"; if (!r) return "Accès direct (lien tapé, favori, appli)";
+      if (/google|bing|yahoo|duckduckgo|qwant|ecosia/.test(r)) return "Moteurs de recherche (Google…)";
+      if (/facebook|instagram|tiktok|linkedin|youtube|t\.co|twitter|x\.com|whatsapp|snapchat|pinterest/.test(r)) return "Réseaux sociaux";
+      return "Autres sites (liens)"; };
+    const entrees = [...S.values()].map((l) => l[0]);
+    const barres = (sel, paires, total) => { $(sel).innerHTML = paires.map(([n, val]) => `<li><i style="width:${total ? Math.round(val / total * 100) : 0}%"></i><span>${esc(n)}</span><b>${val} · ${pct(val, total)}</b></li>`).join("") || "<li class='vide'>Pas encore de données.</li>"; };
+    const compte = (arr) => Object.entries(arr.reduce((o, x) => ((o[x] = (o[x] || 0) + 1), o), {})).sort((a, b) => b[1] - a[1]);
+    barres("#t-canaux", compte(entrees.map(canal)), entrees.length);
+    const detail = compte(entrees.filter((x) => x.ref || x.source).map((x) => x.source ? "Campagne : " + x.source : x.ref.replace(/^www\.|^m\.|^l\.|^lm\./, ""))).slice(0, 10);
+    $("#top-sources").innerHTML = detail.map(([n, val]) => `<li><span>${esc(n)}</span><b>${val}</b></li>`).join("") || "<li class='vide'>Aucun site ni campagne sur la période.</li>";
+    barres("#t-appareils", compte(entrees.map((x) => x.mobile ? "Téléphone" : "Ordinateur ou tablette")), entrees.length);
+    // Heures et jours de la semaine (heure locale)
+    const heures = Array(24).fill(0), jours = Array(7).fill(0);
+    entrees.forEach((x) => { const l = local(x.created_at); heures[l.getUTCHours()]++; jours[(l.getUTCDay() + 6) % 7]++; });
+    const mini = (sel, vals, lab) => { const m = Math.max(1, ...vals); $(sel).innerHTML = `<div class="mini-barres">${vals.map((n, i) => `<div title="${lab(i)} : ${n} visite(s)"><i style="height:${Math.round(n / m * 100)}%"></i><small>${i % (vals.length > 7 ? 3 : 1) === 0 ? lab(i) : ""}</small></div>`).join("")}</div>`; };
+    mini("#t-heures", heures, (i) => i + "h"); mini("#t-jours", jours, (i) => ["lun", "mar", "mer", "jeu", "ven", "sam", "dim"][i]);
+    // Pages vues / visiteurs, pages d'arrivée / rebond
+    const noms = { "/": "Accueil", "/index": "Accueil", "/catalogue": "Catalogue", "/produit": "Fiche produit", "/pack-cyclone": "Pack cyclone", "/pro": "Espace pro", "/installateurs": "Installateurs", "/contact": "Contact", "/qui-sommes-nous": "Qui sommes-nous", "/kits": "Kits solaires", "/sav": "SAV (QR code)", "/accepter": "Acceptation de devis" };
+    const nomProduit = (id) => { const p = (D.produits || []).find((x) => x.id === id); return p ? [p.marque, p.nom].filter(Boolean).join(" ") : id; };
+    const nom = (pg) => noms[pg] || (pg && pg.startsWith("/produit?id=") ? "Fiche : " + nomProduit(decodeURIComponent(pg.slice(12))) : pg);
+    const parPage = {}; vis.forEach((x) => { const o = parPage[nom(x.page)] ||= { v: 0, s: new Set() }; o.v++; o.s.add(x.session); });
+    $("#top-pages").innerHTML = Object.entries(parPage).sort((a, b) => b[1].v - a[1].v).slice(0, 12).map(([n, o]) => `<tr><td>${esc(n)}</td><td>${o.v}</td><td>${o.s.size}</td></tr>`).join("") || `<tr><td colspan="3" class="vide">Pas encore de données.</td></tr>`;
+    const parEntree = {}; [...S.values()].forEach((l) => { const o = parEntree[nom(l[0].page)] ||= { n: 0, r: 0 }; o.n++; if (l.length === 1) o.r++; });
+    $("#t-entrees").innerHTML = Object.entries(parEntree).sort((a, b) => b[1].n - a[1].n).slice(0, 10).map(([n, o]) => `<tr><td>${esc(n)}</td><td>${o.n}</td><td>${Math.round(o.r / o.n * 100)} %</td></tr>`).join("") || `<tr><td colspan="3" class="vide">Pas encore de données.</td></tr>`;
+    // Derniers parcours (une demande dans les 2 h qui suivent la visite = visite convertie)
+    const derniers = [...S.values()].sort((a, b) => new Date(b[0].created_at) - new Date(a[0].created_at)).slice(0, 15);
+    $("#t-parcours").innerHTML = derniers.map((l) => { const d0 = new Date(l[0].created_at), d1 = new Date(l[l.length - 1].created_at);
+      const conv = dem.some((x) => new Date(x.created_at) >= d0 && new Date(x.created_at) <= new Date(d1.getTime() + 2 * 3600e3));
+      const min = Math.round((d1 - d0) / 60000);
+      return `<li class="${conv ? "conv" : ""}"><span class="q">${conv ? "★ " : ""}${local(d0).toLocaleString("fr-FR", { timeZone: "UTC", weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })} · ${esc(canal(l[0]))}${l[0].ref ? " (" + esc(l[0].ref.replace(/^www\./, "")) + ")" : ""} · ${l[0].mobile ? "téléphone" : "ordinateur"} · ${l.length} page(s)${min ? ", " + min + " min" : ""}</span>
+        <span class="ch">${l.slice(0, 12).map((x) => `<span>${esc(nom(x.page))}</span>`).join("<em>›</em>")}${l.length > 12 ? "<em>…</em>" : ""}</span></li>`; }).join("") || "<li class='vide'>Pas encore de visites sur la période.</li>";
   }
   $("#t-periode").addEventListener("change", chargerTrafic);
 

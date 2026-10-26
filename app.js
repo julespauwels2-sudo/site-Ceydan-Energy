@@ -723,7 +723,7 @@
       let ref = ""; try { ref = document.referrer ? new URL(document.referrer).hostname : ""; } catch (e) {}
       if (ref === location.hostname) ref = "";
       fetch(SB.url + "/rest/v1/visites", { method: "POST", keepalive: true, headers: { ...enTetesSB(), "Content-Type": "application/json", Prefer: "return=minimal" },
-        body: JSON.stringify({ page: (location.pathname.replace(/\.html$/, "") || "/").slice(0, 200), ref: ref.slice(0, 300), source: (utm().utm_source || "").slice(0, 100), session: sid.slice(0, 64), mobile: innerWidth < 768 }) }).catch(() => {});
+        body: JSON.stringify({ page: ((location.pathname.replace(/\.html$/, "") || "/") + (/\/produit$/.test(location.pathname.replace(/\.html$/, "")) && new URLSearchParams(location.search).get("id") ? "?id=" + new URLSearchParams(location.search).get("id") : "")).slice(0, 200), ref: ref.slice(0, 300), source: (utm().utm_source || "").slice(0, 100), session: sid.slice(0, 64), mobile: innerWidth < 768 }) }).catch(() => {});
     } catch (e) {}
   }
   // Raccourci SIRET (bandeau pro de l'accueil) -> pré-remplit pro.html
