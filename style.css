@@ -411,6 +411,12 @@ p{margin:0 0 1em}
 .quiz__resultat{display:grid;gap:16px}
 .quiz__reco{border-radius:var(--r-l);background:var(--fond);padding:20px;display:grid;gap:6px}
 .quiz__reco b{font-size:1.15rem}
+/* Résultat du questionnaire : rien ne dépasse sur téléphone */
+.quiz__etape,.quiz__resultat{grid-template-columns:minmax(0,1fr)}
+.quiz__resultat>*,.quiz__etape>*{min-width:0}
+.quiz__resultat .lead,.quiz__reco span{overflow-wrap:anywhere}
+.quiz__resultat .quiz__nav{flex-wrap:wrap}
+.quiz__resultat .quiz__nav .btn{flex:1 1 200px;justify-content:center;text-align:center}
 
 /* ---------- Devis grand écran ---------- */
 .tiroir{position:fixed;inset:0;z-index:90;display:none;padding:24px}
@@ -1905,6 +1911,3 @@ img[src*="/produits/fabricant/victron/"]{mix-blend-mode:normal!important;filter:
 
 /* Toutes les photos produits à la même échelle : même marge pour toutes les sources */
 .produit__img>img{inset:9%!important;width:82%!important;height:82%!important}
-
-/* Tarifs pro légèrement floutés quand la fenêtre perd le focus */
-.mode-pro.prix-flous .prix{filter:blur(4px);transition:filter .1s}
