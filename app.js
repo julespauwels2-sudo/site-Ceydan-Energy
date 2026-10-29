@@ -62,9 +62,19 @@
       sbClient = window.supabase.createClient(SB.url, SB.anonKey);
       const { data: { session } } = await sbClient.auth.getSession();
       if (!session) { store.set("cedyan_pro", null); return; }
-      const { data: comptes } = await sbClient.from("comptes_pro").select("statut, entreprise, siren, created_at").order("created_at", { ascending: false }).limit(1);
+      // Toujours filtrer sur l'e-mail de la personne connectée : un membre de l'équipe a le droit de lire
+      // toutes les demandes, et sans ce filtre il « devenait » le dernier client inscrit.
+      const monEmail = String(session.user.email || "").toLowerCase();
+      const { data: equipe } = await sbClient.from("staff").select("email").eq("email", monEmail).limit(1);
+      if (equipe && equipe.length) {
+        window.cedyanCompte = { statut: "equipe", email: monEmail };
+        const { data: tar } = await sbClient.from("tarifs").select("produit_id, prix");
+        store.set("cedyan_pro", { nom: "Équipe Cedyan (aperçu)", email: monEmail, tarifs: Object.fromEntries((tar || []).map((x) => [x.produit_id, +x.prix])), date: Date.now() });
+        return;
+      }
+      const { data: comptes } = await sbClient.from("comptes_pro").select("statut, entreprise, siren, created_at").eq("email", monEmail).order("created_at", { ascending: false }).limit(1);
       const c = (comptes || [])[0] || null;
-      window.cedyanCompte = c ? { ...c, email: session.user.email } : { statut: "aucun", email: session.user.email };
+      window.cedyanCompte = c ? { ...c, email: monEmail } : { statut: "aucun", email: monEmail };
       if (c && c.statut === "valide") {
         const { data: tar } = await sbClient.from("tarifs").select("produit_id, prix");
         store.set("cedyan_pro", { nom: c.entreprise || session.user.email, email: session.user.email, tarifs: Object.fromEntries((tar || []).map((x) => [x.produit_id, +x.prix])), date: Date.now() });
@@ -112,7 +122,21 @@
     $$("[data-si-part]").forEach((e) => (e.hidden = voitPrix()));
     $$("[data-pro-nom]").forEach((e) => (e.textContent = pro() ? pro().nom : ""));
     $$("[data-pro-libelle]").forEach((e) => (e.textContent = pro() ? "Mon espace pro" : "Débloquer mes tarifs pro"));
+    protegerTarifs();
     document.dispatchEvent(new CustomEvent("profil"));
+  }
+
+  /* ---------- Tarifs pro : légèrement floutés quand la fenêtre perd le focus (outil de capture) ---------- */
+  function protegerTarifs() {
+    const p = pro();
+    document.body.classList.toggle("mode-pro", !!p);
+    if (!protegerTarifs.pret) {
+      protegerTarifs.pret = true;
+      const flou = (on) => document.body.classList.toggle("prix-flous", on && !!pro());
+      addEventListener("blur", () => flou(true));
+      addEventListener("focus", () => flou(false));
+      document.addEventListener("visibilitychange", () => flou(document.visibilityState !== "visible"));
+    }
   }
   const profil = () => (pro() ? "pro" : "particulier");
 
@@ -645,7 +669,8 @@
     const sortieCo = $("#connexion-etat");
     const dire = (cls, txt) => { sortieCo.className = "verif " + cls; sortieCo.textContent = txt; };
     const cpt = window.cedyanCompte;
-    if (cpt && cpt.statut === "en_attente") dire("is-wait", "Connecté avec " + cpt.email + ". Votre compte est en cours de validation : vous recevrez un e-mail dès qu'il sera validé.");
+    if (cpt && cpt.statut === "equipe") dire("is-ok", "Connecté avec " + cpt.email + " (équipe Cedyan) : vous voyez les tarifs pro en aperçu.");
+    else if (cpt && cpt.statut === "en_attente") dire("is-wait", "Connecté avec " + cpt.email + ". Votre compte est en cours de validation : vous recevrez un e-mail dès qu'il sera validé.");
     else if (cpt && cpt.statut === "refuse") dire("is-ko", "Votre demande n'a pas pu être validée. Appelez-nous au " + C.telephone + ".");
     else if (cpt && cpt.statut === "aucun") dire("is-wait", "Connecté avec " + cpt.email + ", mais aucune demande de compte pro n'est liée à cette adresse. Remplissez le formulaire ci-dessous.");
     fCo.addEventListener("submit", async (e) => {
@@ -678,17 +703,18 @@
     const boite = $("#mdp-pro"), sortieMdp = $("#mdp-pro-etat");
     const dire = (cls, txt) => { sortieMdp.className = "verif " + cls; sortieMdp.textContent = txt; };
     $$("[data-pro-mdp]").forEach((b) => b.addEventListener("click", () => { boite.hidden = !boite.hidden; if (!boite.hidden) $("#pro-mdp1").focus(); }));
+    try { if (/[?&]bienvenue=1/.test(location.search)) { localStorage.setItem("cedyan_definir_mdp", "1"); history.replaceState(null, "", location.pathname + location.hash); } } catch (x) {}
     try { if (window.cedyanCompte && (localStorage.getItem("cedyan_definir_mdp") === "1" || VIA_LIEN)) { localStorage.removeItem("cedyan_definir_mdp"); boite.hidden = false; dire("is-wait", "Choisissez votre mot de passe : la prochaine fois, plus besoin de lien."); } } catch (x) {}
     fMdp.addEventListener("submit", async (e) => {
       e.preventDefault(); const a = $("#pro-mdp1").value, b = $("#pro-mdp2").value;
-      if (a.length < 8) return dire("is-ko", "Au moins 8 caractères.");
+      if (a.length < 12 || !/[a-z]/.test(a) || !/[A-Z]/.test(a) || !/\d/.test(a) || !/[^A-Za-z0-9]/.test(a)) return dire("is-ko", "Au moins 12 caractères, avec une minuscule, une majuscule, un chiffre et un symbole.");
       if (a !== b) return dire("is-ko", "Les deux mots de passe ne sont pas identiques.");
       try {
         const sb = await clientSb();
         const { error } = await sb.auth.updateUser({ password: a });
         if (error) throw error;
         fMdp.reset(); dire("is-ok", "Mot de passe enregistré. La prochaine fois, connectez-vous avec votre e-mail et ce mot de passe.");
-      } catch (er) { dire("is-ko", /reauth|nonce|recent/i.test((er && er.message) || "") ? "Par sécurité, déconnectez-vous, reconnectez-vous avec un lien e-mail, puis recommencez." : "Enregistrement impossible pour le moment. Réessayez dans quelques minutes."); }
+      } catch (er) { const m = (er && er.message) || ""; dire("is-ko", /reauth|nonce|recent/i.test(m) ? "Par sécurité, déconnectez-vous, reconnectez-vous avec un lien e-mail, puis recommencez." : /weak|pwned|leak|characters|length/i.test(m) ? "Mot de passe trop faible : au moins 12 caractères, avec une minuscule, une majuscule, un chiffre et un symbole." : "Enregistrement impossible pour le moment. Réessayez dans quelques minutes."); }
     });
   }
 

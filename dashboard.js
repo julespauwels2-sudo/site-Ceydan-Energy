@@ -86,7 +86,7 @@
   $("#mdp-annuler").addEventListener("click", () => dlgMdp.close());
   $("#form-mdp").addEventListener("submit", async (e) => {
     e.preventDefault(); const a = $("#mdp1").value, b = $("#mdp2").value, msg = $("#mdp-msg");
-    if (a.length < 8) { msg.textContent = "Au moins 8 caractères."; return; }
+    if (a.length < 12 || !/[a-z]/.test(a) || !/[A-Z]/.test(a) || !/\d/.test(a) || !/[^A-Za-z0-9]/.test(a)) { msg.textContent = "Au moins 12 caractères, avec une minuscule, une majuscule, un chiffre et un symbole."; return; }
     if (a !== b) { msg.textContent = "Les deux mots de passe ne sont pas identiques."; return; }
     $("#mdp-ok").disabled = true; msg.textContent = "Enregistrement…";
     const { error } = await sb.auth.updateUser({ password: a });
@@ -282,7 +282,7 @@
       <td><span class="pastille ${ok ? "pastille--ok" : "pastille--att"}" title="${ok ? "Active au registre national" : "Registre non vérifié"}${v.naf ? " · NAF " + esc(v.naf) : ""}">${ok ? "✓ Active" : "⚠ À contrôler"}</span></td>
       <td title="${date(p.created_at)}">${depuis(p.created_at)}</td>
       <td><span class="statut statut--${p.statut}">${{ en_attente: "À valider", valide: "Validé", refuse: "Refusé" }[p.statut]}</span></td>
-      <td class="pro-actions">${p.kbis_path ? `<button class="b b--petit" data-kbis="${p.id}">Kbis</button>` : '<span class="sous" title="Pas de Kbis joint">Sans Kbis</span>'}${p.statut !== "valide" ? `<button class="b b--petit b--vert" data-decision="valide" data-id="${p.id}">Valider</button>` : ""}${p.statut !== "refuse" ? `<button class="b b--petit b--danger" data-decision="refuse" data-id="${p.id}" title="Refuser">${p.statut === "valide" ? "Révoquer" : "Refuser"}</button>` : ""}${moi.role === "patron" ? `<button class="b b--petit" data-suppr-pro="${p.id}" title="Effacer définitivement ce compte, son Kbis et sa demande (droit à l'effacement)">🗑</button>` : ""}</td></tr>`; }).join("")}</tbody></table></div>`
+      <td class="pro-actions">${p.kbis_path ? `<button class="b b--petit" data-kbis="${p.id}">Kbis</button>` : '<span class="sous" title="Pas de Kbis joint">Sans Kbis</span>'}${p.statut === "valide" ? `<button class="b b--petit" data-renvoyer="${p.id}" title="Renvoie au client un e-mail pour accéder à son espace et choisir son mot de passe">Renvoyer l'accès</button>` : ""}${p.statut !== "valide" ? `<button class="b b--petit b--vert" data-decision="valide" data-id="${p.id}">Valider</button>` : ""}${p.statut !== "refuse" ? `<button class="b b--petit b--danger" data-decision="refuse" data-id="${p.id}" title="Refuser">${p.statut === "valide" ? "Révoquer" : "Refuser"}</button>` : ""}${moi.role === "patron" ? `<button class="b b--petit" data-suppr-pro="${p.id}" title="Effacer définitivement ce compte, son Kbis et sa demande (droit à l'effacement)">🗑</button>` : ""}</td></tr>`; }).join("")}</tbody></table></div>`
       : `<p class="vide">${q ? "Aucun compte ne correspond." : filtrePros === "en_attente" ? "Aucun compte à valider. Tout est à jour." : "Aucun compte pro pour le moment."}</p>`;
   }
   $("#pros-onglets").addEventListener("click", (e) => { const b = e.target.closest("[data-fp]"); if (!b) return; filtrePros = b.dataset.fp; rendrePros(); });
@@ -296,6 +296,8 @@
       try { await appelEquipe({ action: "supprimer_pro", id: sp.dataset.supprPro }); toast("Compte effacé"); await Promise.all([chargerPros(), chargerDemandes()]); } catch (er) { toast(er.message); }
       return;
     }
+    const rv = e.target.closest("[data-renvoyer]");
+    if (rv) { rv.disabled = true; try { const j = await appelEquipe({ action: "renvoyer_acces", id: rv.dataset.renvoyer }); toast(j.email && j.email.ok ? "E-mail d'accès renvoyé au client" : "E-mail non envoyé : vérifier Resend"); } catch (er) { toast("Erreur : " + er.message); } rv.disabled = false; return; }
     const b = e.target.closest("[data-decision]"); if (!b) return;
     const valide = b.dataset.decision === "valide";
     if (!confirm(valide ? "Valider ce compte ? Le pro recevra un e-mail et verra ses tarifs." : "Refuser ce compte ? Le pro recevra un e-mail et ne verra plus les tarifs.")) return;

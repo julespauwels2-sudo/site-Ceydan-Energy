@@ -1,0 +1,14 @@
+CEDYAN ENERGY - VERSION DU SITE
+29 octobre 2026 (base : GitHub main du 29/10, identique au site en ligne)
+
+Corrections de cette version :
+- Espace pro : la personne connectée n'est plus confondue avec le dernier client inscrit
+  (« Connecté en tant que SO WATT »). L'équipe Cedyan est reconnue comme telle.
+- Espace pro : le texte tapé dans les cases de connexion est de nouveau visible.
+- Mots de passe : 12 caractères minimum avec complexité (aligné sur Supabase).
+- Tarifs pro : légèrement floutés quand la fenêtre perd le focus.
+- Dashboard : bouton « Renvoyer l'accès » sur les comptes pro validés.
+- Mentions légales et confidentialité : plus de référence à la vente en ligne,
+  lien vers les anciennes CGV de la boutique retiré.
+
+À envoyer sur GitHub en cochant « Commit directly to the main branch ».
